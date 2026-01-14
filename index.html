@@ -2,263 +2,1578 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Raxmonov Pro - Dinshunoslik 285</title>
-    <!-- Telegram Web App Script -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assyst Fizika - Barcha Savollar</title>
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #020617; 
-            color: #f1f5f9; 
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --primary: #2196F3;
+            --bg: #F0F2F5;
+            --card: #FFFFFF;
+            --success: #4CAF50;
+            --error: #F44336;
         }
-        .glass { 
-            background: rgba(15, 23, 42, 0.7); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-        }
-        .premium-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.8));
-            border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .hidden { display: none; }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 550px; width: 100%; }
+        .app-header { background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .quiz-card { background: var(--card); padding: 25px; border-radius: 0 0 15px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .question-box { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; color: #333; line-height: 1.4; }
+        .option-item { padding: 15px; border: 2px solid #EEE; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 12px; font-size: 0.95rem; }
+        .option-item:hover { border-color: var(--primary); background: #f8f9fa; }
+        .correct { background: #E8F5E9 !important; border-color: var(--success) !important; color: #2E7D32; font-weight: bold; }
+        .wrong { background: #FFEBEE !important; border-color: var(--error) !important; color: #C62828; }
+        .btn-next { width: 100%; margin-top: 15px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; display: none; font-weight: bold; font-size: 1rem; }
+        #result-screen { display: none; text-align: center; }
+        #raw-data { display: none; }
+        .progress-bar { font-size: 0.85rem; margin-top: 5px; opacity: 0.9; }
     </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <!-- 1. Aktivatsiya Ekran (Lock Screen) -->
-    <div id="activation-screen" class="p-6 flex flex-col items-center justify-center min-h-screen text-center space-y-8 animate-fade-in">
-        <div class="w-24 h-24 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-500/30">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-        </div>
-        
-        <div>
-            <h1 class="text-4xl font-extrabold italic tracking-tighter mb-2">RAXMONOV <span class="text-indigo-500">PRO</span></h1>
-            <p class="text-slate-400 text-sm">Dinshunoslik fanidan 285 ta maxsus savol-javoblar</p>
-        </div>
-
-        <div class="glass w-full max-w-sm p-6 rounded-[2.5rem] space-y-4">
-            <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">To'lov ma'lumotlari</p>
-            <div class="flex justify-between items-center bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-                <span class="font-mono text-lg tracking-wider font-bold" id="card-number">4073 4200 6816 5541</span>
-            </div>
-            <div class="flex justify-between text-xs text-slate-400 italic px-2">
-                <span>Raxmonov Ma'ruf</span>
-                <span>150 000 UZS</span>
-            </div>
-        </div>
-
-        <div class="w-full max-w-sm space-y-4">
-            <button onclick="window.open('https://t.me/Raxmonov_Maruf')" class="w-full bg-indigo-600 p-5 rounded-2xl font-bold text-lg hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">
-                TO'LOV QILDIM
-            </button>
-            <div class="relative py-2">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-800"></div></div>
-                <div class="relative flex justify-center text-[10px] uppercase font-bold text-slate-600 bg-slate-950 px-4 tracking-widest">Aktivatsiya kodi</div>
-            </div>
-            <input type="text" id="key-input" placeholder="Kodni kiriting..." class="w-full bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center font-mono outline-none focus:border-indigo-500 transition-all text-white">
-            <button onclick="verifyActivation()" class="w-full text-slate-500 font-bold py-2 uppercase text-[10px] tracking-[0.3em] hover:text-white transition-colors">
-                TEKSHIRISH
-            </button>
-        </div>
+<div class="container">
+    <div class="app-header">
+        <h2 id="main-title">Fizika Testi</h2>
+        <div class="progress-bar" id="progress">Yuklanmoqda...</div>
     </div>
 
-    <!-- 2. Asosiy Menyu -->
-    <div id="main-menu" class="hidden p-6 animate-fade-in">
-        <header class="flex justify-between items-center mb-10 pt-4">
-            <div>
-                <h2 class="text-2xl font-black italic tracking-tighter">RAXMONOV <span class="text-indigo-500">PRO</span></h2>
-                <p id="user-name" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Foydalanuvchi</p>
-            </div>
-            <div class="w-12 h-12 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            </div>
-        </header>
-
-        <div class="grid gap-6">
-            <div onclick="openLearning()" class="premium-card p-8 rounded-[3rem] flex items-center gap-6 active:scale-95 transition-all cursor-pointer shadow-2xl border-l-8 border-indigo-600">
-                <div class="w-16 h-16 bg-indigo-600/10 rounded-2xl flex items-center justify-center text-indigo-400">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold">O'rganish</h3>
-                    <p class="text-xs text-slate-500 font-medium italic">285 ta savol-javob rejimi</p>
-                </div>
-            </div>
-
-            <div class="opacity-50 premium-card p-8 rounded-[3rem] flex items-center gap-6 grayscale">
-                <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-600">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold">Imtihon</h3>
-                    <p class="text-xs text-slate-500 italic">Tez kunda qo'shiladi...</p>
-                </div>
-            </div>
+    <div class="quiz-card">
+        <div id="test-area">
+            <div class="question-box" id="question"></div>
+            <div id="options"></div>
+            <button class="btn-next" id="next-btn" onclick="nextQuestion()">Keyingi savol</button>
         </div>
-        
-        <footer class="mt-20 text-center">
-            <p class="text-[10px] uppercase font-bold tracking-[0.4em] text-slate-700">Versiya 2.0 Premium</p>
-        </footer>
-    </div>
 
-    <!-- 3. Savol-Javob Ekran -->
-    <div id="learning-screen" class="hidden p-6 flex flex-col min-h-screen animate-fade-in">
-        <header class="flex items-center justify-between mb-8 pt-4">
-            <button onclick="backToMenu()" class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-slate-400 active:scale-90 transition-all">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
-            <div class="px-4 py-2 bg-indigo-600/10 border border-indigo-500/20 rounded-full">
-                <span id="progress-text" class="text-indigo-400 font-bold text-xs tracking-widest">1 / 285</span>
-            </div>
-            <div class="w-10 h-10"></div> <!-- Spacer -->
-        </header>
-
-        <div class="flex-1 flex flex-col justify-center space-y-10">
-            <div class="glass p-10 rounded-[3.5rem] text-center border-t-8 border-indigo-600 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-5">
-                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
-                </div>
-                <h2 id="question-area" class="text-2xl font-bold leading-snug mb-4 min-h-[120px] flex items-center justify-center">Savol yuklanmoqda...</h2>
-                <div id="answer-area" class="hidden animate-fade-in mt-6 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl text-emerald-400 font-extrabold text-xl">
-                    Javob
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <button onclick="showAnswer()" id="btn-show" class="w-full text-slate-500 font-bold py-2 uppercase text-[10px] tracking-[0.3em] active:text-white transition-all">
-                    Javobni ko'rish
-                </button>
-                <div class="flex gap-4">
-                    <button onclick="prevQ()" class="flex-1 bg-slate-900 border border-slate-800 p-6 rounded-[2rem] font-bold active:scale-95 transition-all text-slate-300">
-                        ORQAGA
-                    </button>
-                    <button onclick="nextQ()" class="flex-1 bg-indigo-600 p-6 rounded-[2rem] font-bold active:scale-95 transition-all shadow-xl shadow-indigo-600/30">
-                        KEYINGISI
-                    </button>
-                </div>
-            </div>
+        <div id="result-screen">
+            <h3>Natijangiz</h3>
+            <h1 id="score-text" style="color:var(--primary); font-size: 3rem;">0 / 0</h1>
+            <p id="feedback-msg"></p>
+            <button onclick="location.reload()" style="background:var(--primary); color:white; border:none; padding:15px 30px; border-radius:10px; cursor:pointer; font-weight:bold;">Qaytadan boshlash</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Telegram WebApp init
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
+<div id="raw-data">
+Fizika fani nimalarni o`rgatadi?
++jonsiz tabiatdagi barcha jarayonlarni o`rganadigan fan
+faqatgina jismning harakatini
+kimyoviy reaksiyalarni fizik xossalarini
+faqatgina termodinamika qonunlarini
 
-        let currentIdx = 0;
+Fizika fani nechta bo`limdan iborat?
++6 ta
+4 ta
+3 ta
+8 ta
+
+Fizika fanining bo`limlari qaysi javobda to`liq ko`rsatilgan?
++mexanika,molekulyar fizika,elektr va magnetizm,optika, atom fizikasi va yadro fizikasi
+mexanika, optika, atom fizikasi
+kinematika, dinamika va statika
+atom va yadro fizikasi
+
+Bivosita o`lchov birliklari qaysi javobda to`g`ri ko`rsatilgan?
++m, kg, s
+n va j
+metr taqsim sekund kvadrat
+metr taqsim sekund kub,joul taqsim sekund
+
+Bilvosita o`lchov birliklari qaysi qatorda to`g`ri ko`rsatilgan?
++n, j, metr taqsim sekund kvadrat
+metr taqsim sekund kub, joul taqsim sekund va kg, m
+sekund,metr taqsim sekund
+kg va metr taqsim sekund
+
+Bir jismning vaqt o`tishi bilan boshqa jismga nisbatan trayektoriyasining o`zgarishiga nima deb ataladi?
++mexanik harakat
+jismning tezligi
+bosib o`tilgan yo`l
+jismning tezlanishi
+
+Yer va bulut qanday zaryadga ega?
++yer manfiy, bulut musbat
+yer ham, bulut ham manfiy
+yer ham, bulut ham musbat
+yer musbat, bulut manfiy
+
+Zaryadlar qanday o`zaro ta`sirlashadi?
++bir xil ishorali zaryadlar itarishadi, har xil ishorali zaryadlar tortishadi
+musbat zaryadlar itariladi, manfiy zaryadlar tortiladi
+hamma zaryadlar tortiladi
+musbat zaryadlar tortiladi, manfiy zaryadlar itariladi
+
+Xalqaro birliklar sistemasida tok kuchi qanday birlikda o`lchanadi?
++Amper
+Sekund
+Joul
+Kulon
+
+O`tkazgichda elektr tokini uzoq vaqt saqlash uchun nima kerak?
++Tok manbai
+Magnit maydon
+Elektr maydon
+Elektr zanjir
+
+Elektr toki deb nimaga aytiladi.
++Zaryadlangan zarraning tartibli harakatiga
+Manfiy zaryadlarning harakatiga
+Musbat zaryadlarning harakatiga
+Zaryadlangan zarraning tartibsiz harakatiga
+
+Metall o`tkazgichlarda elektr toki qanday vujudga keladi?
++Elektr maydoni ta`sirida erkin elektronlarning tartibli harakati tufayli
+Elektronlarning harakati tufayli
+Ionlarning harakati tufayli
+Protonlarning harakati tufayli
+
+10kA necha amperga teng.
++10000A
+1000 A
+100A
+10A
+
+O`tkazgichlarning qarshiligi nimaga bog`liq ?
++O`tkazgichning uzunligiga to`g`ri proporsional, kesim yuziga teskari proporsional hamda materialiga bog`liq
+O`tkazgichning uzunligiga to`g`ri proporsional
+O`tkazgichning kesim yuziga teskari proporsional
+O`tkazgichning qalinligiga to`g`ri proporsional, kesim yuziga teskari proporsional
+
+Quyidagi metallardan qaysi biri eng yaxshi o`tkazgich hisoblanadi?
++kumush
+Mis
+Bronza
+Po`lat
+
+Nima uchun benzin tashiydigan mashinalarning zanjiri yerga tegib turadi ?
++Suyuqlik qatlamlari ishqalanganda hosil bo`lgan zaryadlar yerga o`tib ketishi uchun
+Suyuqlik ishqalanganda zaryadlar hosil qilish uchun.
+Suyuqlik ichqalanganda uchqun chiqaradi 
+Zaryadlar hosil bo`lishi uchun
+
+Quyidagi zarralardan qaysi biri manfiy zaryadga ega ?
++elektron
+neytron
+proton
+yadro
+
+10 megavatt necha vattga teng ?
++10000000 W
+10W
+10000W
+100W
+
+Xalqaro birliklar sistemasida ish birligi sifatida nima qabul qilingan ?
++J
+N
+A
+V
+
+I=q/t formuladan qanday fizik kattalik anqlanadi ?
++Tok kuchi
+Kuchlanish
+Qarshilik
+Ish
+
+Qaysi elektr kattaliklar parallel ulangan o`tgazgichlarning barchasida bir xil bo`ladi ?
++1 (Kuchlanish)
+2; 3;
+1; 2;
+1; 3;
+
+Quyidagi fizik kattaliklardan qaysilari skalyar kattaliklardir.
++1 (O`tgan yo`l)
+2,3
+1,5
+2,3,4
+
+Havosi so`rib olingan trubkada po`kak, yogoch bo`lakchasi va qush pati bor. Shu jismlarning qaysi biri katta tezlanish bilan tushadi?.
++hammasi bir xil tezlanish bilan.
+po`kak.
+qush pati
+yog`och bo`lakchasi
+
+Erkin tushush tezlanish vektorining yo`nalishini ko`rsating 
++vertikal pastga
+vertikal
+gorizontal
+ushbu kattalik skalyar kattaligi
+
+Tezlanish bilan yuqoriga harakat qilgan jismning og`irligi nimaga teng ?
++P=m(g+a)
+P=m(g- a)
+P=ga
+tjy
+
+Trayektoriya uzunligi jismning. deb ataladi?
++o`tgan yo`li
+ko`chish
+mexanik harakat
+kordinatasi
+
+Erkin tushish tezlanishi nimaga teng?
++9,8m/s2
+980m/s2
+98m/s2
+0.98m/s2
+
+Kuch birligini ko`rsating.
++1 (N)
+2
+4
+3
+
+Agar har qanday jism istalgan bir xil vaqt oralig`ida bir xil yo`lni bosib o`tsa, u holda uning harakati.. deyiladi
++tekis harakat
+notekis harakat
+aylana harakat
+ilgarilanma harakat
+
+Yer quyosh atrofida aylanayotganda moddiy nuqta deb bo`ladimi?
++Moddiy nuqta bo`ladi
+Moddiy nuqta bo`lmaydi
+Moddiy nuqta bo`lishi ham, bo`lmasligi ham mumkin
+Yer Quyosh atrofida aylanmaganda moddiy nuqta bo`ladi
+
+Jismning boshlang`ich va oxirgi vaziyatini tutashtiruvchi to`g`ri chiziq kesmasi.deyiladi?
++ko`chish
+trayektoriya
+masofa
+tezlik
+
+Harakatlanayotgan holda o`lchamlari va shaklini hisobga olmasa ham bo`ladigan darajadagi kichik jism.. deyiladi?
++moddiy nuqta
+trayektoriya
+ilgarilanma harakat
+tezlanish
+
+Nyutonning 2-qonunining ifodasi qaysi javobda to`g`ri ko`rsatilgan?
++a=F/m
+F=mg
+F=pVg
+a=V2/R
+
+Kuchni qanday asbobda o`lchash mumkin?
++Dinamometr
+Menzurka
+Tarozi
+Barometr
+
+Jismga boshqa jismlarning ta`siri bo`lmaganda o`z tezligini saqlash hodisasi nima deb ataladi?
++Inersiya
+Harakat
+Tinchlik
+Muvozanat
+
+Jismning boshqa jism bilan o`zaro ta`siri natijasida olgan tezlanishi kuchga qanday proporsional massagachi?
++Kuchga to`g`ri popopsional, massaga teskari proporsional
+kuchga to`g`ri proporsional,massaga to`g`ri propsional
+Kuchga teskari proporsional,massaga teskari proporsional
+Kuchga teskari proporsional, masaga to`g`ri proporsional
+
+Prujinaga jism osilgan. Bunda elastiklik kuchi qayerda paydo bo`ladi?
++prujinada
+ikkalasida
+tayanchda
+ikkalasi o`rtasida
+
+Jism impuls deb nimaga aytiladi?
++Jism massasining tezlikka ko`paytmasiga
+Jism massasi bilan ta`sir e`tuvchi kuch ko`paytmasiga
+Ta`sir etuvchi kuchning vaqtga ko`paytmasi
+Ta`sir etuvchi kuchning massaga ko`paytmasi
+
+Ishqalanish kuchini kamaytirish uchun texnikada qanday ish bajarish mumkin?
++Moylash
+Tozalash
+Ishqalash
+Yuvish
+
+Jismni tashkil qilgan molekulalarning harakati va o`zaro ta`sir energiyasi qanday nomlanadi?
++Ichki energiya
+kinetic enrgiya
+potensial energiya
+mexanik energiya
+
+Reaktiv harakat deb nimaga aytiladi?
++Jismlarning o`zaro ta`siri natijasida yuzaga keladigan harakati
+Jismlarning harakati
+Jislarning o`zaro ta`siri
+Jismlarning tortilishi
+
+Quyidagi jismlarning qaysi biri kinetik energiyaga ega bo`ladi?
++avtomobilning harakati
+Yerdan ko`tarilgan jism
+kamoldan otganda tarang tortilgan kamon ipi
+yerda turgan jism
+
+Suyuqlik va gazlar qattiq jismlardan qanday xususiyati bilan farqlanadi?
++Oquvchanligi va muayyan shaklga ega bo`lmasligi
+Oquvchanligi
+Shakiga ega bo`lmasligi.
+Oquvchanligi va muayyan shaklga ega ekanligi.
+
+Mexanikaning qattiq jismlarga xos bo`lgan qonunlarini suyuqlik va gazlarda qo`llash mumkinmi?
++Suyuqlik va gazlarning o`zaro joylashuvi o`zgarmagan holda
+Suyuqlikda mumkin, gazda mumkin emas
+Suyuqlik muvozanat holatda tursa
+mumkin emas.
+
+Katta bo`lmagan tezliklarda suyuqlik bir-biriga nisbatan ko`chmasdan sirpanadigan qatlamlarga bo`linib oqadigan oqim qanday nomlanadi?
++Laminar
+Uyurma
+Turbulent
+Bo`ylama 
+
+Quvurning keng joylarida bosim qanday bo`ladi?
++Katta
+Kichik
+Bir xil
+har xil
+
+Tebranish deb nimaga aytiladi?
++Muyozanat vaziyatiga nisbatan davriy ravishda takrorlanib turuvchi harakatga
+Takrorlanuvchi harakatlarni bir marta takrorlanishi uchun ketgan vaqtga
+Vaqtga teskari bo`lgan kattalikka
+Sistemaning muvozanat vaziyatidan eng katta chetga chetlashishi
+
+Xalqaro birliklar sistemasida chastota birligi qilib nima qabul qilingan?
++Gers
+Paskal
+Sekund
+Joul
+
+Majburlovchi kuch chastotasi erkin tebranishlar chastotasiga yaqinlashganda majburiy tebranishlar amplitudasining keskin ortib ketish hodisasi ataladi.
++rezonans
+tebranish
+amplituda
+chastota
+
+Qanday to`lqinlar mavjud?
++Ko`dalang, Bo`ylama
+Bo`ylama
+Ko`ndalang
+Aylana
+
+Samolyot qanotining ko`tarish kuchi hosil bo`lishi nimaga asoslangan?
++Qanotning ustki sirtida bosimning kamayishiga
+Qanotning ostida bosimning kamayishiga
+Qanotning ustki sirtida havo oqimi tezligi kichik bo`lishiga
+Qanotning ostki sirtida havo oqimi tezligi kichik bo`lishig
+
+Fizikada tovush hodisalarini o`rganadigan bo`limdeb ataladi.
++akustika
+mexanika
+optika
+knematika
+
+Bir sekundda yuz beradigan tebranishlar soni .deb ataladi.
++chastota
+sekund
+davr
+radian
+
+Ishqalanish kuchi bu
++bir-biriga tegib turadigan jismlarning g`adir-budurligi tufayli hosil bo`ladigan va jism harakatiga qarshilik qiladigan kuch;
+bir jismning boshqa jism sirtida harakatlanishida paydo bo`ladigan va harakatga qarshi yo`nalgan kuch;
+bir-biriga tegib turadigan jismlar molekulalarining o`zarota`siri tufayli hosil bo`ladigan va jism harakatiga qarshilik qiladigan kuch;
+Javoblar orasida to`g`risi yo`q
+
+Quyidagilardan qaysi biri xalqaro birliklar tizimining asosiy birligi hisoblanadi?
++kelvin
+nyuton
+paskal
+joul
+
+Izobarik jarayon deb nimaga aytiladi?
++doimiy bosim ostida
+doimiy hajmda
+haroratda
+tjy
+
+Izobarik qizdirilgan bir atomli gazning ichki energiyasi qanday o`zgaradi?
++ortadi
+kamayadi
+o`zgarmaydi
+tjy
+
+Izoxorik jarayon deb qanday jarayonga aytiladi?
++doimiy hajmda ostida
+doimiy bosim
+doimiy haroratda
+issiqlik almachmasdan kechuvchi jarayon
+
+Izotermik jarayon deb qanday jarayonga aytiladi?
++doimiy haroratda ostid
+doimiy hajmda
+doimiy bosimd
+issiqlik almachmasdan kechuvchi jarayon
+
+Adabatik jarayon deb nimaga aytiladi?
++issiqlik almachmasdan kechuvchi jarayon
+doimiy bosim ostida
+doimiy issiqlik cig`imida
+doimiy harorat ostida
+
+Gaz bosimi nimaga bog`liq?
++Molekulalar konsentrasiyasi tezligiga
+Molekulyar tezligiga
+Molekulaning faqat konsentrasiyasiga
+molekulalarga bog`liq emas
+
+Izotermik jarayonda parametrlardan... o`zgarmas bo`ladi.
++temperatura
+bosim
+hajm 
+zichlik
+
+Qattiq jism atomlari qanday harakatda bo`ladi?
++tebranma harakat qiladi.
+tartibsiz ilgarilanma harakat qiladi.
+aylanma harakat qiladi.
+harakatlanmaydi
+
+Moddani qaysi holatida uni siqib hajmini kamaytirish mumkin?
++gaz
+suyuqlik
+qattiq
+hammasi
+
+Elektr tokining magmit maydoni ta`siri qaysi muhitdan o`tganda kuzatiladi?
++istagan muhutda
+yarim o`tkazgichlarda 
+vakuumdan
+metalldan
+
+Elektr tokening issiqlik ta`siri qaysi muhitdan o`tganda kuzatimaydi?
++vakuumda
+gazda
+metallda
+elektrostatikda
+
+Tashqi ta`sir bo`lmagan holda paydo bo`ladingan tebranishlar nima deyiladi?
++erkin tebranishlar 
+tebranishlar
+mexanik tebranishlar
+t j y
+
+Trolleybus liniyasining havodagi ikki simi o`zaro qanday ta`sirlashadi?
++itarishadi 
+ta`silashmaydi
+tok chastotasiga qarab bir-biriga itarishadi yoki tortishadi
+tjy
+
+Tebranayotgan kattalikning qiymat moduli nima deb aytiladi?
++amplitudaviy qiymat
+bunday qiymat mvjut emas
+ta`sir etuvchi qiymat
+t j y
+
+Molekulyar kinetik nazariyaning asosiy qoidasini belgilang.
++barcha javob 
+molekulalar orasida o`zaro ta`sir kuchlari mauvjud
+molekulalar tartibsiz harakat qiladi.
+barcha moddalar molekulalardan tuzilgan
+
+Ikki xil modda molekulalarining tartibsiz harakati tufayli aralashib ketish hodisasiga deyiladi.
++diffuziya
+broun harakati
+materiya
+ichki energiya
+
+Tashqi ta`sirsiz paydo bo`ladigan tebranishlar ..deyiladi.
++erkin tebranishlar 
+majburiy tebranishlar
+garmonik tebranishlar
+avto tebranishlar
+
+Vaqt o`tishi bilan sinus yoki kosinus qonuniga bo`ysunadigan tebranishlarga deyiladi.
++garmonik tebranishlar 
+majburiy tebranishlar
+avto tebranishlar
+erkin tebranishlar
+
+Vaqt o`tishi bilan amplitudasi kamayadigan tebranishlar.. deyiladi
++so`nuvchi tebranishlar 
+majburiy tebranishlar
+avto tebranishlar
+erkin tebranishlar
+
+Fizika so `zi ilk bor qaysi olimning asarlarida paydo bo `ladi?
++Aristotel 
+I.Nyuton
+Arximed
+G.Galiley
+
+Harakat troyekoriyasi to`g`ri chiziqdan iborta bo`lgan harakat.. deyiladi
++to`g`ri chiziqli tekis harakt 
+aylanma harakat
+o`zgaruvchan harakat
+notekis harakat
+
+Qaysi harakat turida jism tezligining kattaligi o`zgaradi yo`nalishi o`zgarmaydi.
++to`gri chiziqli notekis harakat.
+aylanma harakat
+tekis harakat
+ilgarilanma harakta
+
+Vaqt biligi ichidagi aylanishlar soniga deyiladi
++chastota
+davr 
+chiziqli tezlik
+burilish burchagi
+
+Chiziqli tezlik , burchak tezlik aylanish davri va chastota qaysi harakatni xarakterlaydi
++aylanma 
+ilgarilanma
+tekis
+notekis
+
+Tebranish nima?
++Jismning goh bir tomonga goh qarama-qarshi tomonga harakatlanishi
+Jismning to`xtab, yana harakatlanishi
+Aylana bo`ylab harakat
+Gorizontal harakat
+
+Tebranuvchi sistemaning bir marta to`la tebranishi uchun ketgan vaqt oraliqi nima deyiladi?
++Davri
+Doira
+Aylana
+Chastota
+
+Tovush hodisalarini o`rganishda qanday fizik asbobdan foydalaniladi?
++Komeron
+Osilograf
+Rubob
+Toch
+
+Jismning 1sekund ichidagi tebranishlari soni tebranishlar.
++Chastotasi
+Aylanasi
+Aylanma harakati
+Tebranma harakati
+
+Molekula so`zining ma`nosi to`g`ri yozilgan javobni belgilang?
++kichik massa 
+modda
+atom
+zarra
+
+Molekulalar tezligini birinchi bo`lib kim aniqlagan
++O.Shtere 
+Klapeyron
+Joul
+J.Vatt
+
+Jismning yerga tortilish kuchi deb ataladi?
++Ogirlik kuchi 
+Ishkalanish kuchi
+Tortishish kuchi
+Elastiklik kuchi
+
+Jismning muvozanat holatidan eng katta siljish tebranish deyiladi?
++Amplituda
+Chastota
+Fazaviy
+doiraviy
+
+Tebranishlarning muhitda tarqalish jarayoni ... deb ataladi?
++to`lkin 
+oqim
+uzunlik
+chastota
+
+Qarama-qarshi ishorada, teng mikdorda zaryadlangan ikki o`kazgichdan iborat to`plovchi kurilmaga ..... deyiladi
++kondensator 
+sigim
+bosim
+kuch
+
+Zaryadlangan zarralarning bir tomonga tartibli harakatiga .... deyiladi?
++tok
+zaryad
+karshilik
+kuchlanish
+
+Metal utkazgichda elektr toki kanday zarralarning harakati bilan boglik?
++Elektron
+Ion
+Azot
+kislorod
+
+Qanday atomlar boglanishiga kovalent boglanish deyiladi
++ikkita atom uzoro ikkita elektron orkali boglanishiga 
+ikkita atom uzoro bir elektron orkali boglanishiga
+ikkita atom uzoro uch elektron orkali boglanishiga
+ikkita atom uzoro elektron orkali boglanmasa
+
+Tinch holatdagi yoki to`g`ri chiziqli tekis harakatlanayotgan sanoq sistemalri..deyiladi
++Inersial sanoq sistema
+Noinersial sanoq sistemasi 
+Nisbiy sanoq sistema
+Relativistik sistema
+
+Liftning qanday harakatida undagi jismga yuklama vujudga keladi.
++Yuqoriga o`zgarmas tezlanish bilan 
+Pastga o`zgarmas tezlik bilan
+Yuqoriga o`zgarmas telik bilan
+Lift harakatsiz bo`lganda
+
+O`zaro ta`sirlashuvchi jismlarning bir-biriga ta`sir kuchlari bir to`gri chiziq bo`ylab yo`nalgan, moduli bo`yicha teng va yo`nalish bo`yicha qarama-qarshidir. Bu ......
++Nyutonning 3- konuni
+Nyutonning 2- konuni
+Nyutonning 1- konuni
+Nyutonning 4- konuni
+
+Suv qo`yilgan idish lift kabinasiga joylashtirilgan. Agar lift tezlanish bilan yukoriga harakatlansa, suvning idish tubiga bosimi Qanday o`zgaradi?
++Ortadi 
+kamayadi
+Uzgarmaydi
+bilmayman
+
+Vaqt davomida Takroriylikka ega bo`lgan harakatlar yoki jarayonlar deyladi
++Tebranishlar 
+Tudkinlar
+Fazalar
+uzunliklar
+
+Kuchning shu kuch ta;sirida ro`y bergan k`chishiga skalyar ko`paytmasiga teng bo`lgan kattalik
++Mexanik ish 
+Energiya
+Kinetic energiya
+Potensial energiya
+
+Energiya hech qachon bordan yo`q bo`lmaydi , yo`qdan bor bo`lmaydi. U faqat bir turdan 2- turga aylanadi. Bu nimaning ta`rifi.
++Energiyaning saqlanish qonuni
+Nyutonning 1- qonuni
+Nyutonning 2- qonuni
+Nyutonning 4- qonuni
+
+Foydali ishning to`la ishga nisbati nimani anglatadi.
++FIK ni 
+Energiyani
+Potensial energiyani
+Kinetik energiyani
+
+Sistemaning .. deb uning potensial va kinetik enegiyalari yigindisiga aytiladi
++To`la mexanik energiya 
+Mexanik ish
+Energiya
+Potensial energiyani
+
+Kuch momenti qanday birlikda o`lchanadi.
++Nm 
+N/m
+Js
+Ws
+
+Tovush balandligi nimaga bog`liq?
++Tovush chastotasiga
+Tovush to`lqin uzunligiga
+Tovush amplitudasiga
+Tovush tarqalish tezligiga
+
+Areometr yerdamida kanday fizik kattalik ulchanadi?
++Suyuklik zichligi 
+Xavoning namligi
+Solishtirma ogirlik
+Suyuklikning okish tezligi
+
+Jismning elektrlangan yeki elektrlanmaganligini aniqlaydigan asbob nima deb ataladi?
++Elektroskop 
+Ampermetr
+Barometr
+Voltmetr
+
+Dielektrik so`zining ma`nosi ?
++O`tkazmas 
+O`tkazuvchi
+Sig`im
+Zaryad
+
+Temperatura o`zgarmas bo`lganda kechadigan fizik jarayon jarayon deyiladi ?
++Izotermik 
+Izoxorik
+Izobarik
+adiabatik
+
+Issiqlik miqdori o`z o`zidan past temperaturali jismdan yuqori temperaturali jismga o`tmaydi Bu ta`rif nimani ifodalaydi
++Termodinamikaning 2- qonuni 
+Termodinamikaning 1- qonuni
+Termodinamik muvozanat
+Termodinamik jarayon
+
+Yoqilg`ining ichki energiyasini mexanik energiyaga aylantirib beruvchi mashinaga..
++Issiqlik mashinasi 
+Reaktiv dvigatel
+Ichki yonuv dvigateli
+Bug` turbinasi.
+
+Atrof muhit bilan issiqlik almashinmauydogan jarayon
++Adiabatik
+Izoxorik
+Izobarik
+izotermik
+
+Sistemanig oxirgi holatidan boshlang`ich holatiga o`sha oraliq holat orqali teskari yo`nalishda atrof muhitda hech qanday o`zgarish roy bermasdan otishi
++Qaytar jarayon 
+Qaytmas jarayon
+Termodinamik jarayon
+Termodinamik muvozanat.
+
+Modda zarralarining potensial va kinetik energiyalari yig`indisi.
++Ichki energiya 
+Issiqlik energiyasi
+Holat
+Muvozanat
+
+Tovush balandligi bilan . aniqlanadi. Gapni to`ldiring.
++tebranishlar chastotasi 
+amplitudasi
+to `lqin tezligi
+to `lqin uzunligi
+
+Yerga quyoshdan energiya qanday usulda keladi?
++nurlanish 
+konveksiya
+issiqlik o `tkazuvchanlik
+konveksiya va issiqlik o`tkazuvchanlik
+
+Qanday fizik kattalik ( N*m) da o`lchanadi?
++kuch momenti 
+ish
+kuch impuls
+bosim
+
+Jismning fazoda qoldirgan iziga nima deb ataladi?
++bosib o`tilgan yo`l
+tezlik
+egri chiziq
+kuch
+
+Qaralayotgan tomonga nisbatan jismning o`lchami e`tiborga olinmaydigan darajada kichik jismga nima deb ataladi?
++moddiy nuqta
+mashina
+yo`l
+jismlar sistemasi
+
+Mexanika nechta bo`limdan iborat?
++3 ta
+5 ta
+7 ta
+2 ta
+
+Mexanikaning bo`limlari qaysi javobda to`liq ko`rsatilgan?
++kenimatika, dinamika va statika
+atom va yadro fizikasi
+termodinamika va kinetika
+tekis va notekis harakat
+
+Kinematika bo`limida nimalarni o`rganamiz?
++jismlarning harakati va ularni vujudga keltiruvchi kuch sabablarisiz o`rganamiz
+jismlarning harakati va ularni vujudga keltiruvchi kuch sabablari bilan bog`lab o`rganamiz
+molekulyar fizikani o`rganamiz
+atom tuzilishini o`rganamiz
+
+Dinamika bo`limida nimalarni o`rganamiz?
++jismlarning harakati va ularni vujudga keltiruvchi kuch sabablari bilan bog`lab o`rganamiz
+muvozanat shartlarini o`rganamiz
+elektrostatik maydon haqida o`rganamiz
+molekulyar kinetik nazariyasini o`rganamiz
+
+Statika bo`limida nimalarni o`rganamiz?
++jismlarning muvozanat shartlarini o`rganamiz
+tekis tezlanuvchan harakatni o`rganamiz
+tekis harakatni grafik ravishda tasvirlashni o`rganamiz
+atom tuzilishini o`rganamiz
+
+Harakat jismning tezligiga bog`liq ravishda nechta turga bo`linadi va ular qaysilar?
++2 turga, tekis va notekis harakat
+3 turga, to`gri va egri chiziqli harakat va sekinlanuvchan harakat
+4 turga, mexanika, egri chiziqli, optika va tinch harakat
+2 turga, to`gri va egri chiziqli harakat
+
+Harakat yo`nalishiga qarab harakat nechta turga bo`linadi va ular qaysilar?
++2 turga, to`gri va egri chiziqli harakat
+3 turga,tekis, tezlanuvchan va sekinlanuvchan
+2 turga,tich holatda va tekis harakat
+4 turga,mexanika,egri chiziqli,optika va tinch harakat
+
+Notekis harakat turlari qaysi javobda to`g`ri ko`rsatilgan?
++to`g`ri chiziqli tekis tezlanuvchan va tekis sekinlanuvchan
+to`g`ri va egri chiziqli harakat
+chiziqli va optika
+o`rtacha va oniy harakat
+
+Vaqt birligi ichida bosib o`tilgan yo`lga nima deb ataladi?
++tezlik
+tezlanish
+bosib o`tilgan yo`l
+tezlanishning o`zgarishi
+
+Jism harakat vaqtining birinchi yarmida 20 m/s tezlik bilan harakatlanib,qolgan vaqtda esa 40 m/s tezlik bilan harakatlangan bo`lsa,jismning harakat davomidagi o`rtacha tezligini toping? (m/s)
++30
+20
+15
+10
+
+Jism harakat vaqtining birinchi yarmida 15 m/s tezlik bilan harakatlanib,qolgan vaqtda esa 35 m/s tezlik bilan harakatlangan bo`lsa, jismning harakat davomidagi o`rtacha tezligini toping?(m/s)
++25
+10
+17
+15
+
+Jism to`g`ri chiziqli tekis harakat qilib 60 sekund davomida 1800 m masofani bosib o`tgan bo`lsa,jismning tezligini toping? (m/s)
++30
+60
+20
+3
+
+Mashina 20 m/s tezlik bilan harakatlanib, 50 sekunda A nuqtadan B nuqtaga yetib borgan bo`lsa, shu A nuqtadan B nuqtagacha bo`lgan masofani toping? (m)
++1000
+500
+100
+1500
+
+Tekis harakatda bosib o`tilgan yo`l bilan vaqtning bog`langan grafikida yo`lning chizmasi qanaqa ko`rinishda bo`ladi?
++to`g`ri chiziqdan iborat bo`ladi
+paraboladan iborat bo`ladi
+giperboladan iborat bo`ladi
+siniq chiziqlardan iborat bo`ladi
+
+Tekis harakatda tezlikning vaqtga bog`langan grafikida tezlik bilan vaqt o`qlarining chegaralangan sohasi nimaga teng?
++bosib o`tilgan yo`lga
+o`rtacha tezlikka
+tezlanishga
+hech qanday fizik kattalikni ifodalamaydi
+
+Tekis harakatda bosib o`tilgan yo`lni vaqtga bog`langan grafikidan tezlik nimaga teng bo`ladi?
++tg alpha
+tga
+sina
+cosa
+
+Umumiy yo`lni shu yo`lni bosib o`tishga ketgan vaqtga nisbati nimaga teng bo`ladi?
++o`rtacha tezlikka
+oniy tezlikka
+tezlanishga
+kuchga
+
+Xalqaro birliklar sistemasida tezlikning birligi nima?
++m/s
+j
+n
+wt
+
+Jism harakat vaqtining birinchi yarimi 30 m/s tezlik bilan harakatlanib,qolgan vaqtda esa 50 m/s tezlik bilan harakatlangan bo`lsa,uning o`rtacha tezligini toping? (m/s)
++40
+20
+15
+50
+
+Jism bosib o`tilgan yo`lning birinchi yarimi 20 m/s tezlik bilan harakatlanib,qolgan yo`lda esa 60 m/s tezlik bilan harakatlangan bo`lsa,uning o`rtacha tezligini toping? (m/s)
++30
+20
+15
+45
+
+Vaqt birligi ichida tezlikning o`zgarishini ifodalaydigan fizik kattalikka nima deb ataladi?
++tezlanish
+tezlik
+bosib o`tilgan yo`l
+mexanik harakat
+
+Tezlik qanday kattalik?
++vektor kattalik
+skalyar kattalik
+o`zgarmas kattalik
+doimiy kattalik
+
+To`g`ri chiziqli tekis tezlanuvchan harakatda tezlanishning yo`nalishi qanday bo`ladi?
++musbat
+manfiy
+nolga teng bo`ladi
+manfiydan musbatga qarab o`sib boradi
+
+To`g`ri chiziqli tekis sekinlanuvchan harakatda tezlanishning yo`nalishi qanday bo`ladi?
++manfiy
+musbat
+nolga teng bo`ladi
+musbatdan manfiyga qarab kamayib boradi
+
+Tekis harakatda tezlanish nimaga teng?
++nolga teng
+musbat qiymatga teng
+manfiy qiymatga teng
+cheksizga teng
+
+Oniy tezlik jismning qanday tezligini bildiradi?
++oniy tezlik jismning kuzatilayotgan ondagi tezligini bildiradi.
+oniy tezlik jismning butun yo`l davomidagi tezligini bildiradi.
+oniy tezlik jismning o`rtacha tezligini bildiradi.
+oniy tezlik jismning umumiy tezligini bildiradi.
+
+Tekis sekinlanuvchan harakatda tezlikning moduli qanday o`zgaradi?
++kamayib boradi
+oshib boradi
+o`zgarmas saqlanadi
+tezlikning kvadratiga mos ravishda oshib boradi
+
+Har qanday harakatda bosib o`tilgan yo`l nimaga teng?
++o`rtacha tezlikni vaqtga ko`paytmasiga teng
+tezlikni tezlanishga ko`patymasiga teng
+vaqtni tezlanishga ko`patymasiga teng
+tezlanishga teng
+
+Egri chiziqli harakatga misol qaysi javobda to`g`ri ko`rsatilgan?
++aylana bo`ylab harakat
+to`g`ri chiqizli harakatda
+tekis yo`lda harakatlanayotgan mashina harakati
+traektoriyasi to`g`ri chiziqdan iborat harakat
+
+Tezlanishning birligi qaysi javobda to`g`ri ko`rsatilgan?
++metr taqsim sekund kvadrat((kg*m)/s2)
+metr taqsim sekund(m/s)
+kilogram ko`paytirilgan metr(kg*m)
+metr(m)
+
+Matematik mayatnik deb nimaga aytiladi?
++cho`zilmas va vaznsiz ipga osilgan hamda muvozanat vaziyati atrofida davriy tebranma harakat qiluvchi moddiy nuqta matematik mayatnik deyiladi.
+davriy tebranma harakat qiladigan jism yoki jismlar sistemasi mayatnik deyiladi.
+bikirligi k bo`lgan prujinaga osilgan m massali yukdan iborat tizimga prujinali mayatnik deyiladi
+tashqi kuch ta`sirida jismlar shakli va o`lchamining o`zgarishiga aytiladi
+
+Vaqt birligi ichida aylanishlar soniga nima deb ataladi?
++chastota
+davr
+burchak tezlik
+burchak tezlanish
+
+Avtomobil, kema, samolyot tezligi nima yordamida o`lchanadi?
++spidometr
+dinamometr
+metr
+sekundanomer
+
+Aylana bo`ylab harakatda jism tezligining yo`nalishini qaysi kattalik ifodalaydi?
++normal tezlanish
+tanginsial tezlanish
+burchak tezlik
+tezlik o`zgarishi
+
+Aylana bo`ylab harakatda jism tezligining modulini qaysi kattalik ifodalaydi?
++tanginsial tezlanish
+normal tezlanish
+tebranish davri
+tebranish chastotasi
+
+O`lchashning necha xil usuli bor va ular qaysilar?
++bivosita va bilvosita
+aniq
+aniq va xato
+chiziqli o`lchash
+
+Fizik jismlar deb nimalarga aytiladi?
++fizik jismlar deb, tabiatda uchraydigan barcha jismlarga aytiladi.
+fizik jismlar deb suvda cho`kmaydigan jismlarga aytiladi
+fizik jismlar deb, osmon jismlariga aytiladi
+fizik jismlar deb, tabiatda uchraydigan barcha metallarga aytiladi
+
+Vaqt birligi ichida tebranishlar soniga nima deb ataladi?
++tebranish chastotasi
+tebranish davri
+tebranish tezlanishi
+tebranish amplitudasi
+
+U yoki bu darajada takrorlanuvchanligi bilan ajralib turadigan protsesslarga nimala deb ataladi.
++tebranishlar
+sunishlar
+elektr toklari
+quvvat
+
+Tebranishlarga misollar qaysi qatorda to`g`ri ko`rsatilgan?
++mexanik, elеktrоmаgnit va elеktrоmexanik
+elektr va optik
+kinematik va dinamik
+kinetik va potensial
+
+Mexanik tebranishlar necha turga bo`linadi?
++2 turga
+3 turga
+4 turga
+5 turga
+
+Mexanik tebranish turlari qaysi javobda to`g`ri ko`rsatilgan?
++bo`ylama va ko`ndalang
+tekis va notekis
+tezlanuvchan va sekinlanuvchan
+botiq va qavariq
+
+Ingichkа cho`zilmаs vаznsiz оg`irligi bir nuqtagа tushgаn sistеmаgа nima deb аytilаdi?
++mаtеmаtik mаyatnik
+prujinali mayatnik
+fizik mayatnik
+botiq mayatnik
+
+Og`irlik markazidan o`tmagan har qanday nuqtasidan osilgan va muvozanat atrofida tеbranma harakat qiladigan jism yoki jismlar sistеmasiga nima dеyiladi?
++fizik mayatnik
+mаtеmаtik mаyatnik
+prujinali mayatnik
+qavariq mayatnik
+
+Erkin tushish tezlanishining son qiymati nechiga teng? (m/s2)
++9.81
+8.31
+1.38
+1.6
+
+Muvozanat holatidan chiqqanda, qaysi kuch shu yo`nalishda mayatnikning harakatiga sabab bo`ladi?
++muvozanatga qaytaruvchi
+yadroviy kuchlar
+ishqalanish kuchlari
+elastik kuchlar
+
+Oyning yer atrofida aylanishi, kеchasi bilan kunduzning almashinishi, soat mayatnigining tеbranishi, aylanma harakat qiluvchi jismlar-bularning hammasi qanaqa jarayonlarga misol bo`lishi mumkin?
++davriy takrorlanish
+mexanik harakat
+tartibli harakat
+sunuvchan harakat
+
+Tebranish davrining birligi qaysi qatorda to`g`ri ko`rsatilgan?
++sekund
+1/s
+n
+j
+
+Tebranish chastotasining birligi qaysi qatorda to`g`ri ko`rsatilgan?
++Hz
+sekund
+sekund kvadrat
+N*s
+
+Og`irlik kuchining formulasi qaysi qatorda to`g`ri ko`rsatilgan?
++P=mg
+F=ma
+K=mv
+S=vt
+
+Ham son qiymatiga,ham yo`nalishiga ega kattalikka qanaqa kattalik deyiladi?
++vektor kattalik
+skalyar kattalik
+oddiy kattalik
+murakkab kattalik
+
+Faqatgina son qiymatiga ega bo`lgan kattalikka qanaqa kattalik hisoblanadi?
++skalyar kattalik
+vektor kattalik
+murakkab kattalik
+oddiy kattalik
+
+Matematik mayatnik 12 sekund davomida 6 marta tebrangan bo`lsa,uning tebranish davrini toping?(s)
++2
+3
+4
+5
+
+Prujinali mayatnik 35 sekund davomida 7 marta tebrangan bo`lsa,uning tebranish davrini toping?(s)
++5
+6
+8
+7
+
+Agar mayatnik 12 marta tebranish uchun 6 sekund vaqt sarflagan bo`lsa,uning tebranish chastotasini toping?
++2 Hz
+6 Hz
+3 Hz
+4 Hz
+
+Agar mayatnik 12 marta tebranish uchun 6 sekund vaqt sarflagan bo`lsa,uning tebranish davrini toping?
++0.5 sekund
+1 sekund
+3 sekund
+2 sekund
+
+.. miqdori o`zgarmaydi, energiya faqat bir turdan boshqa turga aylanadi.Nuqtalar o`rniga mos javobni toping?
++energiya
+quvvat
+tezlik
+massa
+
+Sistemaga berilgan sistemaning ichki energiyasini o`zgarishiga va sistemaning tashqi kuchlarga qarshi ish bajarishiga sarflanadi. Nuqtalar o`rniga mos javobni toping?
++issiqlik miqdori
+quvvat
+massa
+kuch
+
+Sistemaga berilgan issiqlik miqdori sistemaning ichki energiyasini o`zgarishiga va sistemaning tashqi kuchlarga qarshi ish bajarishiga sarflanadi.ushbu ta`rif termodinamikaning nechanchi qonuni?
++1-qonuni
+2-qonuni
+3-qonuni
+0-qonuni
+
+Termodinamikaning 1-qonunining formulasi qaysi javobda to`g`ri ko`rsatilgan?
++Q=A+U
+Q=2A-U
+Q=U+E-A
+Q=A-E
+
+Izotermik jarayonda sistemaga berilgan issiqlik miqdori nimalarga sarf bo`ladi?
++ish bajarishga
+ichki energiyaning o`zgarishiga
+tashqi energiyaning o`zgarishiga
+molekulalarni ajratishga
+
+Izotermik jarayon uchun termodinamikaning 1-qonuning formulasi qaysi javobda to`g`ri ko`rsatilgan?
++Q=A
+Q=A+U
+Q=U
+Q=A-U
+
+Izoxorik jarayon uchun termodinamikaning 1-qonuning formulasi qaysi javobda to`g`ri ko`rsatilgan?
++Q=U
+Q=A+U
+Q=A
+Q=A-U
+
+Izobarik jarayonda sistemaga berilgan issiqlik miqdori nimalarga sarflanadi.
++sistemaning ichki energiyasini o`zgartirishga va o`zgarmas bosimda ish bajarishga
+sistemaning ichki energiyasini o`zgartirishga
+o`zgarmas bosimda ish bajarishga
+quvvatga
+
+Izotermik jarayonda qaysi kattalik o`zgarmas saqlanadi?
++temperatura
+bosim
+hajm
+energiya
+
+Izobarik jarayonda qaysi kattalik o`zgarmas saqlanadi?
++bosim
+tempiratura
+hajm
+energiya
+
+Izoxorik jarayonda qaysi kattalik o`zgarmas saqlanadi?
++hajm
+tempiratura
+bosim
+energiya
+
+Adiabatik jarayon uchun termodinamikaning 1-qonuni qaysi javobda to`g`ri ko`rsatilgan?
++A=-delta U
+Q=A+U
+Q=A
+Q=U
+
+Q=0 bu qaysi jarayon uchun o`rinli hisoblanadi?
++adiabatik
+izotermik
+izoxorik
+izobarik
+
+Issiqlik miqdorining birligi qaysi javobda ko`rsatilgan?
++J
+N
+m/s
+kg*m/s
+
+Energiyaning o`zgarishiga nima deyiladi?
++bajarilgan ish
+sunuvchi jism
+quvvat
+joul
+
+1000 mJ nega Joulga teng?
++1
+10
+100
+1000
+
+Km/soat dan m/s ga o`tish uchun ifoda ustida qanday amal bajarish kerak?
++3.6 ga bo`lish kerak
+3.6 ga ko`paytrish kerak
+3.6 ni qo`shish kerak
+3.6 ni ayirish kerak
+
+m/s dan km/soat ga o`tish uchun ifoda ustida qanday amal bajarish kerak?
++3.6 ga ko`paytrish kerak
+3.6 ga bo`lish kerak
+3.6 ni qo`shish kerak
+3.6 ni ayirish kerak
+
+72 km/soat tezlik necha m/s ga to`g`ri keladi?
++20
+30
+40
+72
+
+30 m/s tezlik necha km/soat ga to`g`ri keladi?
++108
+72
+36
+144
+
+Termodinamikada jismlarning holatlarini qaysi kattaliklar xaraktrlaydi?
++bosim, hajm va temperatura
+tezlik va tezlanish
+kuch va quvvat
+yo`l va vaqt
+
+Gaz siqilsa qanday holat ko`zatiladi?
++qiziydi
+sovuydi
+kengayadi
+kichiklashadi
+
+Gaz hajmining o`zgarishida bajarilgan ish formulasi qaysi qatorda to`g`ri ko`rsatilgan?
++A=P*deltaV
+A=PV
+A=Fm
+A=MV
+
+Jism temperaturasi 1 K ga o`zgartirish uchun unga berish yoki olish kerak bo`lgan issiqlik miqdori jismning nimasi deb ataladi?
++issiqlik sig`imi
+bosimi
+hajmi
+temperaturasi
+
+Moddaning massa birligiga to`g`ri keluvchi issiqlik miqdoriga nima deb ataladi?
++solishtirma issiqlik sig`imi
+issiqlik sig`imi
+bosimi
+hajmi
+
+Universal gaz doimiysi qaysi harf bilan belgilanadi?
++R
+U
+A
+Q
+
+Universal gaz doimiysining son qiymati nechiga teng?(J/mol*K)
++R=8.31
+R=1.38
+R=6.02
+R=2.24
+
+Bolsman doimiysi qaysi harf bilan belgilanadi?
++k
+R
+a
+N
+
+Jismning yuza birligiga ta`sir qiluvchi kuchiga nima deb ataladi?
++bosim
+hajm
+temperatura
+harorat
+
+Bosim formulasi qaysi qatorda to`g`ri ko`rsatilgan?
++P=F/S
+P=F*S
+P=A/T
+P=MV
+
+Molekulalari moddiy nuqta deb hisoblash mumkin bo`lgan moddalar nima deb ataladi?
++ideal gaz
+real gaz
+suyuqlik
+qattiq jism
+
+Bosimning birligi qaysi qatorda to`g`ri ko`rsatilgan?
++Pa
+N
+J
+Kg m/s
+
+Konsentratsiya deb nimaga aytiladi?
++hajm birligidagi molekulalar soniga
+vaqt birligidagi bosib o`tilgan yo`lga
+molekulalar soniga
+energiyaning o`zgarishiga
+
+Konsentratsiyaning formulasi qaysi qatorda to`g`ri ko`rsatilgan?
++n=N/V
+N=N*V
+N=V/N
+N=const
+
+Ideal gaz holat tenglamasi qaysi qatorda to`g`ri ko`rsatilgan?
++P=nkt
+P=nt
+P=F/S
+P=S/F
+
+Holat parametrlari qaysi javobda to`g`ri ko`rsatilgan?
++P,V va T
+V va A
+T va N
+P va A
+
+Ikki jism bir-biriga ishqalanishda ularning har ikkalasi ham ..? nutqalar o`rniga mos so`zni toping?
++elektrlanadi
+tortishadi
+itarishadi
+cho`ziladi
+
+Shoyiga ishqalangan shisha tayoqcha qanday ishorali elektrlanadi?
++musbat
+manfiy
+nol
+o`zgarishsiz
+
+Mo`ynaga ishqalangan ebonit tayoqcha qanday ishorali elektrlanadi?
++manfiy
+musbat
+nol
+o`zgarishsiz
+
+Qanday ishorali elektrlangan jismlar bir-biridan itarishadi?
++bir xil
+har xil
+musbat va manfiy
+zaryadsiz zarralar
+
+Jismlarning elektrlanganlik darajasini ko`rsatuvchi asbob nima deb ataladi?
++elektrometr
+spedometr
+tezlanish
+parametr
+
+O`zidan elektrni o`tkazmaydigan moddalar nima deb ataladi?
++dielektriklar
+zaryadlar
+elektr maydon
+potensiallar
+
+Elektrni o`zidan o`tkazuvchi moddalar nima deb ataladi?
++elektr o`tkazgichlar
+dielektriklar
+zaryadlar
+elektr maydon
+
+Atom markazida nima joylashgan?
++yadro
+elektrometr
+spedometr
+tezlanish
+
+Jismlarning elektrlanganlik darajasini tavsiflovchi fizik kattalik nima deb ataladi?
++elektr zaryad
+dielektriklar
+elektr o`tkazgichlar
+yadro
+
+Elektr zaryad qaysi harf bilan belgilanadi?
++q
+r
+e
+p
+
+Qo`zg`almas zaryadning yoki zaryadlangan jismning maydoni nima deb ataladi?
++elektrostatik maydon
+magnit maydon
+yadro maydoni
+molekula maydoni
+
+Elektr maydon kuch chiziqlari musbat zaryaddan boshlanib,zaryadda tugaydi.nuqtalar o`rniga mos so`zni toping?
++manfiy
+nol
+elektr maydon
+kuchli
+
+Elektr maydon kuchlanganligini formulasi qaysi javobda to`g`ri ko`rsatilgan?
++E=F/q
+E=F*q
+E=A*q
+E=A/q
+
+Qaysi zarra musbat elementar zaryadga ega?
++proton
+elektron
+a-zarra
+neytron
+
+Maydon kuchlanganligining birligi qaysi javobda to`g`ri ko`rsatilgan?
++N/C
+C
+N
+J/N
+
+Zaryadli zarralarning tartibli harakatiga nima deb ataladi?
++elektr toki
+tok kuchi
+kuchlanish
+tezlik
+
+Tok kuchi qanday asbob yordamida o`lchanadi?
++ampermetr
+voltmetr
+spedometr
+barometr
+
+Moddaning bug` holatiga o`tishi qanday jarayon?
++Bug`lanish
+Qizish
+Eritish
+Sovish
+
+Suvning qaynashi qanday holatda sodir bo`ladi?
++Bosim ostida bug` pufakchalari butun hajmda hosil bo`lganda
+Suv yuzasida bug`lanish boshlanganda
+Suv soviganda
+Suv muzlaganda
+
+Nisbiy namlik qaysi kattaliklar nisbatiga teng?
++Havo tarkibidagi real bug` bosimi / maksimal bug` bosimi
+Havo massasi / suv massasi
+Havo bosimi / suv bosimi
+Suv zichligi / havo zichligi
+
+Bug`lanish qaysi sharoitda kuchayadi?
++Temperatura oshganda
+Yuza kichrayganda
+Havo nam bo`lganda
+Havo tinch bo`lganda
+
+Suvning qaynash temperaturasi nimaga bog`liq?
++Tashqi bosimga
+Suvning rangi
+Idish shakliga
+Suvning massasi
+
+Namlikning o`lchov birligi qaysi?
++Foiz (%)
+Gramm
+Nyuton
+Metr
+
+Qaysi jarayonda moddaning yuzasidagi zarralar tezroq ajraladi?
++Bug`lanishda
+Qaynashda
+Eritishda
+Kondensatsiyada
+
+Havo nam bo`lsa, bug`lanish qanday bo`ladi?
++Sekinlashadi
+Tezlashadi
+O`zgarmaydi
+To`xtab qoladi
+
+Qaynash vaqtida moddaning temperaturasi
++O`zgarmaydi
+Tez ko`tariladi
+Tez pasayadi
+To`lqinlanadi
+
+Nisbiy namlik 100% bo`lsa, bu nimani anglatadi?
++Havo to`yingan
+Havo juda quruq
+Havo zichligi kamaygan
+Bug` yo`q
+
+Qaynashning o`ziga xos belgisi qaysi?
++Butun hajmda bug` pufakchalari hosil bo`lishi
+Faqat yuzada bug`lanish
+Modda qotishi
+Temperaturaning oshishi
+
+Bug`lanish qaysi joyda tez sodir bo`ladi?
++Keng yuzada
+Tor idishda
+Sovuq havoda
+Yuqori namlikda
+
+</div>
+
+<script>
+    let myQuestions = [];
+    let currentQ = 0;
+    let score = 0;
+
+    function parseData() {
+        const rawText = document.getElementById("raw-data").innerText.trim();
+        const segments = rawText.split(/\n\s*\n/); 
+
+        segments.forEach(segment => {
+            const lines = segment.trim().split('\n').map(l => l.trim());
+            if (lines.length >= 2) {
+                const questionText = lines[0];
+                const rawOptions = lines.slice(1);
+                let correctIdx = 0;
+
+                const cleanOptions = rawOptions.map((opt, index) => {
+                    if (opt.startsWith('+')) {
+                        correctIdx = index;
+                        return opt.substring(1).trim(); 
+                    }
+                    return opt;
+                });
+
+                myQuestions.push({
+                    q: questionText,
+                    a: cleanOptions,
+                    c: correctIdx
+                });
+            }
+        });
+    }
+
+    function loadTest() {
+        if (myQuestions.length === 0) return;
+        const qData = myQuestions[currentQ];
+        document.getElementById("progress").innerText = `Savol: ${currentQ + 1} / ${myQuestions.length}`;
+        document.getElementById("question").innerText = qData.q;
         
-        // Savollar bazasi (285 ta savolni shu yerga kiritish mumkin)
-        const database = [
-            {q: "Dinlar tarixi va jarayonlarini o'rganuvchi fan qanday ataladi?", a: "Dinshunoslik"},
-            {q: "Kim dinning kelib chiqishiga “ajdodlarga sig'inish” sabab bo'lganligini aytadi?", a: "G. Spenser"},
-            {q: "Totemizm atamasini kim ilk bor fanga kiritgan?", a: "Jon Long"},
-            {q: "Bibliyada Qadimgi Ahd nechta kitobni o'z ichiga olgan?", a: "39"},
-            {q: "Ibtido kitobi nechta bobdan iborat?", a: "50 bob"},
-            {q: "Yahudiylarning muqaddas kitobi nima?", a: "Tanax"},
-            {q: "Buddizmning muqaddas kitoblari to'plami?", a: "Tripitaka"},
-            {q: "Islom dinida birinchi bo'lib iymon keltirgan ayol?", a: "Xadicha bint Xuvaylid"},
-            {q: "Xristianlikda Iso Masihning tug'ilgan kuni bayrami?", a: "Rojdestvo"},
-            {q: "Zardushtiylikning muqaddas kitobi?", a: "Avesto"}
-            // Qolgan savollarni ham shu formatda davom ettiring...
-        ];
+        const optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+        
+        let shuffleIndices = qData.a.map((_, i) => i).sort(() => Math.random() - 0.5);
 
-        // 285 tagacha namuna qo'shish (to'ldirish uchun)
-        while(database.length < 285) {
-            database.push({
-                q: `Dinshunoslik fanidan qo'shimcha savol #${database.length + 1}?`,
-                a: `Javob #${database.length + 1}`
+        shuffleIndices.forEach((idx) => {
+            const div = document.createElement("div");
+            div.className = "option-item";
+            div.innerText = qData.a[idx];
+            div.onclick = () => checkAns(idx, div);
+            optionsDiv.appendChild(div);
+        });
+        document.getElementById("next-btn").style.display = "none";
+    }
+
+    function checkAns(selected, el) {
+        const correct = myQuestions[currentQ].c;
+        const allOptions = document.querySelectorAll(".option-item");
+        
+        if (selected === correct) {
+            el.classList.add("correct");
+            score++;
+        } else {
+            el.classList.add("wrong");
+            allOptions.forEach(opt => {
+                if(opt.innerText === myQuestions[currentQ].a[correct]) {
+                    opt.classList.add("correct");
+                }
             });
         }
+        allOptions.forEach(opt => opt.style.pointerEvents = "none");
+        document.getElementById("next-btn").style.display = "block";
+    }
 
-        // Sahifani yuklashda aktivatsiyani tekshirish
-        window.onload = () => {
-            if (localStorage.getItem('raxmonov_active') === 'true') {
-                showMenu();
-            }
-            if (tg.initDataUnsafe.user) {
-                document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name + " " + (tg.initDataUnsafe.user.last_name || "");
-            }
-        };
-
-        function verifyActivation() {
-            const input = document.getElementById('key-input').value.trim().toUpperCase();
-            // Maxsus aktivatsiya kodlari
-            const keys = ["RAXMONOV_777", "PRO_285", "ADMIN_VIP"];
+    function nextQuestion() {
+        currentQ++;
+        if (currentQ < myQuestions.length) {
+            loadTest();
+            window.scrollTo(0,0);
+        } else {
+            document.getElementById("test-area").style.display = "none";
+            document.getElementById("result-screen").style.display = "block";
+            document.getElementById("score-text").innerText = `${score} / ${myQuestions.length}`;
             
-            if (keys.includes(input)) {
-                localStorage.setItem('raxmonov_active', 'true');
-                tg.showPopup({
-                    title: 'Muvaffaqiyatli!',
-                    message: 'Ilova to\'liq aktivlashtirildi. Bilim olishda omad tilaymiz!',
-                    buttons: [{type: 'ok'}]
-                });
-                showMenu();
-            } else {
-                tg.showAlert("Kiritilgan kod noto'g'ri. Iltimos, to'lovni tasdiqlang yoki adminga murojaat qiling.");
-            }
+            let percent = (score / myQuestions.length) * 100;
+            let msg = percent >= 80 ? "Ajoyib natija!" : (percent >= 50 ? "Yaxshi, yana ozroq harakat qiling." : "Ko'proq o'qishingiz kerak.");
+            document.getElementById("feedback-msg").innerText = msg;
         }
+    }
 
-        function showMenu() {
-            document.getElementById('activation-screen').classList.add('hidden');
-            document.getElementById('learning-screen').classList.add('hidden');
-            document.getElementById('main-menu').classList.remove('hidden');
-        }
-
-        function openLearning() {
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('learning-screen').classList.remove('hidden');
-            updateCard();
-        }
-
-        function backToMenu() {
-            showMenu();
-        }
-
-        function updateCard() {
-            const q = database[currentIdx];
-            document.getElementById('question-area').innerText = q.q;
-            document.getElementById('answer-area').innerText = q.a;
-            document.getElementById('answer-area').classList.add('hidden');
-            document.getElementById('progress-text').innerText = `${currentIdx + 1} / ${database.length}`;
-            document.getElementById('btn-show').classList.remove('hidden');
-        }
-
-        function showAnswer() {
-            document.getElementById('answer-area').classList.remove('hidden');
-            document.getElementById('btn-show').classList.add('hidden');
-        }
-
-        function nextQ() {
-            if (currentIdx < database.length - 1) {
-                currentIdx++;
-                updateCard();
-            } else {
-                tg.showAlert("Siz barcha savollarni ko'rib chiqdingiz!");
-            }
-        }
-
-        function prevQ() {
-            if (currentIdx > 0) {
-                currentIdx--;
-                updateCard();
-            }
-        }
-    </script>
+    parseData();
+    loadTest();
+</script>
 </body>
 </html>
-

@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsalar - Yakuniy Tizim</title>
+    <title>Matritsalar - To'liq Tizim</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
     <style>
@@ -10,32 +10,38 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; }
         .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
         .nav-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
         .nav-btn.active { background: var(--primary); color: #000; }
+
         .option-btn { width: 100%; background: #334155; border: 2px solid transparent; color: white; padding: 14px; margin: 6px 0; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; }
+        .option-btn:disabled { opacity: 0.8; cursor: not-allowed; }
         .option-btn.correct { background: var(--success) !important; border-color: white; }
         .option-btn.wrong { background: var(--danger) !important; }
+
         .timer-box { font-size: 24px; font-weight: bold; text-align: center; color: #fbbf24; margin-bottom: 10px; }
         .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--primary); font-size: 14px; font-weight: bold; }
+        
         input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 15px; background: #334155; color: white; box-sizing: border-box; }
         .hidden { display: none; }
+        .mode-title { text-align: center; margin-bottom: 10px; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="nav-menu" id="main-nav">
-        <button class="nav-btn active" id="btn-home" onclick="location.reload()"><i class="fas fa-home"></i> Bosh sahifa</button>
-        <button class="nav-btn" id="btn-practice" onclick="window.startQuizMode('practice')"><i class="fas fa-dumbbell"></i> Mashq qilish</button>
+        <button class="nav-btn active" id="btn-home" onclick="window.showTab('home')"><i class="fas fa-home"></i> Menyu</button>
+        <button class="nav-btn" id="btn-practice" onclick="window.startQuizMode('practice')"><i class="fas fa-dumbbell"></i> Mashq</button>
         <button class="nav-btn" id="btn-list" onclick="window.showTab('list')"><i class="fas fa-book"></i> Savollar</button>
         <button class="nav-btn" id="btn-rank" onclick="window.showTab('rank')"><i class="fas fa-trophy"></i> Reyting</button>
     </div>
 
     <div id="tab-home" class="tab-content">
         <div class="card">
-            <h2 style="text-align: center; color: var(--primary);">Imtihon Rejimi</h2>
-            <p style="text-align: center; font-size: 14px; color: #94a3b8;">35 savol | 30 daqiqa | O'tish: 42 ball</p>
+            <h2 class="mode-title">Real Imtihon</h2>
+            <p style="text-align: center; color: #94a3b8; font-size: 13px;">35 savol | 30 daqiqa | O'tish: 42 ball</p>
             <input type="text" id="userName" placeholder="F.I.SH kiriting">
             <button class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center;" onclick="window.startQuizMode('exam')">IMTIHONNI BOSHLASH</button>
         </div>
@@ -45,19 +51,19 @@
         <div id="display-timer" class="timer-box"></div>
         <div class="status-bar">
             <span id="progress-text">Savol: 1/--</span>
-            <span id="score-text">Ball: 0</span>
+            <span id="score-text">Natija: 0</span>
         </div>
         <h3 id="question-text">...</h3>
         <div id="options-box"></div>
-        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold;" onclick="window.nextStep()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold; margin-top: 20px;" onclick="window.nextStep()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
     </div>
 
     <div id="tab-list" class="tab-content hidden">
-        <div class="card" id="full-questions-list">Yuklanmoqda...</div>
+        <div class="card" id="full-list-content">Yuklanmoqda...</div>
     </div>
 
     <div id="tab-rank" class="tab-content hidden">
-        <div class="card" id="rank-list">Natijalar yuklanmoqda...</div>
+        <div class="card" id="leaderboard-content">Natijalar yo'q.</div>
     </div>
 </div>
 
@@ -78,140 +84,151 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let allQuestions = [];
-    let currentQuizQs = [];
+    let allQs = [];
+    let quizQs = [];
     let step = 0;
     let score = 0;
-    let isExamMode = false;
-    let timer;
+    let isExam = false;
+    let timerInterval;
 
-    // Firebase'dan ma'lumotlarni yuklash
-    async function init() {
-        const snapshot = await get(ref(db, 'questions_pool'));
-        if (snapshot.exists()) {
-            allQuestions = snapshot.val();
-            renderAllList();
+    // 1. Ma'lumotlarni yuklash
+    async function loadData() {
+        const snap = await get(ref(db, 'questions_pool'));
+        if (snap.exists()) {
+            allQs = snap.val();
+            renderList();
         }
-        loadLeaderboard();
+        loadRank();
     }
 
-    // Global funksiyalarni window-ga bog'laymiz
+    // 2. Navigatsiya
     window.showTab = (tab) => {
-        clearInterval(timer);
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        clearInterval(timerInterval);
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById('quiz-screen').classList.add('hidden');
         document.getElementById('tab-' + tab).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if(document.getElementById('btn-' + tab)) document.getElementById('btn-' + tab).classList.add('active');
     };
 
+    // 3. Test/Mashq boshlash
     window.startQuizMode = (mode) => {
-        if (allQuestions.length === 0) return alert("Savollar hali yuklanmagan!");
+        if (allQs.length === 0) return alert("Savollar yuklanmadi, kuting...");
         
         if (mode === 'exam') {
             const name = document.getElementById('userName').value;
             if (!name) return alert("Ismingizni kiriting!");
-            isExamMode = true;
-            currentQuizQs = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 35);
+            isExam = true;
+            quizQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
         } else {
-            isExamMode = false;
-            currentQuizQs = [...allQuestions]; 
-            document.getElementById('display-timer').innerText = "Mashq rejimi";
+            isExam = false;
+            quizQs = [...allQs]; // Mashq uchun hammasi
+            document.getElementById('display-timer').innerText = "Mashq Rejimi";
         }
 
         step = 0; score = 0;
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById('quiz-screen').classList.remove('hidden');
         renderQuestion();
     };
 
+    // 4. Savol chiqarish
     function renderQuestion() {
-        const q = currentQuizQs[step];
-        document.getElementById('next-btn').classList.add('hidden');
-        document.getElementById('progress-text').innerText = `Savol: ${step + 1} / ${currentQuizQs.length}`;
-        document.getElementById('score-text').innerText = isExamMode ? `Ball: ${score * 2}` : `To'g'ri: ${score}`;
+        const q = quizQs[step];
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.classList.add('hidden');
+
+        document.getElementById('progress-text').innerText = `Savol: ${step + 1} / ${quizQs.length}`;
+        document.getElementById('score-text').innerText = isExam ? `Ball: ${score * 2}` : `To'g'ri: ${score}`;
         document.getElementById('question-text').innerText = q.q;
 
         const box = document.getElementById('options-box');
         box.innerHTML = "";
 
-        q.a.forEach((opt, i) => {
+        q.a.forEach((opt, idx) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAns(btn, i, q.c);
+            btn.onclick = () => handleAnswer(btn, idx, q.c);
             box.appendChild(btn);
         });
     }
 
-    function checkAns(btn, sel, cor) {
+    // 5. Javobni tekshirish
+    function handleAnswer(btn, selected, correct) {
         const btns = document.querySelectorAll('.option-btn');
         btns.forEach(b => b.disabled = true);
 
-        if (sel === cor) {
+        if (selected === correct) {
             btn.classList.add('correct');
             score++;
         } else {
             btn.classList.add('wrong');
-            btns[cor].classList.add('correct');
+            btns[correct].classList.add('correct');
         }
 
-        if (isExamMode) {
+        if (isExam) {
             setTimeout(window.nextStep, 1000);
         } else {
             document.getElementById('next-btn').classList.remove('hidden');
         }
     }
 
+    // 6. Keyingi savolga o'tish (Mashq rejimida ishlamayotgan qism)
     window.nextStep = () => {
         step++;
-        if (step < currentQuizQs.length) {
+        if (step < quizQs.length) {
             renderQuestion();
         } else {
-            finish();
+            finishQuiz();
         }
     };
 
     function startTimer(sec) {
         let t = sec;
-        timer = setInterval(() => {
+        timerInterval = setInterval(() => {
             let m = Math.floor(t / 60), s = t % 60;
             document.getElementById('display-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            if (--t < 0) { clearInterval(timer); finish(); }
+            if (--t < 0) { clearInterval(timerInterval); finishQuiz(); }
         }, 1000);
     }
 
-    async function finish() {
-        clearInterval(timer);
-        const finalScore = isExamMode ? score * 2 : score;
-        if (isExamMode) {
+    async function finishQuiz() {
+        clearInterval(timerInterval);
+        const finalScore = isExam ? score * 2 : score;
+        if (isExam) {
             const name = document.getElementById('userName').value;
             await push(ref(db, 'exam_results'), { name, score: finalScore, passed: finalScore >= 42, date: Date.now() });
         }
         document.getElementById('quiz-screen').innerHTML = `
-            <div style="text-align:center;">
-                <h2>${isExamMode ? (finalScore >= 42 ? '✅ O\'tdingiz!' : '❌ Yiqildingiz') : 'Mashq tugadi'}</h2>
-                <p style="font-size:32px; font-weight:bold;">${finalScore} ${isExamMode ? 'Ball' : 'To\'g\'ri'}</p>
-                <button class="option-btn" style="background:var(--primary); color:black; text-align:center;" onclick="location.reload()">ASOSIY MENYU</button>
+            <div style="text-align:center; padding: 20px;">
+                <h2 style="color:${isExam && finalScore < 42 ? 'var(--danger)' : 'var(--success)'}">${isExam ? (finalScore >= 42 ? 'O\'tdingiz!' : 'Yiqildingiz') : 'Mashq tugadi'}</h2>
+                <p style="font-size:35px; font-weight:bold;">${finalScore} ${isExam ? 'Ball' : 'To\'g\'ri'}</p>
+                <button class="option-btn" style="background:var(--primary); color:black; text-align:center; font-weight:bold;" onclick="location.reload()">ASOSIY MENYU</button>
             </div>`;
     }
 
-    function renderAllList() {
-        document.getElementById('full-questions-list').innerHTML = `<h3>Barcha savollar (${allQuestions.length})</h3>` + 
-            allQuestions.map((q, i) => `<div style="border-bottom:1px solid #444; padding:10px 0;"><b>${i+1}. ${q.q}</b><br><span style="color:var(--success)">J: ${q.a[q.c]}</span></div>`).join('');
+    function renderList() {
+        const list = document.getElementById('full-list-content');
+        list.innerHTML = `<h3>Barcha savollar (${allQs.length})</h3>` + allQs.map((q, i) => `
+            <div style="border-bottom:1px solid #444; padding:10px 0; font-size:14px;">
+                <b>${i+1}. ${q.q}</b><br><span style="color:var(--success)">Javob: ${q.a[q.c]}</span>
+            </div>`).join('');
     }
 
-    function loadLeaderboard() {
+    function loadRank() {
         const rRef = query(ref(db, 'exam_results'), orderByChild('score'), limitToLast(10));
         onValue(rRef, (snap) => {
-            let res = []; snap.forEach(c => res.push(c.val()));
-            document.getElementById('rank-list').innerHTML = "<h3>Top 10 Reyting</h3>" + res.reverse().map((r, i) => 
-                `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;"><span>${i+1}. ${r.name}</span><b>${r.score} ball</b></div>`).join('');
+            let data = []; snap.forEach(c => data.push(c.val()));
+            document.getElementById('leaderboard-content').innerHTML = "<h3>Top 10 Reyting</h3>" + data.reverse().map((r, i) => `
+                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #334155;">
+                    <span>${i+1}. ${r.name}</span><b>${r.score} ball</b>
+                </div>`).join('');
         });
     }
 
-    init();
+    loadData();
 </script>
 </body>
 </html>

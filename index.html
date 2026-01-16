@@ -3,203 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matematika Test</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: { inlineMath: [['$','$']], processEscapes: true },
-            "HTML-CSS": { linebreaks: { automatic: true } },
-            messageStyle: "none"
-        });
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
+    <title>Mega Quiz TG</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-        .option-btn { transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
-        .math-hidden { opacity: 0; }
-        .math-visible { opacity: 1; transition: opacity 0.3s; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        :root {
+            --tg-theme-bg: #f0f2f5;
+            --tg-blue: #248bcf;
+            --tg-green: #31b545;
+            --tg-red: #d33232;
+            --tg-text: #222;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg);
+            color: var(--tg-text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .quiz-card {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        #progress-inner {
+            height: 100%;
+            background: var(--tg-blue);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .opt-btn {
+            border: 2px solid #f0f0f0;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .opt-btn:active { transform: scale(0.98); }
+
+        .correct { background: var(--tg-green) !important; color: white; border-color: var(--tg-green); }
+        .wrong { background: var(--tg-red) !important; color: white; border-color: var(--tg-red); }
+
+        /* Leaderboard Style */
+        .leaderboard-card {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .user-rank {
+            width: 30px;
+            font-weight: bold;
+            color: var(--tg-blue);
+        }
+
+        .user-info { flex-grow: 1; margin-left: 10px; }
+        .user-score { font-weight: bold; background: #eef7ff; padding: 4px 10px; border-radius: 8px; font-size: 0.9rem; }
+
+        .hidden { display: none; }
+        
+        #tg-only-msg {
+            color: var(--tg-red);
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4">
+<body>
 
-    <div id="main-card" class="w-full max-w-md bg-white rounded-[2rem] shadow-xl overflow-hidden flex flex-col min-h-[550px]">
+    <div class="quiz-card" id="quiz-screen">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--tg-blue); font-weight: 600;" id="q-number">1 / 15</span>
+            <span id="user-display" style="font-size: 0.9rem; opacity: 0.7;">Telegram User</span>
+        </div>
         
-        <!-- Kirish -->
-        <div id="login-view" class="p-8 flex-1 flex flex-col justify-center text-center">
-            <div class="text-6xl mb-4">💎</div>
-            <h1 class="text-2xl font-black text-gray-800 mb-2">Matematika Testi</h1>
-            <p class="text-gray-400 text-sm mb-8">Natijangizni saqlang va peshqadamlar ro'yxatiga kiring!</p>
-            <input type="text" id="user-name" placeholder="Ismingiz..." 
-                class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold mb-4 text-center">
-            <button id="start-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
-                Boshlash
-            </button>
-        </div>
-
-        <!-- Test -->
-        <div id="quiz-view" class="hidden p-6 flex-1 flex flex-col">
-            <div class="flex justify-between items-center mb-6">
-                <span id="q-count" class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Savol 1/10</span>
-                <span id="live-score" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">0 ball</span>
-            </div>
-            <div class="bg-slate-50 p-6 rounded-3xl mb-6 border border-slate-100 min-h-[120px] flex items-center justify-center text-center">
-                <div id="q-text" class="text-lg font-bold text-gray-800 math-hidden"></div>
-            </div>
-            <div id="options" class="space-y-2 math-hidden"></div>
-            <button id="next-btn" class="hidden w-full mt-auto bg-slate-900 text-white font-bold py-4 rounded-2xl">Keyingisi</button>
-        </div>
-
-        <!-- Reyting -->
-        <div id="result-view" class="hidden p-6 flex-1 flex flex-col">
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-black text-gray-800">Natijangiz: <span id="final-score" class="text-blue-600">0</span></h2>
-            </div>
-            <div class="flex-1 overflow-y-auto bg-slate-50 rounded-3xl p-4 border border-slate-100">
-                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">🏆 TOP REYTING</h3>
-                <div id="ranking-list" class="space-y-2">
-                    <div class="text-center py-4 text-gray-300">Yuklanmoqda...</div>
-                </div>
-            </div>
-            <button id="restart-btn" class="w-full mt-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-2xl">Qayta topshirish</button>
-        </div>
+        <div class="progress-bar"><div id="progress-inner"></div></div>
+        
+        <div class="question-text" id="q-text">Savollar tayyorlanmoqda...</div>
+        
+        <div class="options-grid" id="options-container"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    <div class="leaderboard-card">
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+            🏆 Top Reyting (Faqat Telegram)
+        </h3>
+        <div id="leaderboard-list">Yuklanmoqda...</div>
+        <div id="tg-only-msg" class="hidden">Siz brauzerdasiz. Reytingga kirish uchun Telegramdan kiring!</div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-            projectId: "gen-lang-client-0228947349",
-            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
-            messagingSenderId: "253793341504",
-            appId: "1:253793341504:web:709752258000dab44fcfa5",
-            measurementId: "G-DT2JZN1P2T"
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = 'telegram_math_fix_v2';
+    const firebaseConfig = {
+        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+        authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+        projectId: "gen-lang-client-0228947349",
+        storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+        messagingSenderId: "253793341504",
+        appId: "1:253793341504:web:709752258000dab44fcfa5"
+    };
 
-        let state = { idx: 0, score: 0, name: '', user: null };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const tg = window.Telegram.WebApp;
 
-        const quizData = [
-            { q: "Ustun matritsani ko'rsating:", o: ["(1,2,3)", "$ \\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix} $", "(1 2 3)", "$ A_{3 \\times 3} $"], c: 1 },
-            { q: "Matritsa deb nimaga aytiladi?", o: ["$m$ ta satr va $n$ ta ustunli sonlar jadvali", "Uchburchakli harflar jadvali", "Harflar yig'indisi", "Sonlar ko'paytmasi"], c: 0 },
-            { q: "3-satr va 4-ustunda turgan element qanday belgilanadi?", o: ["$ a_{34} $", "$ a_{43} $", "$ A_{34} $", "$ a_{12} $"], c: 0 },
-            { q: "Birlik matritsani ko'rsating:", o: ["$ \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} $", "$ \\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix} $", "(1 1)", "$ \\begin{pmatrix} 1 & 1 \\\\ 1 & 1 \\end{pmatrix} $"], c: 0 },
-            { q: "O'zgarmas sonning hosilasi nimaga teng?", o: ["1", "$x$", "0", "-1"], c: 2 },
-            { q: "Determinantni hisoblang: $ \\begin{vmatrix} 5 & 2 \\\\ 7 & 4 \\end{vmatrix} $", o: ["6", "13", "20", "34"], c: 0 },
-            { q: "$ a = (-2, 6, 3) $ vektorning modulini $ |a| $ toping:", o: ["5", "7", "9", "11"], c: 1 },
-            { q: "$ y = \\sin x $ funksiyasining hosilasi nimaga teng?", o: ["$ \\cos x $", "$ -\\sin x $", "$ \\tan x $", "1"], c: 0 },
-            { q: "Kvadrat matritsa deb nimaga aytiladi?", o: ["Satr va ustunlar soni teng bo'lsa", "Faqat bitta satri bo'lsa", "Faqat nollar bo'lsa", "Determinanti nol bo'lsa"], c: 0 },
-            { q: "3x4 o'lchamli matritsada nechta element bor?", o: ["7", "1", "12", "14"], c: 2 }
-        ];
+    // Telegram foydalanuvchisini tekshirish
+    const isTelegram = tg.initData !== ""; 
+    const userData = tg.initDataUnsafe?.user;
+    const userName = userData ? (userData.first_name + (userData.last_name ? " " + userData.last_name : "")) : "Brauzer Foydalanuvchisi";
+    const userId = userData ? userData.id : null;
 
-        // Auth
-        signInAnonymously(auth).then(c => state.user = c.user).catch(e => console.error(e));
+    document.getElementById('user-display').innerText = userName;
 
-        document.getElementById('start-btn').onclick = () => {
-            const input = document.getElementById('user-name');
-            if (!input.value.trim()) return alert("Ismingizni kiriting!");
-            state.name = input.value.trim();
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('quiz-view').classList.remove('hidden');
+    if (!isTelegram) {
+        document.getElementById('tg-only-msg').classList.remove('hidden');
+    }
+
+    const questions = [
+        { q: "O'zbekistonning eng baland nuqtasi qayerda?", a: ["Hisor tizmasi", "Chotqol tog'i", "Zarafshon"], c: 0 },
+        { q: "JavaScript tili qaysi yili yaratilgan?", a: ["1991", "1995", "2001"], c: 1 },
+        { q: "Inson tanasidagi eng katta organ?", a: ["Yurak", "Jigar", "Teri"], c: 2 },
+        { q: "Dunyoning 7 mo'jizasidan biri qaysi?", a: ["Eyxel minorasi", "Giza piramidalari", "Ozodlik haykali"], c: 1 },
+        { q: "Iphone asoschisi kim?", a: ["Bill Geyts", "Stiv Jobs", "Elon Musk"], c: 1 },
+        { q: "O'zbekiston bayrog'ida nechta yulduz bor?", a: ["10 ta", "12 ta", "15 ta"], c: 1 },
+        { q: "Eng tez harakatlanuvchi jonivor?", a: ["Burgut", "Gepard", "Sapsan lochini"], c: 2 },
+        { q: "Qaysi sayyora 'Qizil sayyora' deb ataladi?", a: ["Mars", "Venera", "Saturn"], c: 0 },
+        { q: "Telegram asoschisi kim?", a: ["Pavel Durov", "Mark Zuckerberg", "Jan Kum"], c: 0 },
+        { q: "Alisher Navoiy asari qaysi?", a: ["O'tkan kunlar", "Xamsa", "Boburnoma"], c: 1 },
+        { q: "Suv 100 darajada qaynaydi, bu rostmi?", a: ["Ha", "Yo'q", "Faqat tog'da"], c: 0 },
+        { q: "Internet tarmog'i asoschisi qaysi davlat?", a: ["Rossiya", "AQSH", "Xitoy"], c: 1 },
+        { q: "Oltinning kimyoviy belgisi?", a: ["Ag", "Fe", "Au"], c: 2 },
+        { q: "Shaxmatda nechta dona bor (jami)?", a: ["32 ta", "64 ta", "16 ta"], c: 0 },
+        { q: "BMT ning markaziy qarorgohi qayerda?", a: ["Jeneva", "Nyu-York", "Parij"], c: 1 }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function renderQuestion() {
+        if(currentIdx >= questions.length) return finish();
+        
+        const q = questions[currentIdx];
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-number').innerText = `${currentIdx + 1} / 15`;
+        document.getElementById('progress-inner').style.width = `${((currentIdx + 1)/15)*100}%`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.a.forEach((opt, i) => {
+            const btn = document.createElement('div');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(btn, i);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(btn, selected) {
+        const correct = questions[currentIdx].c;
+        const allBtns = document.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+        if(selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns[correct].classList.add('correct');
+        }
+
+        setTimeout(() => {
+            currentIdx++;
             renderQuestion();
-        };
+        }, 1200);
+    }
 
-        function renderQuestion() {
-            if (state.idx >= quizData.length) return finish();
-            const data = quizData[state.idx];
-            const qT = document.getElementById('q-text');
-            const opts = document.getElementById('options');
-            
-            qT.classList.replace('math-visible', 'math-hidden');
-            opts.classList.replace('math-visible', 'math-hidden');
-            
-            document.getElementById('q-count').innerText = `Savol ${state.idx + 1}/10`;
-            document.getElementById('next-btn').classList.add('hidden');
-            qT.innerHTML = data.q;
-            opts.innerHTML = '';
-            
-            data.o.forEach((o, i) => {
-                const b = document.createElement('button');
-                b.className = "option-btn w-full text-left p-3 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50 flex items-center text-sm mb-2";
-                b.innerHTML = `<span class="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center mr-3 font-bold text-gray-400 text-xs shrink-0">${String.fromCharCode(65+i)}</span> <span>${o}</span>`;
-                b.onclick = () => {
-                    const all = document.querySelectorAll('.option-btn');
-                    all.forEach(x => x.onclick = null);
-                    if (i === data.c) {
-                        state.score++;
-                        b.classList.add('border-green-500', 'bg-green-50');
-                        document.getElementById('live-score').innerText = state.score + ' ball';
-                    } else {
-                        b.classList.add('border-red-500', 'bg-red-50');
-                        all[data.c].classList.add('border-green-500', 'bg-green-50');
-                    }
-                    document.getElementById('next-btn').classList.remove('hidden');
-                };
-                opts.appendChild(b);
+    function finish() {
+        document.getElementById('quiz-screen').innerHTML = `
+            <h2 style="text-align:center">Tabriklaymiz! 🎉</h2>
+            <div style="font-size: 3rem; text-align:center; margin: 20px 0;">${score} / 15</div>
+            <button onclick="location.reload()" style="width:100%; padding:15px; border-radius:12px; background:var(--tg-blue); color:white; border:none; font-weight:bold;">Qayta o'ynash</button>
+        `;
+
+        // FAQAT TELEGRAMDAN KIRGAN BO'LSA REYTINGGA YOZADI
+        if (isTelegram && userId) {
+            set(ref(db, 'leaderboard/' + userId), {
+                name: userName,
+                score: score,
+                tg: true // Telegram belgisi
             });
-
-            if (window.MathJax) {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, qT], ["Typeset", MathJax.Hub, opts], () => {
-                    qT.classList.remove('math-hidden');
-                    qT.classList.add('math-visible');
-                    opts.classList.remove('math-hidden');
-                    opts.classList.add('math-visible');
-                });
-            }
         }
+    }
 
-        document.getElementById('next-btn').onclick = () => { state.idx++; renderQuestion(); };
+    // Reytingni chiqarish (Faqat tg: true bo'lganlarni ko'rsatadi)
+    const topScoresRef = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+    onValue(topScoresRef, (snapshot) => {
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = '';
+        let users = [];
+        snapshot.forEach(child => {
+            const data = child.val();
+            if(data.tg === true) users.push(data); // Faqat Telegram foydalanuvchilari
+        });
+        
+        users.reverse().forEach((u, i) => {
+            list.innerHTML += `
+                <div class="user-item">
+                    <div class="user-rank">${i+1}</div>
+                    <div class="user-info">${u.name} 🔵</div>
+                    <div class="user-score">${u.score} ball</div>
+                </div>`;
+        });
+    });
 
-        async function finish() {
-            document.getElementById('quiz-view').classList.add('hidden');
-            document.getElementById('result-view').classList.remove('hidden');
-            document.getElementById('final-score').innerText = state.score;
-            
-            if (state.user) {
-                try {
-                    const col = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
-                    await addDoc(col, { name: state.name, score: state.score, ts: Date.now() });
-                } catch (e) { console.error("Saqlashda xato:", e); }
-            }
-            loadRanking();
-        }
-
-        async function loadRanking() {
-            const list = document.getElementById('ranking-list');
-            try {
-                const col = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
-                const snap = await getDocs(col);
-                let items = [];
-                snap.forEach(d => items.push(d.data()));
-                items.sort((a, b) => b.score - a.score);
-                
-                list.innerHTML = items.slice(0, 10).map((p, i) => `
-                    <div class="flex justify-between items-center p-3 bg-white rounded-2xl shadow-sm border border-slate-50 mb-1">
-                        <div class="flex items-center">
-                            <span class="w-6 font-black ${i<3?'text-blue-500':'text-gray-300'} text-xs">${i+1}</span>
-                            <span class="font-bold text-gray-700 text-xs">${p.name}</span>
-                        </div>
-                        <span class="text-blue-600 font-black text-xs">${p.score} ball</span>
-                    </div>
-                `).join('') || '<p class="text-center text-gray-300 text-xs">Hozircha natija yo\'q</p>';
-            } catch (e) {
-                list.innerHTML = '<p class="text-center text-red-300 text-xs">Reytingni yuklab bo\'lmadi</p>';
-            }
-        }
-
-        document.getElementById('restart-btn').onclick = () => location.reload();
-    </script>
+    renderQuestion();
+</script>
 </body>
 </html>
-

@@ -2,99 +2,118 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Word to JSON - Image Fix</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; text-align: center; }
-        .box { border: 3px dashed #38bdf8; padding: 40px; border-radius: 20px; background: #1e293b; }
-        .btn { background: #38bdf8; color: black; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; display: inline-block; }
-        #status { margin-top: 20px; color: #10b981; font-weight: bold; }
-        input[type="file"] { display: none; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini 2.0 Flash - Test Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-100 p-5">
 
-<div class="box">
-    <h2>100% Rasm va JSON Engine</h2>
-    <p>Word faylni yuklang, rasmlar avtomatik Base64 ga o'tkaziladi.</p>
-    <label for="fileInput" class="btn">📁 FAYLNI TANLASH (.DOCX)</label>
-    <input type="file" id="fileInput" accept=".docx">
-    <div id="status"></div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-        databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border border-blue-50 mt-10">
+        <h1 class="text-3xl font-black text-center text-blue-700 mb-6">Gemini 2.0 Analyzer</h1>
         
-        reader.onload = function(event) {
-            const arrayBuffer = event.target.result;
+        <div class="space-y-4">
+            <input type="file" id="docxInput" accept=".docx" 
+                   class="w-full p-3 border-2 border-dashed border-blue-200 rounded-2xl cursor-pointer hover:bg-blue-50 transition">
             
-            // RASMLARNI O'QISH UCHUN ENG KUCHLI FILTR
-            const options = {
-                convertImage: mammoth.images.inline(function(element) {
-                    return element.read("base64").then(function(imageBuffer) {
-                        return {
-                            src: "data:" + element.contentType + ";base64," + imageBuffer.fallback
-                        };
-                    });
-                })
-            };
+            <button onclick="generateTests()" id="btn" 
+                    class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-blue-200 active:scale-95 transition-all">
+                TESTLARNI YARATISH
+            </button>
+        </div>
 
-            mammoth.convertToHtml({arrayBuffer: arrayBuffer}, options).then(result => {
-                const temp = document.createElement('div');
-                temp.innerHTML = result.value;
-                const rows = Array.from(temp.querySelectorAll('tr'));
-                
-                let questionsObj = {};
-                
-                rows.forEach((row, index) => {
-                    const cols = Array.from(row.querySelectorAll('td'));
-                    if (cols.length >= 5) {
-                        // Savol katagidan rasmni qidirish
-                        const qCell = cols[0];
-                        const imgTag = qCell.querySelector('img');
-                        
-                        // Rasmni alohida "image" maydoniga olish
-                        let base64Img = "";
-                        if (imgTag) {
-                            base64Img = imgTag.src;
-                            imgTag.remove(); // Savol matni ichidan rasmni olib tashlash
-                        }
+        <div id="loader" class="hidden mt-6 text-center text-blue-600 font-bold animate-pulse text-sm">
+            GEMINI 2.0 FLASH TAHLIL QILMOQDA...
+        </div>
 
-                        // Siz so'ragan JSON strukturasi
-                        questionsObj[index + 1] = {
-                            "question": qCell.innerText.trim() || "Savol quyidagi rasmda:",
-                            "image": base64Img, // Rasm shu yerga tushadi
-                            "answers": {
-                                "A": cols[1].innerText.trim(),
-                                "B": cols[2].innerText.trim(),
-                                "C": cols[3].innerText.trim(),
-                                "D": cols[4].innerText.trim()
-                            },
-                            "correct": "A"
-                        };
-                    }
-                });
+        <div id="result" class="mt-8 space-y-4"></div>
+    </div>
 
-                // Firebase'ga yuborish (smart_questions tuguniga)
-                set(ref(db, 'smart_questions'), { "questions": questionsObj }).then(() => {
-                    document.getElementById('status').innerText = "✅ " + Object.keys(questionsObj).length + " ta savol va rasmlar 100% yuklandi!";
-                });
-            });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase sozlamalari
+        const firebaseConfig = {
+            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+            projectId: "gen-lang-client-0228947349",
+            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+            messagingSenderId: "253793341504",
+            appId: "1:253793341504:web:709752258000dab44fcfa5"
         };
-        reader.readAsArrayBuffer(file);
-    });
-</script>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // API Sozlamalari
+        const API_KEY = "AIzaSyDLmOc5i9nfc1GQc52eB9kioO_M5KLld6o";
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+
+        window.generateTests = async () => {
+            const file = document.getElementById('docxInput').files[0];
+            const btn = document.getElementById('btn');
+            const loader = document.getElementById('loader');
+            const resultDiv = document.getElementById('result');
+
+            if (!file) return alert("Docx faylni tanlang!");
+
+            try {
+                btn.disabled = true;
+                loader.classList.remove('hidden');
+                resultDiv.innerHTML = "";
+
+                // 1. Docx ni matnga o'tkazish
+                const arrayBuffer = await file.arrayBuffer();
+                const docText = await mammoth.extractRawText({ arrayBuffer });
+                const content = docText.value;
+
+                // 2. To'g'ridan-to'g'ri Fetch (Curl o'rniga brauzer so'rovi)
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Ushbu matndan 5 ta test savoli tuz. Faqat JSON formatda javob ber: [{"q":"savol", "o":["v1","v2","v3","v4"], "a":"to'g'ri javob"}]. Matn: ${content}`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error.message);
+
+                const rawAIResponse = data.candidates[0].content.parts[0].text;
+                const cleanJson = rawAIResponse.match(/\[[\s\S]*\]/)[0];
+                const tests = JSON.parse(cleanJson);
+
+                // 3. Firebasega saqlash
+                await addDoc(collection(db, "gemini_2_archive"), {
+                    fileName: file.name,
+                    testData: tests,
+                    timestamp: new Date().toISOString()
+                });
+
+                // 4. Ekranga chiqarish
+                tests.forEach((t, i) => {
+                    resultDiv.innerHTML += `
+                        <div class="p-4 bg-slate-50 border-l-4 border-blue-600 rounded shadow-sm">
+                            <p class="font-bold text-slate-800">${i+1}. ${t.q}</p>
+                            <p class="mt-2 text-xs text-green-600 font-bold">JAVOB: ${t.a}</p>
+                        </div>`;
+                });
+
+                alert("Gemini 2.0 Flash testlarni muvaffaqiyatli yaratdi!");
+
+            } catch (err) {
+                console.error(err);
+                alert("Xatolik: " + err.message);
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('hidden');
+            }
+        };
+    </script>
 </body>
 </html>

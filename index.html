@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsalar PRO - Telegram Mini App</title>
+    <title>Matritsalar PRO - Yakuniy Tizim</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
@@ -12,17 +12,13 @@
         .container { max-width: 600px; margin: auto; }
         .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
-        /* Foydalanuvchi paneli */
         .user-badge { display: flex; align-items: center; gap: 10px; background: #334155; padding: 10px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
         .user-badge i { color: var(--primary); font-size: 20px; }
         
-        /* Navigatsiya */
         .nav-menu { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
-        .nav-btn:active { transform: scale(0.95); }
+        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .nav-btn.active { background: var(--primary); color: #000; }
 
-        /* Test elementlari */
         .option-btn { width: 100%; background: #334155; border: 2px solid transparent; color: white; padding: 14px; margin: 6px 0; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; }
         .option-btn.correct { background: var(--success) !important; border-color: white; }
         .option-btn.wrong { background: var(--danger) !important; }
@@ -32,47 +28,50 @@
         
         .hidden { display: none; }
         #timer { font-size: 22px; font-weight: bold; text-align: center; color: #fbbf24; margin-bottom: 10px; }
+        .loader { text-align: center; color: var(--primary); font-size: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="user-badge" id="user-info">
+    <div id="loading-status" class="loader"><i class="fas fa-spinner fa-spin"></i> Bazaga ulanmoqda...</div>
+
+    <div class="user-badge">
         <i class="fas fa-user-circle"></i>
         <div>
-            <div id="user-name" style="font-weight: bold;">Foydalanuvchi...</div>
-            <div id="user-id" style="font-size: 11px; color: #94a3b8;">ID: aniqlanmoqda</div>
+            <div id="user-name" style="font-weight: bold;">Foydalanuvchi</div>
+            <div id="user-id" style="font-size: 11px; color: #94a3b8;">ID: 00000000</div>
         </div>
     </div>
 
     <div class="nav-menu">
-        <button class="nav-btn active" id="btn-home" onclick="location.reload()"><i class="fas fa-file-alt"></i> Imtihon</button>
-        <button class="nav-btn" id="btn-practice" onclick="window.startQuiz('practice')"><i class="fas fa-dumbbell"></i> Mashq</button>
-        <button class="nav-btn" id="btn-rank" onclick="window.showTab('rank')"><i class="fas fa-trophy"></i> Reyting</button>
+        <button class="nav-btn active" id="btn-home" onclick="location.reload()">Imtihon</button>
+        <button class="nav-btn" id="btn-practice" onclick="window.startQuiz('practice')">Mashq</button>
+        <button class="nav-btn" id="btn-rank" onclick="window.showTab('rank')">Reyting</button>
     </div>
 
     <div id="tab-home" class="tab-content">
         <div class="card" style="text-align: center;">
             <h2 style="color: var(--primary);">Real Imtihon</h2>
-            <p style="font-size: 14px; color: #94a3b8;">35 ta tasodifiy savol, 30 daqiqa vaqt. Natija reytingga yoziladi.</p>
-            <button class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center; margin-top: 10px;" onclick="window.startQuiz('exam')">IMTIHONNI BOSHLASH</button>
+            <p style="font-size: 14px; color: #94a3b8;">35 ta savol, 30 daqiqa. Natija avtomatik reytingga yoziladi.</p>
+            <button id="start-exam-btn" class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center;" onclick="window.startQuiz('exam')">BOSHLASH</button>
         </div>
     </div>
 
     <div id="quiz-screen" class="card hidden">
         <div id="timer"></div>
-        <div style="display: flex; justify-content: space-between; color: var(--primary); font-size: 14px; margin-bottom: 10px; font-weight: bold;">
+        <div style="display: flex; justify-content: space-between; color: var(--primary); font-size: 14px; margin-bottom: 10px;">
             <span id="q-count"></span>
             <span id="live-score"></span>
         </div>
-        <h3 id="q-text" style="line-height: 1.4;"></h3>
+        <h3 id="q-text"></h3>
         <div id="options-box"></div>
-        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold; margin-top: 15px;">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold;" onclick="window.nextStep()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
     </div>
 
     <div id="tab-rank" class="tab-content hidden">
         <div class="card">
-            <h3 style="text-align: center; margin-top: 0;"><i class="fas fa-crown" style="color: gold;"></i> Top 10 Rekordlar</h3>
+            <h3 style="text-align: center;"><i class="fas fa-crown" style="color: gold;"></i> Top 10 Natija</h3>
             <div id="rank-list">Natijalar yuklanmoqda...</div>
         </div>
     </div>
@@ -97,23 +96,34 @@
     const tg = window.Telegram.WebApp;
 
     let userData = {
-        id: tg.initDataUnsafe?.user?.id || "Mehmon_ID",
-        name: tg.initDataUnsafe?.user?.first_name || "Mehmon"
+        id: tg.initDataUnsafe?.user?.id || "Mehmon",
+        name: tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi"
     };
 
-    let allQs = [], quizQs = [], step = 0, score = 0, isExam = false, timer;
+    let allQs = [], quizQs = [], step = 0, score = 0, isExam = false, timerInterval;
 
+    // Baza bilan real-vaqtda bog'lanish
     function init() {
         tg.expand();
         document.getElementById('user-name').innerText = userData.name;
         document.getElementById('user-id').innerText = `ID: ${userData.id}`;
         
-        get(ref(db, 'questions_pool')).then(s => { if(s.exists()) allQs = s.val(); });
+        // Savollarni onValue orqali yuklash (Avtomatik yangilanadi)
+        const qRef = ref(db, 'questions_pool');
+        onValue(qRef, (snapshot) => {
+            if (snapshot.exists()) {
+                allQs = snapshot.val();
+                document.getElementById('loading-status').innerHTML = `<span style="color:#10b981"><i class="fas fa-check"></i> ${allQs.length} ta savol tayyor</span>`;
+            } else {
+                document.getElementById('loading-status').innerHTML = `<span style="color:#ef4444"><i class="fas fa-exclamation-triangle"></i> Savollar topilmadi!</span>`;
+            }
+        });
+
         loadRank();
     }
 
     window.showTab = (tab) => {
-        clearInterval(timer);
+        clearInterval(timerInterval);
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.getElementById('quiz-screen').classList.add('hidden');
         document.getElementById('tab-' + tab).classList.remove('hidden');
@@ -122,7 +132,8 @@
     };
 
     window.startQuiz = (mode) => {
-        if(allQs.length === 0) return alert("Savollar hali yuklanmagan!");
+        if(allQs.length === 0) return alert("Savollar hali yuklanmagan, biroz kuting!");
+        
         isExam = (mode === 'exam');
         quizQs = isExam ? [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35) : [...allQs];
         step = 0; score = 0;
@@ -154,7 +165,7 @@
                 if(idx === q.c) { btn.classList.add('correct'); score++; }
                 else { btn.classList.add('wrong'); btns[q.c]?.classList.add('correct'); }
                 
-                if(isExam) setTimeout(window.nextStep, 1000);
+                if(isExam) setTimeout(window.nextStep, 800);
                 else document.getElementById('next-btn').classList.remove('hidden');
             };
             box.appendChild(btn);
@@ -167,22 +178,20 @@
         else finishQuiz();
     };
 
-    document.getElementById('next-btn').onclick = window.nextStep;
-
     function startTimer(s) {
         let t = s;
-        timer = setInterval(() => {
+        timerInterval = setInterval(() => {
             let m = Math.floor(t/60), sec = t%60;
             document.getElementById('timer').innerText = `${m}:${sec<10?'0':''}${sec}`;
-            if(--t < 0) { clearInterval(timer); finishQuiz(); }
+            if(--t < 0) { clearInterval(timerInterval); finishQuiz(); }
         }, 1000);
     }
 
     async function finishQuiz() {
-        clearInterval(timer);
+        clearInterval(timerInterval);
         const finalScore = isExam ? score * 2 : score;
         
-        if(isExam && userData.id !== "Mehmon_ID") {
+        if(isExam && userData.id !== "Mehmon") {
             const userRef = ref(db, 'best_scores/' + userData.id);
             const snap = await get(userRef);
             if(!snap.exists() || snap.val().score < finalScore) {
@@ -192,8 +201,7 @@
 
         document.getElementById('quiz-screen').innerHTML = `
             <div style="text-align:center; padding: 20px;">
-                <h2 style="color:var(--primary)">${isExam ? 'Imtihon Tugadi' : 'Mashq Tugadi'}</h2>
-                <p style="font-size:40px; font-weight:bold; margin: 10px 0;">${finalScore} ${isExam ? 'Ball' : 'To\'g\'ri'}</p>
+                <h2 style="color:var(--primary)">Natija: ${finalScore} ${isExam ? 'Ball' : 'To\'g\'ri'}</h2>
                 <button class="option-btn" style="background:var(--primary); color:black; text-align:center; font-weight:bold;" onclick="location.reload()">ASOSIY MENYU</button>
             </div>`;
     }
@@ -206,12 +214,9 @@
             list.reverse();
             document.getElementById('rank-list').innerHTML = list.map((r, i) => `
                 <div class="rank-item">
-                    <div style="display:flex; align-items:center;">
-                        <div class="rank-number">${i+1}</div>
-                        <span>${r.name}</span>
-                    </div>
+                    <span><span class="rank-number">${i+1}</span> ${r.name}</span>
                     <b style="color:var(--primary)">${r.score} ball</b>
-                </div>`).join('') || "Hozircha natija yo'q";
+                </div>`).join('') || "Hozircha natijalar yo'q";
         });
     }
 

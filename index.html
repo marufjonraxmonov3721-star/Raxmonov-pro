@@ -2,44 +2,59 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsalar - REAL TEST</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matritsa PRO - Telegram Ultra Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --success: #10b981; --danger: #ef4444; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
-        .opt { background: #334155; color: white; text-align: left; }
-        .opt.correct { background: var(--success) !important; }
-        .opt.wrong { background: var(--danger) !important; }
-        .start-btn { background: var(--primary); color: #000; }
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; background: var(--primary); color: #000; cursor: pointer; }
+        .opt { background: #2d3748; color: white; text-align: left; width: 100%; padding: 18px; margin: 12px 0; border-radius: 12px; border: 1px solid #4a5568; font-size: 16px; line-height: 1.4; transition: 0.2s; }
+        .opt:active { transform: scale(0.98); background: #3d4a61; }
+        
+        /* RASMLARNI TO'G'RI KO'RSATISH */
+        img { 
+            max-width: 100% !important; 
+            height: auto !important; 
+            display: block; 
+            margin: 10px auto; 
+            background: white; 
+            padding: 5px; 
+            border-radius: 8px; 
+        }
+        /* Savol va javoblar ichidagi HTML teglarini to'g'ri chiqarish */
+        .content-area { word-wrap: break-word; }
         .hidden { display: none; }
-        #timer { font-size: 24px; text-align: center; color: #fbbf24; margin-bottom: 10px; font-weight: bold; }
-        .header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 15px; color: var(--primary); }
+        #timer { font-size: 30px; color: #fbbf24; text-align: center; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="home-screen" class="card">
-    <h2 style="text-align:center;">Matritsalar: Real Test</h2>
-    <div id="status" style="text-align:center; font-size:12px; margin-bottom:10px;">Baza tekshirilmoqda...</div>
-    <button class="btn start-btn" onclick="startExam()">TESTNI BOSHLASH</button>
+    <h2 style="text-align:center; color:var(--primary);">MATRITSA PRO</h2>
+    <p id="status" style="text-align:center; font-size:14px; opacity:0.7;">Baza tekshirilmoqda...</p>
+    <button class="btn" onclick="startMode()">🚀 TESTNI BOSHLASH</button>
+    <div style="margin-top:20px; border:2px dashed var(--primary); padding:15px; border-radius:10px; text-align:center;">
+        <label for="fileInput" style="cursor:pointer; display:block;">📄 Word (.docx) yuklash</label>
+        <input type="file" id="fileInput" accept=".docx" class="hidden">
+    </div>
 </div>
 
 <div id="test-screen" class="card hidden">
     <div id="timer">30:00</div>
-    <div class="header">
-        <span id="q-num">Savol: 1/35</span>
-        <span id="q-score">Ball: 0</span>
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px; color:var(--primary); font-size:14px;">
+        <span id="q-num">1/265</span>
+        <span id="q-score">Ball: 0.0</span>
     </div>
-    <h3 id="question-text">Yuklanmoqda...</h3>
+    <div id="question-text" class="content-area" style="font-size:18px; margin-bottom:20px;"></div>
     <div id="options-area"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -57,103 +72,94 @@
 
     let pool = [], currentQs = [], step = 0, score = 0, timer;
 
-    // 1. Bazadan savollarni o'qish
-    onValue(ref(db, 'questions_pool'), (snap) => {
-        const data = snap.val();
-        if (data) {
-            pool = Array.isArray(data) ? data : Object.values(data);
-            document.getElementById('status').innerHTML = `<b style="color:#10b981">Tayyor: ${pool.length} ta savol</b>`;
-        } else {
-            document.getElementById('status').innerHTML = `<b style="color:#ef4444">Baza bo'sh yoki xato!</b>`;
-        }
+    // --- WORDDAN BAZAGA TO'G'RI YUKLASH ---
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const options = {
+                convertImage: mammoth.images.inline(function(element) {
+                    return element.read("base64").then(function(imageBuffer) {
+                        return { src: "data:" + element.contentType + ";base64," + imageBuffer.fallback };
+                    });
+                })
+            };
+            mammoth.convertToHtml({arrayBuffer: event.target.result}, options).then(result => {
+                const temp = document.createElement('div');
+                temp.innerHTML = result.value;
+                const rows = Array.from(temp.querySelectorAll('tr'));
+                
+                let data = rows.map(r => {
+                    const c = Array.from(r.querySelectorAll('td')).map(td => td.innerHTML.trim());
+                    // HTML kodlarini saqlab qolamiz
+                    if(c.length >= 5) return { q: c[0], a: [c[1],c[2],c[3],c[4]], c: 0 };
+                    return null;
+                }).filter(x => x);
+
+                set(ref(db, 'questions_pool'), data).then(() => {
+                    alert("Baza yangilandi! Endi testni boshlashingiz mumkin.");
+                    location.reload();
+                });
+            });
+        };
+        reader.readAsArrayBuffer(e.target.files[0]);
     });
 
-    // 2. Testni boshlash
-    window.startExam = () => {
-        if (pool.length < 1) return alert("Savollar hali kelmadi!");
-        
+    onValue(ref(db, 'questions_pool'), (snap) => {
+        pool = snap.val() || [];
+        document.getElementById('status').innerText = pool.length + " ta savol tayyor.";
+    });
+
+    window.startMode = () => {
+        if(pool.length === 0) return alert("Fayl yuklanmagan!");
         tg.expand();
-        currentQs = [...pool].sort(() => 0.5 - Math.random()).slice(0, 35);
+        currentQs = [...pool].sort(() => 0.5 - Math.random());
         step = 0; score = 0;
-        
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('test-screen').classList.remove('hidden');
-        
-        runTimer(30 * 60);
         showQuestion();
+        let sec = 30 * 60;
+        timer = setInterval(() => {
+            let m = Math.floor(sec/60), s = sec%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(--sec < 0) { clearInterval(timer); location.reload(); }
+        }, 1000);
     };
 
-    // 3. Savolni chiqarish
     function showQuestion() {
         const q = currentQs[step];
-        document.getElementById('q-num').innerText = `Savol: ${step + 1}/${currentQs.length}`;
-        document.getElementById('q-score').innerText = `Ball: ${score * 2}`;
-        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('q-num').innerText = `Savol: ${step+1}/${currentQs.length}`;
+        document.getElementById('q-score').innerText = `Ball: ${(score * (70/currentQs.length)).toFixed(1)}`;
+        
+        // Telegram uchun eng muhim joy: innerHTML bilan render qilish
+        const qText = document.getElementById('question-text');
+        qText.innerHTML = ""; // Tozalash
+        qText.insertAdjacentHTML('beforeend', q.q); // Qayta render
         
         const area = document.getElementById('options-area');
         area.innerHTML = "";
         
-        const opts = Array.isArray(q.a) ? q.a : [q.a];
-        opts.forEach((text, i) => {
+        let correctTxt = q.a[q.c];
+        let shuffled = [...q.a].sort(() => 0.5 - Math.random());
+        let newC = shuffled.indexOf(correctTxt);
+
+        shuffled.forEach((txt, i) => {
             const b = document.createElement('button');
-            b.className = 'btn opt';
-            b.innerText = text;
-            b.onclick = () => check(i, q.c, b);
+            b.className = 'opt';
+            b.insertAdjacentHTML('beforeend', txt);
+            b.onclick = () => {
+                const btns = area.querySelectorAll('.opt');
+                btns.forEach(btn => btn.style.pointerEvents = 'none');
+                if(i === newC) { b.style.background = '#10b981'; b.style.borderColor = '#059669'; score++; }
+                else { b.style.background = '#ef4444'; b.style.borderColor = '#b91c1c'; btns[newC].style.background = '#10b981'; }
+                
+                setTimeout(() => {
+                    step++;
+                    if(step < currentQs.length) showQuestion();
+                    else alert("Test tugadi! Ball: " + (score * (70/currentQs.length)).toFixed(1));
+                }, 800);
+            };
             area.appendChild(b);
         });
-    }
-
-    // 4. Javobni tekshirish
-    function check(idx, correct, btn) {
-        const all = document.querySelectorAll('.opt');
-        all.forEach(b => b.disabled = true);
-        
-        if (idx === correct) {
-            btn.classList.add('correct');
-            score++;
-        } else {
-            btn.classList.add('wrong');
-            all[correct].classList.add('correct');
-        }
-
-        setTimeout(() => {
-            step++;
-            if (step < currentQs.length) showQuestion();
-            else finish();
-        }, 1000);
-    }
-
-    // 5. Taymer
-    function runTimer(sec) {
-        timer = setInterval(() => {
-            let m = Math.floor(sec / 60), s = sec % 60;
-            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            if (--sec < 0) { clearInterval(timer); finish(); }
-        }, 1000);
-    }
-
-    // 6. Yakunlash va Rekord
-    async function finish() {
-        clearInterval(timer);
-        const final = score * 2;
-        const uid = tg.initDataUnsafe?.user?.id || "Mehmon";
-        const name = tg.initDataUnsafe?.user?.first_name || "Noma'lum";
-
-        if (uid !== "Mehmon") {
-            const userRef = ref(db, 'best_scores/' + uid);
-            const old = await get(userRef);
-            if (!old.exists() || old.val().score < final) {
-                await set(userRef, { name, score: final });
-            }
-        }
-
-        document.getElementById('test-screen').innerHTML = `
-            <div style="text-align:center;">
-                <h2>Test Tugadi!</h2>
-                <h1 style="color:var(--primary);">${final} Ball</h1>
-                <p>${score} ta to'g'ri javob</p>
-                <button class="btn start-btn" onclick="location.reload()">QAYTISH</button>
-            </div>`;
     }
 </script>
 </body>

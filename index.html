@@ -2,61 +2,50 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsalar - Yakuniy Tuzatilgan Versiya</title>
+    <title>Matritsalar - Final Fix</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
     <style>
         :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --success: #10b981; --danger: #ef4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         .container { max-width: 600px; margin: auto; }
         .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .nav-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .nav-btn.active { background: var(--primary); color: #000; }
         .option-btn { width: 100%; background: #334155; border: 2px solid transparent; color: white; padding: 14px; margin: 6px 0; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; }
         .option-btn.correct { background: var(--success) !important; border-color: white; }
         .option-btn.wrong { background: var(--danger) !important; }
-        .timer-box { font-size: 24px; font-weight: bold; text-align: center; color: #fbbf24; margin-bottom: 10px; }
-        .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--primary); font-size: 14px; font-weight: bold; }
         .hidden { display: none; }
+        .status { color: #fbbf24; font-size: 12px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div id="db-status" class="status">Bazaga ulanish kutilmoqda...</div>
+    
     <div class="nav-menu">
         <button class="nav-btn active" onclick="location.reload()">Asosiy</button>
-        <button class="nav-btn" onclick="window.startQuizMode('practice')">Mashq</button>
-        <button class="nav-btn" onclick="window.showTab('list')">Savollar</button>
-        <button class="nav-btn" onclick="window.showTab('rank')">Reyting</button>
+        <button class="nav-btn" onclick="window.startQuiz('practice')">Mashq Rejimi</button>
     </div>
 
-    <div id="tab-home" class="tab-content">
-        <div class="card">
-            <h2 style="text-align: center; color: var(--primary);">Real Imtihon</h2>
-            <input type="text" id="userName" placeholder="Ismingizni kiriting" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:none; background:#334155; color:white;">
-            <button class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center;" onclick="window.startQuizMode('exam')">BOSHLASH</button>
-        </div>
+    <div id="home-screen" class="card">
+        <h2 style="text-align:center;">Imtihon</h2>
+        <input type="text" id="userName" placeholder="Ismingizni kiriting" style="width:100%; padding:12px; border-radius:10px; background:#334155; color:white; border:none; margin-bottom:15px;">
+        <button class="option-btn" style="background:var(--primary); color:black; font-weight:bold; text-align:center;" onclick="window.startQuiz('exam')">BOSHLASH</button>
     </div>
 
     <div id="quiz-screen" class="card hidden">
-        <div id="display-timer" class="timer-box"></div>
-        <div class="status-bar">
-            <span id="progress-text"></span>
-            <span id="score-text"></span>
-        </div>
-        <h3 id="question-text"></h3>
-        <div id="options-box"></div>
-        <button id="next-btn-manual" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold; margin-top: 15px;">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+        <div id="q-progress" style="margin-bottom:10px; color:var(--primary); font-weight:bold;"></div>
+        <h3 id="q-text"></h3>
+        <div id="options-container"></div>
+        <button id="next-btn" class="option-btn hidden" style="background:var(--primary); color:black; text-align:center; font-weight:bold; margin-top:15px;">KEYINGI SAVOL</button>
     </div>
-
-    <div id="tab-list" class="tab-content hidden"><div class="card" id="list-content"></div></div>
-    <div id="tab-rank" class="tab-content hidden"><div class="card" id="rank-content"></div></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -70,105 +59,98 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    let allQs = [];
+    let currentQs = [];
+    let step = 0;
+    let score = 0;
+    let isExam = false;
 
-    let allQs = [], quizQs = [], step = 0, score = 0, isExam = false, timer;
-
-    async function init() {
-        const s = await get(ref(db, 'questions_pool'));
-        if(s.exists()) allQs = s.val();
-        loadRank();
-    }
-
-    window.showTab = (tab) => {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        document.getElementById('quiz-screen').classList.add('hidden');
-        document.getElementById('tab-' + tab).classList.remove('hidden');
-    };
-
-    window.startQuizMode = (mode) => {
-        if(allQs.length === 0) return alert("Savollar bazada yo'q!");
-        isExam = mode === 'exam';
-        if(isExam) {
-            if(!document.getElementById('userName').value) return alert("Ism kiriting");
-            quizQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
-            startTimer(30 * 60);
+    // BAZADAN SAVOLLARNI OLISH (Eng muhim qismi)
+    const questionsRef = ref(db, '/'); // Butun bazani tekshiramiz
+    onValue(questionsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Agar savollar 'questions_pool' ichida bo'lsa o'sha yerdan oladi
+            // Agar massiv bo'lsa to'g'ridan-to'g'ri oladi
+            allQs = data.questions_pool || data || []; 
+            document.getElementById('db-status').innerText = `Bazada ${allQs.length} ta savol topildi.`;
+            document.getElementById('db-status').style.color = "#10b981";
         } else {
-            quizQs = [...allQs];
-            document.getElementById('display-timer').innerText = "Mashq";
+            document.getElementById('db-status').innerText = "Baza bo'sh!";
         }
+    });
+
+    window.startQuiz = (mode) => {
+        if (!allQs || allQs.length === 0) {
+            alert("Savollar yuklanmadi! Iltimos, admin panel orqali 'questions_pool' tuguniga yuklang.");
+            return;
+        }
+
+        isExam = (mode === 'exam');
+        if (isExam && !document.getElementById('userName').value) {
+            alert("Ismingizni kiriting!");
+            return;
+        }
+
+        currentQs = isExam ? [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35) : [...allQs];
         step = 0; score = 0;
-        window.showTab('quiz'); // Quiz ekranini ochish
-        document.getElementById('tab-home').classList.add('hidden');
+        
+        document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         renderQuestion();
     };
 
     function renderQuestion() {
-        const q = quizQs[step];
-        document.getElementById('next-btn-manual').classList.add('hidden');
-        document.getElementById('progress-text').innerText = `Savol: ${step+1}/${quizQs.length}`;
-        document.getElementById('score-text').innerText = `To'g'ri: ${score}`;
-        document.getElementById('question-text').innerText = q.q;
+        const q = currentQs[step];
+        const container = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
         
-        const box = document.getElementById('options-box');
-        box.innerHTML = "";
+        document.getElementById('q-progress').innerText = `Savol: ${step + 1} / ${currentQs.length}`;
+        document.getElementById('q-text').innerText = q.q || "Savol matni yo'q";
+        container.innerHTML = "";
+        nextBtn.classList.add('hidden');
 
-        // BAZADAGI JAVOBLARNI TEKSHIRISH (ARRAY YOKI STRING)
-        let options = Array.isArray(q.a) ? q.a : [q.a]; 
+        // Javoblar massiv yoki matn ekanini tekshirish
+        let options = Array.isArray(q.a) ? q.a : [q.a];
 
         options.forEach((opt, idx) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
             btn.onclick = () => {
-                const btns = document.querySelectorAll('.option-btn');
-                btns.forEach(b => b.disabled = true);
-                if(idx === q.c) { btn.classList.add('correct'); score++; }
-                else { btn.classList.add('wrong'); btns[q.c].classList.add('correct'); }
+                const allBtns = container.querySelectorAll('.option-btn');
+                allBtns.forEach(b => b.disabled = true);
                 
-                if(isExam) setTimeout(nextStep, 1000);
-                else document.getElementById('next-btn-manual').classList.remove('hidden');
+                if (idx === q.c) {
+                    btn.classList.add('correct');
+                    score++;
+                } else {
+                    btn.classList.add('wrong');
+                    if(allBtns[q.c]) allBtns[q.c].classList.add('correct');
+                }
+
+                if (isExam) {
+                    setTimeout(window.nextStep, 1000);
+                } else {
+                    nextBtn.classList.remove('hidden');
+                }
             };
-            box.appendChild(btn);
+            container.appendChild(btn);
         });
     }
 
-    function nextStep() {
+    window.nextStep = () => {
         step++;
-        if(step < quizQs.length) renderQuestion();
-        else finish();
-    }
-
-    // TUGMAGA BOG'LASH
-    document.getElementById('next-btn-manual').onclick = nextStep;
-
-    function startTimer(s) {
-        let t = s;
-        timer = setInterval(() => {
-            let m = Math.floor(t/60), sec = t%60;
-            document.getElementById('display-timer').innerText = `${m}:${sec<10?'0':''}${sec}`;
-            if(--t < 0) { clearInterval(timer); finish(); }
-        }, 1000);
-    }
-
-    async function finish() {
-        clearInterval(timer);
-        if(isExam) {
-            const name = document.getElementById('userName').value;
-            await push(ref(db, 'exam_results'), { name, score: score*2, date: Date.now() });
+        if (step < currentQs.length) {
+            renderQuestion();
+        } else {
+            alert(`Tugadi! Natija: ${score}`);
+            location.reload();
         }
-        document.getElementById('quiz-screen').innerHTML = `<h2 style="text-align:center;">Tugadi!</h2><p style="text-align:center; font-size:24px;">Ball: ${isExam?score*2:score}</p><button class="option-btn" onclick="location.reload()">Menyuga qaytish</button>`;
-    }
+    };
 
-    function loadRank() {
-        const rRef = query(ref(db, 'exam_results'), orderByChild('score'), limitToLast(5));
-        onValue(rRef, (s) => {
-            let res = []; s.forEach(c => res.push(c.val()));
-            document.getElementById('rank-content').innerHTML = "<h3>Reyting</h3>" + res.reverse().map(r => `<div>${r.name}: ${r.score} ball</div>`).join('');
-        });
-    }
+    document.getElementById('next-btn').onclick = window.nextStep;
 
-    init();
 </script>
 </body>
 </html>

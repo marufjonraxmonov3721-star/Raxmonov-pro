@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsalar - O'quv va Imtihon</title>
+    <title>Matritsalar - To'liq Tizim</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
     <style>
@@ -11,58 +11,75 @@
         .container { max-width: 600px; margin: auto; }
         .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
+        /* Navigatsiya */
         .nav-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .nav-btn { background: #334155; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .nav-btn:hover { background: #475569; }
         .nav-btn.active { background: var(--primary); color: #000; }
 
+        /* Test & Variantlar */
         .option-btn { width: 100%; background: #334155; border: 2px solid transparent; color: white; padding: 14px; margin: 6px 0; border-radius: 10px; cursor: pointer; text-align: left; font-size: 15px; transition: 0.2s; }
+        .option-btn:disabled { cursor: default; }
         .option-btn.correct { background: var(--success) !important; border-color: white; }
         .option-btn.wrong { background: var(--danger) !important; }
 
-        .timer-box { font-size: 22px; font-weight: bold; text-align: center; color: #fbbf24; margin-bottom: 10px; }
-        .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--primary); font-size: 14px; }
+        .timer-box { font-size: 24px; font-weight: bold; text-align: center; color: #fbbf24; margin-bottom: 10px; }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--primary); font-size: 14px; font-weight: bold; }
         
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 15px; background: #334155; color: white; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-bottom: 15px; background: #334155; color: white; box-sizing: border-box; font-size: 16px; border: 1px solid transparent; }
+        input:focus { border-color: var(--primary); outline: none; }
+        
         .hidden { display: none; }
-        .mode-title { text-align: center; margin-bottom: 20px; color: var(--primary); }
+        .mode-title { text-align: center; margin-bottom: 10px; color: var(--primary); }
+        
+        /* Reyting Jadvali */
+        .rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #334155; }
+        .rank-1 { color: gold; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="nav-menu" id="main-nav">
-        <button class="nav-btn active" onclick="showTab('home')"><i class="fas fa-graduation-cap"></i> Menyu</button>
-        <button class="nav-btn" onclick="showTab('list')"><i class="fas fa-book"></i> Savollar</button>
-        <button class="nav-btn" onclick="showTab('rank')"><i class="fas fa-trophy"></i> Reyting</button>
-        <button class="nav-btn" onclick="startPractice()"><i class="fas fa-dumbbell"></i> Mashq</button>
+        <button class="nav-btn active" id="btn-home" onclick="showTab('home')"><i class="fas fa-home"></i> Bosh sahifa</button>
+        <button class="nav-btn" id="btn-practice" onclick="startQuizMode('practice')"><i class="fas fa-dumbbell"></i> Mashq qilish</button>
+        <button class="nav-btn" id="btn-list" onclick="showTab('list')"><i class="fas fa-book"></i> Savollar</button>
+        <button class="nav-btn" id="btn-rank" onclick="showTab('rank')"><i class="fas fa-trophy"></i> Reyting</button>
     </div>
 
     <div id="tab-home" class="tab-content">
-        <div id="start-screen" class="card">
+        <div class="card">
             <h2 class="mode-title">Imtihon Rejimi</h2>
-            <p style="font-size: 14px; color: #94a3b8; text-align: center;">35 savol | 30 daqiqa | O'tish: 42 ball</p>
-            <input type="text" id="userName" placeholder="Ism familiyangiz">
-            <button class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center;" onclick="startExam()">Imtihonni boshlash</button>
+            <p style="text-align: center; color: #94a3b8; font-size: 14px;">35 ta savol | 30 daqiqa | O'tish: 42 ball</p>
+            <input type="text" id="userName" placeholder="Ism familiyangizni kiriting">
+            <button class="option-btn" style="background: var(--primary); color: black; font-weight: bold; text-align: center;" onclick="startQuizMode('exam')">IMTIHONNI BOSHLASH</button>
         </div>
     </div>
 
     <div id="quiz-screen" class="card hidden">
-        <div id="exam-timer" class="timer-box"></div>
+        <div id="display-timer" class="timer-box"></div>
         <div class="status-bar">
-            <span id="progress"></span>
-            <span id="score-display"></span>
+            <span id="progress-text">Savol: 1/10</span>
+            <span id="score-text">Ball: 0</span>
         </div>
-        <h3 id="q-text"></h3>
-        <div id="options"></div>
-        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold;" onclick="nextQuestion()">Keyingi savol</button>
+        <h3 id="question-text">Savol matni yuklanmoqda...</h3>
+        <div id="options-box"></div>
+        
+        <button id="next-btn" class="option-btn hidden" style="background: var(--primary); color: black; text-align: center; font-weight: bold; margin-top: 15px;" onclick="nextStep()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
     </div>
 
     <div id="tab-list" class="tab-content hidden">
-        <div class="card" id="full-list">Yuklanmoqda...</div>
+        <div class="card">
+            <h3>Barcha savollar va javoblar</h3>
+            <div id="full-questions-list">Yuklanmoqda...</div>
+        </div>
     </div>
 
     <div id="tab-rank" class="tab-content hidden">
-        <div class="card" id="leaderboard"></div>
+        <div class="card">
+            <h3>Top 10 Natija</h3>
+            <div id="rank-list">Hozircha natijalar yo'q.</div>
+        </div>
     </div>
 </div>
 
@@ -83,135 +100,184 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let allQs = [], quizQs = [], step = 0, score = 0, isExam = false, timerInterval;
+    let allQuestions = [];
+    let currentQuizQs = [];
+    let step = 0;
+    let score = 0;
+    let isExamMode = false;
+    let timer;
 
-    async function init() {
-        const s = await get(ref(db, 'questions_pool'));
-        if(s.exists()) { allQs = s.val(); renderList(); }
-        loadRank();
+    // 1. Ma'lumotlarni Firebase'dan olish
+    async function loadData() {
+        const snapshot = await get(ref(db, 'questions_pool'));
+        if (snapshot.exists()) {
+            allQuestions = snapshot.val();
+            renderAllQuestionsList();
+        }
+        loadLeaderboard();
     }
 
-    window.showTab = (tab) => {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    // 2. Tablarni almashtirish
+    window.showTab = (tabName) => {
+        clearInterval(timer);
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.getElementById('quiz-screen').classList.add('hidden');
-        document.getElementById('tab-'+tab).classList.remove('hidden');
-        event.currentTarget.classList.add('active');
-        clearInterval(timerInterval);
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if (tabName !== 'practice') {
+            document.getElementById('btn-' + tabName).classList.add('active');
+        }
     };
 
-    // MASHQ REJIMI (Barcha savollar)
-    window.startPractice = () => {
-        isExam = false;
-        quizQs = [...allQs]; // Hammasi ketma-ket
-        document.getElementById('main-nav').childNodes.forEach(n => n.className = 'nav-btn');
-        prepareQuiz("Mashq rejimi (253 savol)");
-    };
+    // 3. Test Rejimini Boshlash
+    window.startQuizMode = (mode) => {
+        if (allQuestions.length === 0) return alert("Savollar hali yuklanmagan!");
+        
+        if (mode === 'exam') {
+            const name = document.getElementById('userName').value;
+            if (!name) return alert("Iltimos, ismingizni kiriting!");
+            isExamMode = true;
+            currentQuizQs = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, 35);
+            startTimer(30 * 60);
+        } else {
+            isExamMode = false;
+            currentQuizQs = [...allQuestions]; // Mashqda barcha savollar ketma-ket
+            document.getElementById('display-timer').innerText = "Mashq rejimi";
+        }
 
-    // IMTIHON REJIMI (35 tasodifiy)
-    window.startExam = () => {
-        const name = document.getElementById('userName').value;
-        if(!name) return alert("Ismingizni kiriting!");
-        isExam = true;
-        quizQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
-        prepareQuiz("Imtihon");
-        startTimer(30 * 60);
-    };
-
-    function prepareQuiz(title) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.getElementById('quiz-screen').classList.remove('hidden');
-        document.getElementById('exam-timer').innerText = isExam ? "30:00" : title;
         step = 0; score = 0;
-        showQuestion();
-    }
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        renderQuestion();
+    };
 
-    function showQuestion() {
-        const q = quizQs[step];
-        document.getElementById('progress').innerText = `Savol: ${step + 1} / ${quizQs.length}`;
-        document.getElementById('score-display').innerText = isExam ? `Ball: ${score * 2}` : `To'g'ri: ${score}`;
-        document.getElementById('q-text').innerText = q.q;
-        document.getElementById('next-btn').classList.add('hidden');
-        
-        const optBox = document.getElementById('options');
-        optBox.innerHTML = "";
-        
-        q.a.forEach((opt, i) => {
+    // 4. Savolni ekranga chiqarish
+    function renderQuestion() {
+        const q = currentQuizQs[step];
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.classList.add('hidden');
+
+        document.getElementById('progress-text').innerText = `Savol: ${step + 1} / ${currentQuizQs.length}`;
+        document.getElementById('score-text').innerText = isExamMode ? `Ball: ${score * 2}` : `To'g'ri: ${score}`;
+        document.getElementById('question-text').innerText = q.q;
+
+        const optionsBox = document.getElementById('options-box');
+        optionsBox.innerHTML = "";
+
+        q.a.forEach((option, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = () => handleAnswer(btn, i, q.c);
-            optBox.appendChild(btn);
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(btn, index, q.c);
+            optionsBox.appendChild(btn);
         });
     }
 
-    function handleAnswer(btn, selected, correct) {
+    // 5. Javobni tekshirish
+    function checkAnswer(selectedBtn, selectedIdx, correctIdx) {
         const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(b => b.disabled = true);
+        allBtns.forEach(b => b.disabled = true); // Boshqa bosishni taqiqlash
 
-        if (selected === correct) {
-            btn.classList.add('correct');
+        if (selectedIdx === correctIdx) {
+            selectedBtn.classList.add('correct');
             score++;
         } else {
-            btn.classList.add('wrong');
-            allBtns[correct].classList.add('correct');
+            selectedBtn.classList.add('wrong');
+            allBtns[correctIdx].classList.add('correct');
         }
 
-        if (!isExam) { // Mashq rejimida keyingisiga o'tish tugmasi chiqadi
-            document.getElementById('next-btn').classList.remove('hidden');
+        if (isExamMode) {
+            setTimeout(nextStep, 1000); // Imtihonda avtomatik o'tish
         } else {
-            setTimeout(nextQuestion, 1200);
+            document.getElementById('next-btn').classList.remove('hidden'); // Mashqda tugma chiqadi
         }
     }
 
-    window.nextQuestion = () => {
+    // 6. Keyingi savolga o'tish
+    window.nextStep = () => {
         step++;
-        if(step < quizQs.length) showQuestion(); else finish();
+        if (step < currentQuizQs.length) {
+            renderQuestion();
+        } else {
+            finishQuiz();
+        }
     };
 
-    function startTimer(duration) {
-        let time = duration;
-        timerInterval = setInterval(() => {
-            let m = Math.floor(time / 60), s = time % 60;
-            document.getElementById('exam-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            if (--time < 0) { clearInterval(timerInterval); finish(); }
+    // 7. Taymer funksiyasi
+    function startTimer(seconds) {
+        let t = seconds;
+        timer = setInterval(() => {
+            let m = Math.floor(t / 60);
+            let s = t % 60;
+            document.getElementById('display-timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            if (--t < 0) {
+                clearInterval(timer);
+                finishQuiz();
+            }
         }, 1000);
     }
 
-    async function finish() {
-        clearInterval(timerInterval);
-        const finalScore = isExam ? score * 2 : score;
-        if (isExam) {
+    // 8. Testni yakunlash
+    async function finishQuiz() {
+        clearInterval(timer);
+        const finalScore = isExamMode ? score * 2 : score;
+        
+        if (isExamMode) {
             const name = document.getElementById('userName').value;
-            await push(ref(db, 'exam_results'), { name, score: finalScore, date: Date.now() });
+            await push(ref(db, 'exam_results'), {
+                name: name,
+                score: finalScore,
+                passed: finalScore >= 42,
+                date: Date.now()
+            });
         }
+
+        const resultText = isExamMode 
+            ? (finalScore >= 42 ? "✅ IMTIHONDAN O'TDINGIZ!" : "❌ YIQILDINGIZ (42 ball kerak)")
+            : "Mashq yakunlandi!";
+
         document.getElementById('quiz-screen').innerHTML = `
             <div style="text-align:center; padding:20px;">
-                <h2>${isExam ? (finalScore >= 42 ? '✅ O\'tdingiz!' : '❌ Yiqildingiz') : 'Mashq tugadi'}</h2>
-                <p style="font-size:24px;">Ball: ${finalScore}</p>
-                <button class="nav-btn active" onclick="location.reload()">Menyuga qaytish</button>
-            </div>`;
+                <h2 style="color:${isExamMode && finalScore < 42 ? 'var(--danger)' : 'var(--success)'}">${resultText}</h2>
+                <p style="font-size:30px; font-weight:bold; margin:10px 0;">${finalScore} BALL</p>
+                <p>To'g'ri javoblar: ${score} ta</p>
+                <button class="option-btn" style="background:var(--primary); color:black; text-align:center; font-weight:bold;" onclick="location.reload()">ASOSIY MENYUGA QAYTISH</button>
+            </div>
+        `;
     }
 
-    function renderList() {
-        document.getElementById('full-list').innerHTML = `<h3>Barcha savollar (${allQs.length})</h3>` + allQs.map((q, i) => `
-            <div style="border-bottom:1px solid #444; padding:10px 0; font-size:14px;">
-                <b>${i+1}. ${q.q}</b><br><span style="color:var(--success)">J: ${q.a[q.c]}</span>
-            </div>`).join('');
+    // 9. Savollar ro'yxatini chiqarish
+    function renderAllQuestionsList() {
+        const container = document.getElementById('full-questions-list');
+        container.innerHTML = allQuestions.map((q, i) => `
+            <div style="border-bottom: 1px solid #444; padding: 12px 0;">
+                <div style="font-weight:bold; margin-bottom:5px;">${i+1}. ${q.q}</div>
+                <div style="color:var(--success); font-size:14px;">To'g'ri javob: ${q.a[q.c]}</div>
+            </div>
+        `).join('');
     }
 
-    function loadRank() {
+    // 10. Reytingni yuklash
+    function loadLeaderboard() {
         const rRef = query(ref(db, 'exam_results'), orderByChild('score'), limitToLast(10));
-        onValue(rRef, (s) => {
-            let res = []; s.forEach(c => res.push(c.val()));
-            document.getElementById('leaderboard').innerHTML = "<h3>Top 10 Reyting</h3>" + res.reverse().map((r, i) => `
-                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;">
-                    <span>${i+1}. ${r.name}</span><b>${r.score} ball</b>
-                </div>`).join('');
+        onValue(rRef, (snapshot) => {
+            let data = [];
+            snapshot.forEach(c => data.push(c.val()));
+            data.reverse();
+            const list = document.getElementById('rank-list');
+            if (data.length > 0) {
+                list.innerHTML = data.map((res, i) => `
+                    <div class="rank-item">
+                        <span class="${i===0?'rank-1':''}">${i+1}. ${res.name}</span>
+                        <b style="color:${res.score >= 42 ? 'var(--success)' : 'var(--danger)'}">${res.score} ball</b>
+                    </div>
+                `).join('');
+            }
         });
     }
 
-    init();
+    loadData();
 </script>
 </body>
 </html>

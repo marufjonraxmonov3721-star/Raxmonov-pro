@@ -3,37 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini 2.0 Flash - Test Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <title>AI Matrix Test Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-5">
+<body class="bg-gray-100 p-4 min-h-screen">
 
-    <div class="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border border-blue-50 mt-10">
-        <h1 class="text-3xl font-black text-center text-blue-700 mb-6">Gemini 2.0 Analyzer</h1>
-        
-        <div class="space-y-4">
-            <input type="file" id="docxInput" accept=".docx" 
-                   class="w-full p-3 border-2 border-dashed border-blue-200 rounded-2xl cursor-pointer hover:bg-blue-50 transition">
-            
-            <button onclick="generateTests()" id="btn" 
-                    class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-blue-200 active:scale-95 transition-all">
-                TESTLARNI YARATISH
+    <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 mt-6">
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 text-white text-center">
+            <h1 class="text-3xl font-black italic">SMART TEST AI</h1>
+            <p class="text-blue-100 mt-2 opacity-80">Jadvalli va formulali Docx/Rasmlarni testga aylantiradi</p>
+        </div>
+
+        <div class="p-8">
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-3">Docx yoki Savol rasmini yuklang:</label>
+                <input type="file" id="fileInput" accept=".docx,image/*" 
+                       class="w-full p-4 border-2 border-dashed border-blue-200 rounded-2xl cursor-pointer hover:bg-blue-50 transition">
+            </div>
+
+            <button onclick="processSmartTest()" id="mainBtn" 
+                    class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all text-lg">
+                TESTNI GENERATSIYA QILISH
             </button>
-        </div>
 
-        <div id="loader" class="hidden mt-6 text-center text-blue-600 font-bold animate-pulse text-sm">
-            GEMINI 2.0 FLASH TAHLIL QILMOQDA...
-        </div>
+            <div id="status" class="hidden mt-6 text-center text-blue-600 font-bold animate-pulse">
+                AI matrisalarni va jadvallarni o'qimoqda...
+            </div>
 
-        <div id="result" class="mt-8 space-y-4"></div>
+            <div id="quizContainer" class="hidden mt-10 space-y-6 border-t pt-8"></div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase sozlamalari
+        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
             authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -45,73 +50,80 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // API Sozlamalari
+        // API Setup (Gemini 2.0 Flash)
         const API_KEY = "AIzaSyDLmOc5i9nfc1GQc52eB9kioO_M5KLld6o";
-        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
-        window.generateTests = async () => {
-            const file = document.getElementById('docxInput').files[0];
-            const btn = document.getElementById('btn');
-            const loader = document.getElementById('loader');
-            const resultDiv = document.getElementById('result');
+        window.processSmartTest = async () => {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return alert("Fayl yuklang!");
 
-            if (!file) return alert("Docx faylni tanlang!");
+            const btn = document.getElementById('mainBtn');
+            const status = document.getElementById('status');
+            const quizContainer = document.getElementById('quizContainer');
+
+            btn.disabled = true;
+            status.classList.remove('hidden');
+            quizContainer.classList.add('hidden');
 
             try {
-                btn.disabled = true;
-                loader.classList.remove('hidden');
-                resultDiv.innerHTML = "";
+                // 1. Faylni Base64 formatiga o'tkazish (AI jadvallarni "ko'rishi" uchun)
+                const base64Data = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
 
-                // 1. Docx ni matnga o'tkazish
-                const arrayBuffer = await file.arrayBuffer();
-                const docText = await mammoth.extractRawText({ arrayBuffer });
-                const content = docText.value;
-
-                // 2. To'g'ridan-to'g'ri Fetch (Curl o'rniga brauzer so'rovi)
+                // 2. To'g'ridan-to'g'ri AI ga yuborish
                 const response = await fetch(API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{
-                                text: `Ushbu matndan 5 ta test savoli tuz. Faqat JSON formatda javob ber: [{"q":"savol", "o":["v1","v2","v3","v4"], "a":"to'g'ri javob"}]. Matn: ${content}`
-                            }]
+                            parts: [
+                                { text: "Ushbu fayldagi (jadval yoki rasm ichidagi) savollarni tahlil qil. Matematik matrisalarni matn ko'rinishida (masalan, [1,3,1]) yoz. Faqat JSON qaytar: [{'q':'savol', 'o':['v1','v2','v3','v4'], 'a':'togri'}]." },
+                                { inlineData: { data: base64Data, mimeType: file.type || "image/jpeg" } }
+                            ]
                         }]
                     })
                 });
 
                 const data = await response.json();
-                
                 if (data.error) throw new Error(data.error.message);
 
-                const rawAIResponse = data.candidates[0].content.parts[0].text;
-                const cleanJson = rawAIResponse.match(/\[[\s\S]*\]/)[0];
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                const cleanJson = aiResponse.match(/\[[\s\S]*\]/)[0];
                 const tests = JSON.parse(cleanJson);
 
                 // 3. Firebasega saqlash
-                await addDoc(collection(db, "gemini_2_archive"), {
-                    fileName: file.name,
-                    testData: tests,
-                    timestamp: new Date().toISOString()
+                await addDoc(collection(db, "matrix_tests"), {
+                    name: file.name,
+                    data: tests,
+                    time: new Date()
                 });
 
                 // 4. Ekranga chiqarish
+                quizContainer.innerHTML = "<h2 class='text-xl font-bold mb-4'>Yaratilgan Test:</h2>";
                 tests.forEach((t, i) => {
-                    resultDiv.innerHTML += `
-                        <div class="p-4 bg-slate-50 border-l-4 border-blue-600 rounded shadow-sm">
-                            <p class="font-bold text-slate-800">${i+1}. ${t.q}</p>
-                            <p class="mt-2 text-xs text-green-600 font-bold">JAVOB: ${t.a}</p>
+                    quizContainer.innerHTML += `
+                        <div class="p-4 bg-blue-50 border rounded-xl mb-4">
+                            <p class="font-bold text-gray-800">${i+1}. ${t.q}</p>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                ${t.o.map(opt => `<div class="p-2 bg-white border rounded text-sm">${opt}</div>`).join('')}
+                            </div>
+                            <p class="mt-2 text-xs text-indigo-600 font-black">TO'G'RI: ${t.a}</p>
                         </div>`;
                 });
 
-                alert("Gemini 2.0 Flash testlarni muvaffaqiyatli yaratdi!");
+                quizContainer.classList.remove('hidden');
+                alert("Muvaffaqiyatli yakunlandi!");
 
             } catch (err) {
                 console.error(err);
-                alert("Xatolik: " + err.message);
+                alert("Xatolik: API kalit yoki fayl o'qishda xato. HTTPS orqali oching.");
             } finally {
                 btn.disabled = false;
-                loader.classList.add('hidden');
+                status.classList.add('hidden');
             }
         };
     </script>

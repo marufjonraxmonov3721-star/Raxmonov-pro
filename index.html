@@ -3,149 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Quiz TG</title>
+    <title>Auto-Sync Matrix Quiz</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg: #f0f2f5;
             --tg-blue: #248bcf;
             --tg-green: #31b545;
-            --tg-red: #d33232;
-            --tg-text: #222;
+            --tg-red: #e74c3c;
+            --bg: #f0f2f5;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg);
-            color: var(--tg-text);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center;
         }
 
-        .quiz-card {
-            background: white;
-            width: 100%;
-            max-width: 450px;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            box-sizing: border-box;
-            margin-bottom: 20px;
+        .card {
+            background: white; width: 100%; max-width: 450px; border-radius: 20px;
+            padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); box-sizing: border-box;
         }
 
-        .progress-bar {
-            height: 6px;
-            background: #eee;
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
+        .timer-box {
+            width: 55px; height: 55px; border-radius: 50%; border: 4px solid #eee;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: bold; color: var(--tg-blue); margin: 0 auto 10px;
         }
 
-        #progress-inner {
-            height: 100%;
-            background: var(--tg-blue);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+        .progress-bar { height: 6px; background: #eee; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        #progress-inner { height: 100%; background: var(--tg-blue); width: 0%; transition: 0.3s; }
 
-        .question-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; text-align: center; min-height: 60px; }
 
-        .options-grid {
-            display: grid;
-            gap: 12px;
-        }
-
+        .options-grid { display: grid; gap: 10px; }
         .opt-btn {
-            border: 2px solid #f0f0f0;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border: 2px solid #f0f0f0; background: #f8f9fa; padding: 14px;
+            border-radius: 12px; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: 500;
         }
-
-        .opt-btn:active { transform: scale(0.98); }
 
         .correct { background: var(--tg-green) !important; color: white; border-color: var(--tg-green); }
         .wrong { background: var(--tg-red) !important; color: white; border-color: var(--tg-red); }
 
-        /* Leaderboard Style */
-        .leaderboard-card {
-            background: white;
-            width: 100%;
-            max-width: 450px;
-            border-radius: 20px;
-            padding: 20px;
-            box-sizing: border-box;
+        .start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--tg-blue); color: white; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 100;
         }
 
-        .user-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f5f5f5;
+        .btn-main {
+            padding: 15px 40px; border-radius: 30px; border: none; font-weight: bold;
+            font-size: 1.2rem; color: var(--tg-blue); background: white; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .user-rank {
-            width: 30px;
-            font-weight: bold;
-            color: var(--tg-blue);
-        }
-
-        .user-info { flex-grow: 1; margin-left: 10px; }
-        .user-score { font-weight: bold; background: #eef7ff; padding: 4px 10px; border-radius: 8px; font-size: 0.9rem; }
-
-        .hidden { display: none; }
+        .leaderboard { margin-top: 20px; width: 100%; max-width: 450px; background: white; border-radius: 20px; padding: 20px; box-sizing: border-box; }
+        .user-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         
-        #tg-only-msg {
-            color: var(--tg-red);
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="quiz-card" id="quiz-screen">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: var(--tg-blue); font-weight: 600;" id="q-number">1 / 15</span>
-            <span id="user-display" style="font-size: 0.9rem; opacity: 0.7;">Telegram User</span>
-        </div>
-        
+    <div id="start-screen" class="start-screen">
+        <h1 style="margin-bottom: 5px;">Pro Quiz 🏆</h1>
+        <p id="total-q-info" style="margin-bottom: 30px; opacity: 0.8;">Savollar yuklanmoqda...</p>
+        <button id="start-btn" class="btn-main hidden" onclick="startGame()">BOSHLASH</button>
+    </div>
+
+    <div class="card" id="game-card">
+        <div class="timer-box" id="timer-display">15</div>
         <div class="progress-bar"><div id="progress-inner"></div></div>
-        
-        <div class="question-text" id="q-text">Savollar tayyorlanmoqda...</div>
-        
+        <div class="question-text" id="q-text">Savol yuklanmoqda...</div>
         <div class="options-grid" id="options-container"></div>
     </div>
 
-    <div class="leaderboard-card">
-        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-            🏆 Top Reyting (Faqat Telegram)
-        </h3>
+    <div class="leaderboard">
+        <h3 style="margin-top:0">🏆 Top 10 Reyting (Telegram)</h3>
         <div id="leaderboard-list">Yuklanmoqda...</div>
-        <div id="tg-only-msg" class="hidden">Siz brauzerdasiz. Reytingga kirish uchun Telegramdan kiring!</div>
     </div>
+
+    <audio id="sound-correct" src="https://www.myinstants.com/media/sounds/correct.mp3"></audio>
+    <audio id="sound-wrong" src="https://www.myinstants.com/media/sounds/wrong-answer-buzzer.mp3"></audio>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Firebase sozlamalari (Sizniki)
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -160,50 +104,68 @@
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
 
-    // Telegram foydalanuvchisini tekshirish
-    const isTelegram = tg.initData !== ""; 
-    const userData = tg.initDataUnsafe?.user;
-    const userName = userData ? (userData.first_name + (userData.last_name ? " " + userData.last_name : "")) : "Brauzer Foydalanuvchisi";
-    const userId = userData ? userData.id : null;
+    let allQuestionsFromDB = [];
+    let selectedQuestions = [];
+    let currentIdx = 0, score = 0, timer, timeLeft = 15;
 
-    document.getElementById('user-display').innerText = userName;
-
-    if (!isTelegram) {
-        document.getElementById('tg-only-msg').classList.remove('hidden');
+    // 1. O'yin boshlanishidan oldin bazadagi savollar sonini aniqlash
+    async function initApp() {
+        try {
+            const snap = await get(ref(db, 'questions'));
+            if (snap.exists()) {
+                allQuestionsFromDB = Object.values(snap.val());
+                document.getElementById('total-q-info').innerText = `Bazada ${allQuestionsFromDB.length} ta savol bor.`;
+                document.getElementById('start-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('total-q-info').innerText = "Bazada savollar topilmadi. Iltimos, avval savollarni yuklang.";
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('total-q-info').innerText = "Xatolik: Baza bilan aloqa yo'q.";
+        }
     }
 
-    const questions = [
-        { q: "O'zbekistonning eng baland nuqtasi qayerda?", a: ["Hisor tizmasi", "Chotqol tog'i", "Zarafshon"], c: 0 },
-        { q: "JavaScript tili qaysi yili yaratilgan?", a: ["1991", "1995", "2001"], c: 1 },
-        { q: "Inson tanasidagi eng katta organ?", a: ["Yurak", "Jigar", "Teri"], c: 2 },
-        { q: "Dunyoning 7 mo'jizasidan biri qaysi?", a: ["Eyxel minorasi", "Giza piramidalari", "Ozodlik haykali"], c: 1 },
-        { q: "Iphone asoschisi kim?", a: ["Bill Geyts", "Stiv Jobs", "Elon Musk"], c: 1 },
-        { q: "O'zbekiston bayrog'ida nechta yulduz bor?", a: ["10 ta", "12 ta", "15 ta"], c: 1 },
-        { q: "Eng tez harakatlanuvchi jonivor?", a: ["Burgut", "Gepard", "Sapsan lochini"], c: 2 },
-        { q: "Qaysi sayyora 'Qizil sayyora' deb ataladi?", a: ["Mars", "Venera", "Saturn"], c: 0 },
-        { q: "Telegram asoschisi kim?", a: ["Pavel Durov", "Mark Zuckerberg", "Jan Kum"], c: 0 },
-        { q: "Alisher Navoiy asari qaysi?", a: ["O'tkan kunlar", "Xamsa", "Boburnoma"], c: 1 },
-        { q: "Suv 100 darajada qaynaydi, bu rostmi?", a: ["Ha", "Yo'q", "Faqat tog'da"], c: 0 },
-        { q: "Internet tarmog'i asoschisi qaysi davlat?", a: ["Rossiya", "AQSH", "Xitoy"], c: 1 },
-        { q: "Oltinning kimyoviy belgisi?", a: ["Ag", "Fe", "Au"], c: 2 },
-        { q: "Shaxmatda nechta dona bor (jami)?", a: ["32 ta", "64 ta", "16 ta"], c: 0 },
-        { q: "BMT ning markaziy qarorgohi qayerda?", a: ["Jeneva", "Nyu-York", "Parij"], c: 1 }
-    ];
+    // 2. O'yinni boshlash
+    window.startGame = () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        tg.expand();
 
-    let currentIdx = 0;
-    let score = 0;
+        // Savollarni aralashtirish va 15 tasini tanlab olish
+        selectedQuestions = allQuestionsFromDB
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 15);
+
+        renderQuestion();
+    };
+
+    function startTimer() {
+        clearInterval(timer);
+        timeLeft = 15;
+        const display = document.getElementById('timer-display');
+        display.innerText = timeLeft;
+        display.style.color = "var(--tg-blue)";
+
+        timer = setInterval(() => {
+            timeLeft--;
+            display.innerText = timeLeft;
+            if(timeLeft <= 5) display.style.color = "var(--tg-red)";
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                handleAnswer(null, -1); // Vaqt tugasa xato deb olish
+            }
+        }, 1000);
+    }
 
     function renderQuestion() {
-        if(currentIdx >= questions.length) return finish();
-        
-        const q = questions[currentIdx];
+        if(currentIdx >= selectedQuestions.length) return finish();
+
+        const q = selectedQuestions[currentIdx];
         document.getElementById('q-text').innerText = q.q;
-        document.getElementById('q-number').innerText = `${currentIdx + 1} / 15`;
-        document.getElementById('progress-inner').style.width = `${((currentIdx + 1)/15)*100}%`;
+        document.getElementById('progress-inner').style.width = `${((currentIdx + 1) / selectedQuestions.length) * 100}%`;
         
         const container = document.getElementById('options-container');
         container.innerHTML = '';
-        
+
         q.a.forEach((opt, i) => {
             const btn = document.createElement('div');
             btn.className = 'opt-btn';
@@ -211,66 +173,72 @@
             btn.onclick = () => handleAnswer(btn, i);
             container.appendChild(btn);
         });
+
+        startTimer();
     }
 
     function handleAnswer(btn, selected) {
-        const correct = questions[currentIdx].c;
-        const allBtns = document.querySelectorAll('.opt-btn');
-        allBtns.forEach(b => b.style.pointerEvents = 'none');
+        clearInterval(timer);
+        const correct = selectedQuestions[currentIdx].c;
+        const btns = document.querySelectorAll('.opt-btn');
+        btns.forEach(b => b.style.pointerEvents = 'none');
 
         if(selected === correct) {
-            btn.classList.add('correct');
+            if(btn) btn.classList.add('correct');
+            document.getElementById('sound-correct').play();
             score++;
         } else {
-            btn.classList.add('wrong');
-            allBtns[correct].classList.add('correct');
+            if(btn) btn.classList.add('wrong');
+            btns[correct].classList.add('correct');
+            document.getElementById('sound-wrong').play();
         }
 
         setTimeout(() => {
             currentIdx++;
             renderQuestion();
-        }, 1200);
+        }, 1500);
     }
 
     function finish() {
-        document.getElementById('quiz-screen').innerHTML = `
-            <h2 style="text-align:center">Tabriklaymiz! 🎉</h2>
-            <div style="font-size: 3rem; text-align:center; margin: 20px 0;">${score} / 15</div>
-            <button onclick="location.reload()" style="width:100%; padding:15px; border-radius:12px; background:var(--tg-blue); color:white; border:none; font-weight:bold;">Qayta o'ynash</button>
-        `;
-
-        // FAQAT TELEGRAMDAN KIRGAN BO'LSA REYTINGGA YOZADI
-        if (isTelegram && userId) {
-            set(ref(db, 'leaderboard/' + userId), {
-                name: userName,
+        const user = tg.initDataUnsafe?.user;
+        if (tg.initData !== "" && user) {
+            // Reytingni yangilash
+            set(ref(db, 'leaderboard/' + user.id), {
+                name: user.first_name,
                 score: score,
-                tg: true // Telegram belgisi
+                tg: true
             });
         }
+
+        document.getElementById('game-card').innerHTML = `
+            <div style="text-align:center">
+                <h2>O'yin tugadi! 🏁</h2>
+                <div style="font-size: 3.5rem; color: var(--tg-blue); margin: 20px 0;">${score}/${selectedQuestions.length}</div>
+                <p>To'plagan balingiz reytingga qo'shildi.</p>
+                <button class="btn-main" style="background: var(--tg-blue); color: white; width: 100%; border-radius: 15px;" onclick="location.reload()">QAYTA BOSHLASH</button>
+            </div>
+        `;
     }
 
-    // Reytingni chiqarish (Faqat tg: true bo'lganlarni ko'rsatadi)
-    const topScoresRef = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
-    onValue(topScoresRef, (snapshot) => {
+    // Reytingni doimiy kuzatib borish
+    onValue(query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10)), (snapshot) => {
         const list = document.getElementById('leaderboard-list');
         list.innerHTML = '';
         let users = [];
         snapshot.forEach(child => {
-            const data = child.val();
-            if(data.tg === true) users.push(data); // Faqat Telegram foydalanuvchilari
+            if(child.val().tg) users.push(child.val());
         });
         
-        users.reverse().forEach((u, i) => {
+        users.sort((a,b) => b.score - a.score).forEach((u, i) => {
             list.innerHTML += `
-                <div class="user-item">
-                    <div class="user-rank">${i+1}</div>
-                    <div class="user-info">${u.name} 🔵</div>
-                    <div class="user-score">${u.score} ball</div>
+                <div class="user-row">
+                    <span>${i+1}. ${u.name} 🔵</span>
+                    <b>${u.score} ball</b>
                 </div>`;
         });
     });
 
-    renderQuestion();
+    initApp();
 </script>
 </body>
 </html>

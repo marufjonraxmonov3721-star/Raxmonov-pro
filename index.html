@@ -2,165 +2,99 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Matritsa PRO - Telegram Ultra Fix</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Word to JSON - Image Fix</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .card { background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; background: var(--primary); color: #000; cursor: pointer; }
-        .opt { background: #2d3748; color: white; text-align: left; width: 100%; padding: 18px; margin: 12px 0; border-radius: 12px; border: 1px solid #4a5568; font-size: 16px; line-height: 1.4; transition: 0.2s; }
-        .opt:active { transform: scale(0.98); background: #3d4a61; }
-        
-        /* RASMLARNI TO'G'RI KO'RSATISH */
-        img { 
-            max-width: 100% !important; 
-            height: auto !important; 
-            display: block; 
-            margin: 10px auto; 
-            background: white; 
-            padding: 5px; 
-            border-radius: 8px; 
-        }
-        /* Savol va javoblar ichidagi HTML teglarini to'g'ri chiqarish */
-        .content-area { word-wrap: break-word; }
-        .hidden { display: none; }
-        #timer { font-size: 30px; color: #fbbf24; text-align: center; font-weight: bold; margin-bottom: 10px; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; text-align: center; }
+        .box { border: 3px dashed #38bdf8; padding: 40px; border-radius: 20px; background: #1e293b; }
+        .btn { background: #38bdf8; color: black; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; display: inline-block; }
+        #status { margin-top: 20px; color: #10b981; font-weight: bold; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
-<div id="home-screen" class="card">
-    <h2 style="text-align:center; color:var(--primary);">MATRITSA PRO</h2>
-    <p id="status" style="text-align:center; font-size:14px; opacity:0.7;">Baza tekshirilmoqda...</p>
-    <button class="btn" onclick="startMode()">🚀 TESTNI BOSHLASH</button>
-    <div style="margin-top:20px; border:2px dashed var(--primary); padding:15px; border-radius:10px; text-align:center;">
-        <label for="fileInput" style="cursor:pointer; display:block;">📄 Word (.docx) yuklash</label>
-        <input type="file" id="fileInput" accept=".docx" class="hidden">
-    </div>
-</div>
-
-<div id="test-screen" class="card hidden">
-    <div id="timer">30:00</div>
-    <div style="display:flex; justify-content:space-between; margin-bottom:15px; color:var(--primary); font-size:14px;">
-        <span id="q-num">1/265</span>
-        <span id="q-score">Ball: 0.0</span>
-    </div>
-    <div id="question-text" class="content-area" style="font-size:18px; margin-bottom:20px;"></div>
-    <div id="options-area"></div>
+<div class="box">
+    <h2>100% Rasm va JSON Engine</h2>
+    <p>Word faylni yuklang, rasmlar avtomatik Base64 ga o'tkaziladi.</p>
+    <label for="fileInput" class="btn">📁 FAYLNI TANLASH (.DOCX)</label>
+    <input type="file" id="fileInput" accept=".docx">
+    <div id="status"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-        authDomain: "gen-lang-client-0228947349.firebaseapp.com",
         databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-        projectId: "gen-lang-client-0228947349",
-        storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
-        messagingSenderId: "253793341504",
-        appId: "1:253793341504:web:709752258000dab44fcfa5"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const tg = window.Telegram.WebApp;
 
-    let pool = [], currentQs = [], step = 0, score = 0, timer;
-
-    // --- WORDDAN BAZAGA TO'G'RI YUKLASH ---
     document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
         const reader = new FileReader();
-        reader.onload = (event) => {
+        
+        reader.onload = function(event) {
+            const arrayBuffer = event.target.result;
+            
+            // RASMLARNI O'QISH UCHUN ENG KUCHLI FILTR
             const options = {
                 convertImage: mammoth.images.inline(function(element) {
                     return element.read("base64").then(function(imageBuffer) {
-                        return { src: "data:" + element.contentType + ";base64," + imageBuffer.fallback };
+                        return {
+                            src: "data:" + element.contentType + ";base64," + imageBuffer.fallback
+                        };
                     });
                 })
             };
-            mammoth.convertToHtml({arrayBuffer: event.target.result}, options).then(result => {
+
+            mammoth.convertToHtml({arrayBuffer: arrayBuffer}, options).then(result => {
                 const temp = document.createElement('div');
                 temp.innerHTML = result.value;
                 const rows = Array.from(temp.querySelectorAll('tr'));
                 
-                let data = rows.map(r => {
-                    const c = Array.from(r.querySelectorAll('td')).map(td => td.innerHTML.trim());
-                    // HTML kodlarini saqlab qolamiz
-                    if(c.length >= 5) return { q: c[0], a: [c[1],c[2],c[3],c[4]], c: 0 };
-                    return null;
-                }).filter(x => x);
+                let questionsObj = {};
+                
+                rows.forEach((row, index) => {
+                    const cols = Array.from(row.querySelectorAll('td'));
+                    if (cols.length >= 5) {
+                        // Savol katagidan rasmni qidirish
+                        const qCell = cols[0];
+                        const imgTag = qCell.querySelector('img');
+                        
+                        // Rasmni alohida "image" maydoniga olish
+                        let base64Img = "";
+                        if (imgTag) {
+                            base64Img = imgTag.src;
+                            imgTag.remove(); // Savol matni ichidan rasmni olib tashlash
+                        }
 
-                set(ref(db, 'questions_pool'), data).then(() => {
-                    alert("Baza yangilandi! Endi testni boshlashingiz mumkin.");
-                    location.reload();
+                        // Siz so'ragan JSON strukturasi
+                        questionsObj[index + 1] = {
+                            "question": qCell.innerText.trim() || "Savol quyidagi rasmda:",
+                            "image": base64Img, // Rasm shu yerga tushadi
+                            "answers": {
+                                "A": cols[1].innerText.trim(),
+                                "B": cols[2].innerText.trim(),
+                                "C": cols[3].innerText.trim(),
+                                "D": cols[4].innerText.trim()
+                            },
+                            "correct": "A"
+                        };
+                    }
+                });
+
+                // Firebase'ga yuborish (smart_questions tuguniga)
+                set(ref(db, 'smart_questions'), { "questions": questionsObj }).then(() => {
+                    document.getElementById('status').innerText = "✅ " + Object.keys(questionsObj).length + " ta savol va rasmlar 100% yuklandi!";
                 });
             });
         };
-        reader.readAsArrayBuffer(e.target.files[0]);
+        reader.readAsArrayBuffer(file);
     });
-
-    onValue(ref(db, 'questions_pool'), (snap) => {
-        pool = snap.val() || [];
-        document.getElementById('status').innerText = pool.length + " ta savol tayyor.";
-    });
-
-    window.startMode = () => {
-        if(pool.length === 0) return alert("Fayl yuklanmagan!");
-        tg.expand();
-        currentQs = [...pool].sort(() => 0.5 - Math.random());
-        step = 0; score = 0;
-        document.getElementById('home-screen').classList.add('hidden');
-        document.getElementById('test-screen').classList.remove('hidden');
-        showQuestion();
-        let sec = 30 * 60;
-        timer = setInterval(() => {
-            let m = Math.floor(sec/60), s = sec%60;
-            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
-            if(--sec < 0) { clearInterval(timer); location.reload(); }
-        }, 1000);
-    };
-
-    function showQuestion() {
-        const q = currentQs[step];
-        document.getElementById('q-num').innerText = `Savol: ${step+1}/${currentQs.length}`;
-        document.getElementById('q-score').innerText = `Ball: ${(score * (70/currentQs.length)).toFixed(1)}`;
-        
-        // Telegram uchun eng muhim joy: innerHTML bilan render qilish
-        const qText = document.getElementById('question-text');
-        qText.innerHTML = ""; // Tozalash
-        qText.insertAdjacentHTML('beforeend', q.q); // Qayta render
-        
-        const area = document.getElementById('options-area');
-        area.innerHTML = "";
-        
-        let correctTxt = q.a[q.c];
-        let shuffled = [...q.a].sort(() => 0.5 - Math.random());
-        let newC = shuffled.indexOf(correctTxt);
-
-        shuffled.forEach((txt, i) => {
-            const b = document.createElement('button');
-            b.className = 'opt';
-            b.insertAdjacentHTML('beforeend', txt);
-            b.onclick = () => {
-                const btns = area.querySelectorAll('.opt');
-                btns.forEach(btn => btn.style.pointerEvents = 'none');
-                if(i === newC) { b.style.background = '#10b981'; b.style.borderColor = '#059669'; score++; }
-                else { b.style.background = '#ef4444'; b.style.borderColor = '#b91c1c'; btns[newC].style.background = '#10b981'; }
-                
-                setTimeout(() => {
-                    step++;
-                    if(step < currentQs.length) showQuestion();
-                    else alert("Test tugadi! Ball: " + (score * (70/currentQs.length)).toFixed(1));
-                }, 800);
-            };
-            area.appendChild(b);
-        });
-    }
 </script>
 </body>
 </html>

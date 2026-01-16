@@ -20,7 +20,6 @@
         .option-btn { transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
         .math-hidden { opacity: 0; }
         .math-visible { opacity: 1; transition: opacity 0.3s; }
-        /* Telegram uchun maxsus scroll */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -32,10 +31,10 @@
         <div id="login-view" class="p-8 flex-1 flex flex-col justify-center text-center">
             <div class="text-6xl mb-4">💎</div>
             <h1 class="text-2xl font-black text-gray-800 mb-2">Matematika Testi</h1>
-            <p class="text-gray-400 text-sm mb-8">Telegram foydalanuvchilari o'rtasidagi reytingda o'z o'rningizni ko'ring!</p>
+            <p class="text-gray-400 text-sm mb-8">Natijangizni saqlang va peshqadamlar ro'yxatiga kiring!</p>
             <input type="text" id="user-name" placeholder="Ismingiz..." 
                 class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold mb-4 text-center">
-            <button onclick="handleStart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
+            <button id="start-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
                 Boshlash
             </button>
         </div>
@@ -61,47 +60,35 @@
             <div class="flex-1 overflow-y-auto bg-slate-50 rounded-3xl p-4 border border-slate-100">
                 <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">🏆 TOP REYTING</h3>
                 <div id="ranking-list" class="space-y-2">
-                    <div class="text-center py-4 text-gray-300 animate-pulse">Reyting yuklanmoqda...</div>
+                    <div class="text-center py-4 text-gray-300">Yuklanmoqda...</div>
                 </div>
             </div>
-            <button onclick="location.reload()" class="w-full mt-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-2xl">Qayta topshirish</button>
+            <button id="restart-btn" class="w-full mt-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-2xl">Qayta topshirish</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
-        
-        };// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-  authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-  databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
-  projectId: "gen-lang-client-0228947349",
-  storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
-  messagingSenderId: "253793341504",
-  appId: "1:253793341504:web:709752258000dab44fcfa5",
-  measurementId: "G-DT2JZN1P2T"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+            projectId: "gen-lang-client-0228947349",
+            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+            messagingSenderId: "253793341504",
+            appId: "1:253793341504:web:709752258000dab44fcfa5",
+            measurementId: "G-DT2JZN1P2T"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const appId = 'telegram_math_fix_v2';
+
+        let state = { idx: 0, score: 0, name: '', user: null };
 
         const quizData = [
             { q: "Ustun matritsani ko'rsating:", o: ["(1,2,3)", "$ \\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix} $", "(1 2 3)", "$ A_{3 \\times 3} $"], c: 1 },
@@ -116,13 +103,12 @@ const analytics = getAnalytics(app);
             { q: "3x4 o'lchamli matritsada nechta element bor?", o: ["7", "1", "12", "14"], c: 2 }
         ];
 
-        let state = { idx: 0, score: 0, name: '', user: null };
+        // Auth
+        signInAnonymously(auth).then(c => state.user = c.user).catch(e => console.error(e));
 
-        signInAnonymously(auth).then(c => state.user = c.user);
-
-        window.handleStart = () => {
+        document.getElementById('start-btn').onclick = () => {
             const input = document.getElementById('user-name');
-            if (!input.value.trim()) return;
+            if (!input.value.trim()) return alert("Ismingizni kiriting!");
             state.name = input.value.trim();
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('quiz-view').classList.remove('hidden');
@@ -135,9 +121,8 @@ const analytics = getAnalytics(app);
             const qT = document.getElementById('q-text');
             const opts = document.getElementById('options');
             
-            qT.classList.remove('math-visible');
-            qT.classList.add('math-hidden');
-            opts.classList.add('math-hidden');
+            qT.classList.replace('math-visible', 'math-hidden');
+            opts.classList.replace('math-visible', 'math-hidden');
             
             document.getElementById('q-count').innerText = `Savol ${state.idx + 1}/10`;
             document.getElementById('next-btn').classList.add('hidden');
@@ -146,7 +131,7 @@ const analytics = getAnalytics(app);
             
             data.o.forEach((o, i) => {
                 const b = document.createElement('button');
-                b.className = "option-btn w-full text-left p-3 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50 flex items-center text-sm";
+                b.className = "option-btn w-full text-left p-3 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50 flex items-center text-sm mb-2";
                 b.innerHTML = `<span class="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center mr-3 font-bold text-gray-400 text-xs shrink-0">${String.fromCharCode(65+i)}</span> <span>${o}</span>`;
                 b.onclick = () => {
                     const all = document.querySelectorAll('.option-btn');
@@ -166,8 +151,10 @@ const analytics = getAnalytics(app);
 
             if (window.MathJax) {
                 MathJax.Hub.Queue(["Typeset", MathJax.Hub, qT], ["Typeset", MathJax.Hub, opts], () => {
-                    qT.classList.replace('math-hidden', 'math-visible');
-                    opts.classList.replace('math-hidden', 'math-visible');
+                    qT.classList.remove('math-hidden');
+                    qT.classList.add('math-visible');
+                    opts.classList.remove('math-hidden');
+                    opts.classList.add('math-visible');
                 });
             }
         }
@@ -183,7 +170,7 @@ const analytics = getAnalytics(app);
                 try {
                     const col = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
                     await addDoc(col, { name: state.name, score: state.score, ts: Date.now() });
-                } catch (e) {}
+                } catch (e) { console.error("Saqlashda xato:", e); }
             }
             loadRanking();
         }
@@ -198,7 +185,7 @@ const analytics = getAnalytics(app);
                 items.sort((a, b) => b.score - a.score);
                 
                 list.innerHTML = items.slice(0, 10).map((p, i) => `
-                    <div class="flex justify-between items-center p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
+                    <div class="flex justify-between items-center p-3 bg-white rounded-2xl shadow-sm border border-slate-50 mb-1">
                         <div class="flex items-center">
                             <span class="w-6 font-black ${i<3?'text-blue-500':'text-gray-300'} text-xs">${i+1}</span>
                             <span class="font-bold text-gray-700 text-xs">${p.name}</span>
@@ -210,6 +197,8 @@ const analytics = getAnalytics(app);
                 list.innerHTML = '<p class="text-center text-red-300 text-xs">Reytingni yuklab bo\'lmadi</p>';
             }
         }
+
+        document.getElementById('restart-btn').onclick = () => location.reload();
     </script>
 </body>
 </html>

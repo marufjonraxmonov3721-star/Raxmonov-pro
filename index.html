@@ -3,46 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Quiz & Top Rating</title>
+    <title>Telegram Real-Time Leaderboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 500px; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 450px; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
         .hidden { display: none; }
-        .btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; color: #000; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .option-btn { background: #334155; color: white; text-align: left; margin-bottom: 8px; transition: 0.2s; }
-        .option-btn:hover { background: #475569; }
-        .user-card { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #334155; }
-        input { width: 90%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; outline: none; }
+        .btn { background: var(--accent); border: none; padding: 12px 20px; border-radius: 8px; color: #000; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
+        .option-btn { background: #334155; color: white; text-align: left; margin-bottom: 10px; display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; }
+        .user-card { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #334155; align-items: center; }
+        .user-card b { color: var(--accent); }
+        .rank { width: 30px; font-weight: bold; color: #94a3b8; }
+        h2, h3 { text-align: center; margin-top: 0; }
     </style>
 </head>
 <body>
 
 <div class="container" id="setup-screen">
-    <h2>Xush kelibsiz!</h2>
-    <p>Ismingizni kiriting va bilimingizni sinab ko'ring:</p>
-    <input type="text" id="username" placeholder="Ismingiz...">
-    <button class="btn" onclick="startQuiz()">Boshlash</button>
+    <h2 id="welcome-user">Salom!</h2>
+    <p style="text-align: center;">10 ta savolga javob bering va reytingda o'z o'rningizni egallang.</p>
+    <button class="btn" onclick="startQuiz()">O'yinni boshlash</button>
 </div>
 
 <div class="container hidden" id="quiz-screen">
-    <h3 id="question-text">Savol yuklanmoqda...</h3>
+    <h3 id="question-text">Savol...</h3>
     <div id="options-container"></div>
 </div>
 
 <div class="container hidden" id="result-screen">
-    <h2>Natija: <span id="final-score">0</span> ball</h2>
-    <p>Sizning natijangiz reytingga qo'shildi!</p>
-    <hr>
-    <h3>🏆 Global Reyting (TOP 10)</h3>
+    <h3>Natijangiz: <span id="final-score">0</span> ball</h3>
+    <hr style="border: 0.5px solid #334155;">
+    <h3>🏆 TOP 10 REYTING</h3>
     <div id="leaderboard"></div>
-    <button class="btn" onclick="location.reload()">Qayta urinish</button>
+    <button class="btn" onclick="location.reload()">Qayta o'ynash</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, update, onValue, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Firebase sozlamalari (O'zgartirmang)
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
         authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -55,27 +56,29 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const tg = window.Telegram.WebApp;
+
+    // Telegramdan foydalanuvchi ma'lumotlarini olish
+    const user = tg.initDataUnsafe?.user || { id: "test_user", first_name: "Mehmon" };
+    document.getElementById('welcome-user').innerText = `Salom, ${user.first_name}!`;
+    tg.expand(); // Ekranini to'liq ochish
 
     const questions = [
-        { q: "O'zbekiston poytaxti qaysi?", a: ["Toshkent", "Samarqand", "Buxoro"], c: 0 },
-        { q: "Dunyodagi eng katta okean?", a: ["Atlantika", "Tinch", "Hind"], c: 1 },
-        { q: "HTML nima?", a: ["Dasturlash tili", "Belgilash tili", "Ma'lumotlar bazasi"], c: 1 },
-        { q: "Quyoshga eng yaqin sayyora?", a: ["Venera", "Mars", "Merkuriy"], c: 2 },
-        { q: "JavaScript-da o'zgaruvchi qanday e'lon qilinadi?", a: ["var", "let", "Ikkala javob ham to'g'ri"], c: 2 },
-        { q: "8 x 8 necha bo'ladi?", a: ["64", "56", "72"], c: 0 },
-        { q: "Eng yengil element qaysi?", a: ["Kislorod", "Vodorod", "Geliy"], c: 1 },
-        { q: "O'zbekiston mustaqilligi qachon?", a: ["1990", "1991", "1992"], c: 1 },
-        { q: "IT so'zining kengaytmasi?", a: ["Information Tech", "Internal Tech", "Internet Team"], c: 0 },
-        { q: "Dunyoning eng baland cho'qqisi?", a: ["Everest", "K2", "Monblan"], c: 0 }
+        { q: "O'zbekiston poytaxti?", a: ["Toshkent", "Samarqand"], c: 0 },
+        { q: "HTML nima?", a: ["Dasturlash tili", "Belgilash tili"], c: 1 },
+        { q: "2x2 necha?", a: ["4", "5"], c: 0 },
+        { q: "Eng katta sayyora?", a: ["Mars", "Yupiter"], c: 1 },
+        { q: "Eng tez hayvon?", a: ["Gepard", "Sher"], c: 0 },
+        { q: "Telegram asoschisi?", a: ["Pavel Durov", "Elon Musk"], c: 0 },
+        { q: "Quyosh qachon chiqadi?", a: ["Kechasi", "Ertalab"], c: 1 },
+        { q: "Dunyodagi eng uzun daryo?", a: ["Nil", "Amazonka"], c: 0 },
+        { q: "Futbol maydonida nechta o'yinchi bo'ladi?", a: ["11", "22"], c: 0 },
+        { q: "O'zbekiston bayrog'ida nechta yulduz bor?", a: ["12", "10"], c: 0 }
     ];
 
-    let currentIdx = 0;
-    let score = 0;
-    let playerName = "";
+    let currentIdx = 0, score = 0;
 
     window.startQuiz = () => {
-        playerName = document.getElementById('username').value;
-        if (!playerName) return alert("Ismingizni yozing!");
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         showQuestion();
@@ -83,26 +86,20 @@
 
     function showQuestion() {
         const q = questions[currentIdx];
-        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('question-text').innerText = `${currentIdx + 1}. ${q.q}`;
         const container = document.getElementById('options-container');
         container.innerHTML = '';
         q.a.forEach((opt, i) => {
             const btn = document.createElement('button');
-            btn.className = 'btn option-btn';
+            btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i);
+            btn.onclick = () => {
+                if (i === q.c) score += 10;
+                currentIdx++;
+                currentIdx < questions.length ? showQuestion() : finishQuiz();
+            };
             container.appendChild(btn);
         });
-    }
-
-    function checkAnswer(i) {
-        if (i === questions[currentIdx].c) score += 10;
-        currentIdx++;
-        if (currentIdx < questions.length) {
-            showQuestion();
-        } else {
-            finishQuiz();
-        }
     }
 
     async function finishQuiz() {
@@ -110,25 +107,35 @@
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = score;
 
-        // Firebase-ga saqlash (ID sifatida ism va vaqtdan foydalanamiz)
-        const userId = playerName + "_" + Date.now();
-        await set(ref(db, 'users/' + userId), {
-            username: playerName,
-            score: score
-        });
+        // Bazadagi eski natijani tekshirish (faqat rekordni yangilash uchun)
+        const userRef = ref(db, 'leaderboard/' + user.id);
+        const snapshot = await get(userRef);
+        const oldData = snapshot.val();
 
+        if (!oldData || score > oldData.score) {
+            await update(userRef, {
+                username: user.first_name + (user.last_name ? " " + user.last_name : ""),
+                score: score,
+                timestamp: Date.now()
+            });
+        }
         loadLeaderboard();
     }
 
     function loadLeaderboard() {
-        const topRef = query(ref(db, 'users'), orderByChild('score'), limitToLast(10));
+        const topRef = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
         onValue(topRef, (snap) => {
             const board = document.getElementById('leaderboard');
             board.innerHTML = '';
             let list = [];
             snap.forEach(s => list.push(s.val()));
-            list.reverse().forEach((u, i) => {
-                board.innerHTML += `<div class="user-card"><span>#${i+1} ${u.username}</span> <b>${u.score}</b></div>`;
+            list.sort((a, b) => b.score - a.score).forEach((u, i) => {
+                board.innerHTML += `
+                    <div class="user-card">
+                        <span class="rank">${i+1}</span>
+                        <span style="flex-grow:1">${u.username}</span>
+                        <b>${u.score} ball</b>
+                    </div>`;
             });
         });
     }

@@ -2,118 +2,106 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matematika Test Tizimi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Matematika Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- MathJax 2.7 - Eng barqaror versiya -->
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
-            tex2jax: {
-                inlineMath: [['$','$'], ['\\(','\\)']],
-                processEscapes: true
-            },
-            showProcessingMessages: false,
+            tex2jax: { inlineMath: [['$','$']], processEscapes: true },
+            "HTML-CSS": { linebreaks: { automatic: true } },
             messageStyle: "none"
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .option-btn { transition: transform 0.1s, background-color 0.2s; }
-        .option-btn:active { transform: scale(0.98); }
-        #q-text { min-height: 80px; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .option-btn { transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
         .math-hidden { opacity: 0; }
         .math-visible { opacity: 1; transition: opacity 0.3s; }
+        /* Telegram uchun maxsus scroll */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Konteyner -->
-    <div id="app-container" class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative min-h-[500px] flex flex-col">
+    <div id="main-card" class="w-full max-w-md bg-white rounded-[2rem] shadow-xl overflow-hidden flex flex-col min-h-[550px]">
         
-        <!-- 1. Kirish ekrani -->
-        <div id="login-view" class="flex-1 flex flex-col p-8 text-center justify-center">
-            <div class="text-6xl mb-6 text-blue-600">📐</div>
-            <h1 class="text-3xl font-black text-gray-800 mb-2">Matematika Testi</h1>
-            <p class="text-gray-500 mb-8 text-sm px-4">Rasmdagi savollar asosida tayyorlangan test. Ismingizni kiriting va boshlang.</p>
-            
+        <!-- Kirish -->
+        <div id="login-view" class="p-8 flex-1 flex flex-col justify-center text-center">
+            <div class="text-6xl mb-4">💎</div>
+            <h1 class="text-2xl font-black text-gray-800 mb-2">Matematika Testi</h1>
+            <p class="text-gray-400 text-sm mb-8">Telegram foydalanuvchilari o'rtasidagi reytingda o'z o'rningizni ko'ring!</p>
             <input type="text" id="user-name" placeholder="Ismingiz..." 
-                class="w-full bg-gray-50 border-2 border-gray-100 focus:border-blue-500 p-4 rounded-2xl outline-none mb-4 text-lg font-semibold transition-all">
-            
-            <button onclick="handleStart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all">
+                class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-500 font-bold mb-4 text-center">
+            <button onclick="handleStart()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
                 Boshlash
             </button>
         </div>
 
-        <!-- 2. Test ekrani -->
-        <div id="quiz-view" class="hidden flex-1 flex flex-col p-6">
+        <!-- Test -->
+        <div id="quiz-view" class="hidden p-6 flex-1 flex flex-col">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p id="q-count" class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">Savol 1/10</p>
-                    <h3 id="current-player" class="text-sm font-bold text-gray-400">Foydalanuvchi</h3>
-                </div>
-                <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-black" id="score-counter">0 ball</div>
+                <span id="q-count" class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Savol 1/10</span>
+                <span id="live-score" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">0 ball</span>
             </div>
-
-            <div class="bg-gray-50 p-6 rounded-3xl mb-6 flex flex-col justify-center border border-gray-100">
-                <div id="q-text" class="text-lg font-bold leading-tight text-gray-800 math-hidden"></div>
+            <div class="bg-slate-50 p-6 rounded-3xl mb-6 border border-slate-100 min-h-[120px] flex items-center justify-center text-center">
+                <div id="q-text" class="text-lg font-bold text-gray-800 math-hidden"></div>
             </div>
-
-            <div id="options" class="space-y-3 math-hidden">
-                <!-- Variantlar -->
-            </div>
-
-            <button id="next-btn" class="hidden w-full mt-auto bg-gray-900 text-white font-bold py-4 rounded-2xl">
-                Keyingisi
-            </button>
+            <div id="options" class="space-y-2 math-hidden"></div>
+            <button id="next-btn" class="hidden w-full mt-auto bg-slate-900 text-white font-bold py-4 rounded-2xl">Keyingisi</button>
         </div>
 
-        <!-- 3. Natija va Reyting ekrani -->
-        <div id="result-view" class="hidden flex-1 flex flex-col p-8 text-center justify-center">
-            <div class="text-5xl mb-4">🏆</div>
-            <h2 class="text-2xl font-black mb-1">Natijangiz</h2>
-            <div class="text-6xl font-black text-blue-600 my-4" id="final-score">0</div>
-            
-            <div class="bg-gray-50 rounded-3xl p-6 mb-6">
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">TOP REYTING</h3>
-                <div id="ranking-list" class="space-y-2 text-left">
-                    <p class="text-center text-gray-300 text-sm">Yuklanmoqda...</p>
+        <!-- Reyting -->
+        <div id="result-view" class="hidden p-6 flex-1 flex flex-col">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-black text-gray-800">Natijangiz: <span id="final-score" class="text-blue-600">0</span></h2>
+            </div>
+            <div class="flex-1 overflow-y-auto bg-slate-50 rounded-3xl p-4 border border-slate-100">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">🏆 TOP REYTING</h3>
+                <div id="ranking-list" class="space-y-2">
+                    <div class="text-center py-4 text-gray-300 animate-pulse">Reyting yuklanmoqda...</div>
                 </div>
             </div>
-
-            <button onclick="location.reload()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl">
-                Qayta urinish
-            </button>
+            <button onclick="location.reload()" class="w-full mt-4 bg-gray-100 text-gray-600 font-bold py-3 rounded-2xl">Qayta topshirish</button>
         </div>
-
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Firebase Config
         const firebaseConfig = {
-            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-            projectId: "gen-lang-client-0228947349",
-            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
-            messagingSenderId: "253793341504",
-            appId: "1:253793341504:web:709752258000dab44fcfa5"
-        };
+        
+        };// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-        const state = {
-            db: null,
-            auth: null,
-            userId: null,
-            currentIdx: 0,
-            score: 0,
-            name: '',
-            appId: 'math_app_fixed_v1'
-        };
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+  authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+  databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+  projectId: "gen-lang-client-0228947349",
+  storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+  messagingSenderId: "253793341504",
+  appId: "1:253793341504:web:709752258000dab44fcfa5",
+  measurementId: "G-DT2JZN1P2T"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = 'telegram_math_fix_v2';
 
         const quizData = [
             { q: "Ustun matritsani ko'rsating:", o: ["(1,2,3)", "$ \\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix} $", "(1 2 3)", "$ A_{3 \\times 3} $"], c: 1 },
@@ -128,15 +116,9 @@
             { q: "3x4 o'lchamli matritsada nechta element bor?", o: ["7", "1", "12", "14"], c: 2 }
         ];
 
-        // Ilovani xavfsiz ishga tushirish
-        const app = initializeApp(firebaseConfig);
-        state.db = getFirestore(app);
-        state.auth = getAuth(app);
+        let state = { idx: 0, score: 0, name: '', user: null };
 
-        // Anonim kirish - agar xato bersa ham ilova ishlashi kerak
-        signInAnonymously(state.auth).then(cred => {
-            state.userId = cred.user.uid;
-        }).catch(err => console.log("Reyting tizimi o'chirildi (Offline mode)"));
+        signInAnonymously(auth).then(c => state.user = c.user);
 
         window.handleStart = () => {
             const input = document.getElementById('user-name');
@@ -144,81 +126,64 @@
             state.name = input.value.trim();
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('quiz-view').classList.remove('hidden');
-            document.getElementById('current-player').innerText = state.name;
             renderQuestion();
         };
 
         function renderQuestion() {
-            if (state.currentIdx >= quizData.length) return showResults();
-
-            const data = quizData[state.currentIdx];
-            const qText = document.getElementById('q-text');
-            const optionsDiv = document.getElementById('options');
+            if (state.idx >= quizData.length) return finish();
+            const data = quizData[state.idx];
+            const qT = document.getElementById('q-text');
+            const opts = document.getElementById('options');
             
-            qText.classList.remove('math-visible');
-            qText.classList.add('math-hidden');
-            optionsDiv.classList.add('math-hidden');
+            qT.classList.remove('math-visible');
+            qT.classList.add('math-hidden');
+            opts.classList.add('math-hidden');
             
+            document.getElementById('q-count').innerText = `Savol ${state.idx + 1}/10`;
             document.getElementById('next-btn').classList.add('hidden');
-            document.getElementById('q-count').innerText = `Savol ${state.currentIdx + 1}/${quizData.length}`;
-            qText.innerHTML = data.q;
+            qT.innerHTML = data.q;
+            opts.innerHTML = '';
             
-            optionsDiv.innerHTML = '';
-            data.o.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-left p-4 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50 transition-colors flex items-center";
-                btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-4 font-bold text-gray-400 shrink-0">${String.fromCharCode(65+i)}</span> <span class="font-medium text-gray-700">${opt}</span>`;
-                btn.onclick = () => handleSelect(i, btn);
-                optionsDiv.appendChild(btn);
+            data.o.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.className = "option-btn w-full text-left p-3 rounded-2xl border border-gray-100 bg-white hover:bg-blue-50 flex items-center text-sm";
+                b.innerHTML = `<span class="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center mr-3 font-bold text-gray-400 text-xs shrink-0">${String.fromCharCode(65+i)}</span> <span>${o}</span>`;
+                b.onclick = () => {
+                    const all = document.querySelectorAll('.option-btn');
+                    all.forEach(x => x.onclick = null);
+                    if (i === data.c) {
+                        state.score++;
+                        b.classList.add('border-green-500', 'bg-green-50');
+                        document.getElementById('live-score').innerText = state.score + ' ball';
+                    } else {
+                        b.classList.add('border-red-500', 'bg-red-50');
+                        all[data.c].classList.add('border-green-500', 'bg-green-50');
+                    }
+                    document.getElementById('next-btn').classList.remove('hidden');
+                };
+                opts.appendChild(b);
             });
 
-            // MathJax renderlash
             if (window.MathJax) {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, qText], ["Typeset", MathJax.Hub, optionsDiv], function() {
-                    qText.classList.replace('math-hidden', 'math-visible');
-                    optionsDiv.classList.replace('math-hidden', 'math-visible');
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, qT], ["Typeset", MathJax.Hub, opts], () => {
+                    qT.classList.replace('math-hidden', 'math-visible');
+                    opts.classList.replace('math-hidden', 'math-visible');
                 });
-            } else {
-                qText.classList.replace('math-hidden', 'math-visible');
-                optionsDiv.classList.replace('math-hidden', 'math-visible');
             }
         }
 
-        function handleSelect(idx, btn) {
-            const btns = document.querySelectorAll('.option-btn');
-            btns.forEach(b => b.onclick = null);
-            
-            const correct = quizData[state.currentIdx].c;
-            if (idx === correct) {
-                state.score++;
-                btn.classList.add('border-green-500', 'bg-green-50');
-                document.getElementById('score-counter').innerText = state.score + " ball";
-            } else {
-                btn.classList.add('border-red-500', 'bg-red-50');
-                btns[correct].classList.add('border-green-500', 'bg-green-50');
-            }
-            document.getElementById('next-btn').classList.remove('hidden');
-        }
+        document.getElementById('next-btn').onclick = () => { state.idx++; renderQuestion(); };
 
-        document.getElementById('next-btn').onclick = () => {
-            state.currentIdx++;
-            renderQuestion();
-        };
-
-        async function showResults() {
+        async function finish() {
             document.getElementById('quiz-view').classList.add('hidden');
             document.getElementById('result-view').classList.remove('hidden');
             document.getElementById('final-score').innerText = state.score;
-
-            if (state.userId && state.db) {
+            
+            if (state.user) {
                 try {
-                    const col = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'ranking');
-                    await addDoc(col, {
-                        name: state.name,
-                        score: state.score,
-                        ts: Date.now()
-                    });
-                } catch (e) { console.log("Saqlashda xatolik"); }
+                    const col = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
+                    await addDoc(col, { name: state.name, score: state.score, ts: Date.now() });
+                } catch (e) {}
             }
             loadRanking();
         }
@@ -226,24 +191,23 @@
         async function loadRanking() {
             const list = document.getElementById('ranking-list');
             try {
-                const col = collection(state.db, 'artifacts', state.appId, 'public', 'data', 'ranking');
+                const col = collection(db, 'artifacts', appId, 'public', 'data', 'ranking');
                 const snap = await getDocs(col);
-                let data = [];
-                snap.forEach(d => data.push(d.data()));
-                data.sort((a, b) => b.score - a.score);
-                const top = data.slice(0, 5);
-
-                list.innerHTML = top.map((p, i) => `
-                    <div class="flex justify-between items-center p-3 rounded-xl bg-white border border-gray-50">
+                let items = [];
+                snap.forEach(d => items.push(d.data()));
+                items.sort((a, b) => b.score - a.score);
+                
+                list.innerHTML = items.slice(0, 10).map((p, i) => `
+                    <div class="flex justify-between items-center p-3 bg-white rounded-2xl shadow-sm border border-slate-50">
                         <div class="flex items-center">
-                            <span class="w-6 font-black text-blue-200 text-xs">${i+1}</span>
-                            <span class="font-bold text-gray-700 text-sm">${p.name}</span>
+                            <span class="w-6 font-black ${i<3?'text-blue-500':'text-gray-300'} text-xs">${i+1}</span>
+                            <span class="font-bold text-gray-700 text-xs">${p.name}</span>
                         </div>
-                        <span class="text-blue-600 font-black text-sm">${p.score} b</span>
+                        <span class="text-blue-600 font-black text-xs">${p.score} ball</span>
                     </div>
-                `).join('') || '<p class="text-center text-gray-300">Natijalar yo\'q</p>';
+                `).join('') || '<p class="text-center text-gray-300 text-xs">Hozircha natija yo\'q</p>';
             } catch (e) {
-                list.innerHTML = '<p class="text-center text-gray-300 text-sm">Reyting o\'chirilgan</p>';
+                list.innerHTML = '<p class="text-center text-red-300 text-xs">Reytingni yuklab bo\'lmadi</p>';
             }
         }
     </script>

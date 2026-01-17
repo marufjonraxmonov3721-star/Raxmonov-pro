@@ -3,81 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz Pro - Live Rating</title>
+    <title>Math Quiz - Telegram Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f1f5f9; padding-bottom: 80px; }
+        body { background-color: #f1f5f9; padding-bottom: 80px; font-family: sans-serif; }
         .screen { display: none; }
         .screen.active { display: block; }
-        
-        /* Matritsalar va rasmlar uchun maxsus stil */
-        img { 
-            max-width: 100% !important; 
-            height: auto !important; 
-            max-height: 200px; 
-            display: block; 
-            margin: 10px auto;
-            border-radius: 8px;
-        }
-
-        .opt-btn { 
-            background: white; border: 2px solid #e2e8f0; border-radius: 15px; 
-            padding: 12px; width: 100%; text-align: left; transition: 0.2s;
-            margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .opt-btn:hover { border-color: #3b82f6; background: #f0f7ff; }
-        .correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534; font-weight: bold; }
-        
+        img { max-width: 100% !important; height: auto !important; max-height: 180px; display: block; margin: 10px auto; border-radius: 8px; }
+        .opt-btn { background: white; border: 2px solid #e2e8f0; border-radius: 15px; padding: 12px; width: 100%; text-align: left; margin-bottom: 8px; transition: 0.2s; }
+        .opt-btn:active { transform: scale(0.98); background: #f0f7ff; }
         .nav-btn.active { color: #2563eb; border-top: 4px solid #2563eb; background: #f8fbff; }
-        .q-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div id="app" class="max-w-md mx-auto p-4">
-    <div id="loader" class="text-center py-20 font-bold text-blue-600">
-        <i class="fas fa-spinner fa-spin mr-2"></i> Yuklanmoqda...
-    </div>
+    <div id="loader" class="text-center py-20 font-bold text-blue-600">Yuklanmoqda...</div>
 
     <section id="page-list" class="screen">
-        <h2 class="text-2xl font-bold mb-5 flex items-center text-gray-800">
-            <i class="fas fa-book-open mr-3 text-blue-600"></i> Savollar Ro'yxati
-        </h2>
+        <h2 class="text-xl font-black mb-4 flex items-center"><i class="fas fa-list mr-2"></i> SAVOLLAR</h2>
         <div id="list-content" class="space-y-4"></div>
     </section>
 
     <section id="page-test" class="screen">
-        <div class="bg-white p-4 rounded-xl shadow mb-4 flex justify-between items-center sticky top-2 z-50">
-            <div class="text-red-600 font-bold text-lg" id="timer">30:00</div>
-            <div class="font-bold text-gray-700" id="progress">1/35</div>
+        <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-2xl shadow-sm sticky top-0 z-50">
+            <span class="text-red-500 font-bold" id="timer">30:00</span>
+            <span id="tg-user" class="text-xs text-blue-500 font-bold"></span>
+            <span class="font-bold" id="progress">0/35</span>
         </div>
         <div id="test-content"></div>
     </section>
 
     <section id="page-rating" class="screen">
-        <h2 class="text-2xl font-bold mb-5 flex items-center text-gray-800">
-            <i class="fas fa-trophy mr-3 text-yellow-500"></i> Eng Kuchli 10 Talik
-        </h2>
-        <div id="rating-content" class="space-y-3"></div>
+        <h2 class="text-xl font-black mb-4 flex items-center text-yellow-600"><i class="fas fa-trophy mr-2"></i> TOP REYTING</h2>
+        <div id="rating-content" class="space-y-2"></div>
     </section>
 </div>
 
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-16 shadow-lg z-[100]">
     <button onclick="showPage('list')" id="nav-list" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
-        <i class="fas fa-list-ul"></i><span class="text-[10px] mt-1 font-bold">SAVOLLAR</span>
+        <i class="fas fa-book"></i><span class="text-[10px] mt-1">SAVOLLAR</span>
     </button>
     <button onclick="showPage('test')" id="nav-test" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
-        <i class="fas fa-stopwatch"></i><span class="text-[10px] mt-1 font-bold">IMTIHON</span>
+        <i class="fas fa-play"></i><span class="text-[10px] mt-1">TEST</span>
     </button>
     <button onclick="showPage('rating')" id="nav-rating" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
-        <i class="fas fa-chart-bar"></i><span class="text-[10px] mt-1 font-bold">REYTING</span>
+        <i class="fas fa-chart-line"></i><span class="text-[10px] mt-1">REYTING</span>
     </button>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -89,17 +68,22 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    let masterData = [];
-    let currentIdx = 0, score = 0, timer;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Telegramdan ma'lumot olish
+    const user = tg.initDataUnsafe?.user;
+    const userId = user?.id || "guest_" + Math.floor(Math.random()*1000);
+    const userName = user ? (user.first_name + (user.last_name ? " " + user.last_name : "")) : "Mehmon";
+    document.getElementById('tg-user').innerText = userName;
+
+    let masterData = [], currentIdx = 0, score = 0, timer;
 
     async function init() {
-        try {
-            const q = query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc"));
-            const snap = await getDocs(q);
-            masterData = snap.docs.map(doc => doc.data());
-            document.getElementById('loader').classList.add('hidden');
-            showPage('list');
-        } catch (e) { alert("Firebase xatosi!"); }
+        const snap = await getDocs(query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc")));
+        masterData = snap.docs.map(d => d.data());
+        document.getElementById('loader').classList.add('hidden');
+        showPage('list');
     }
 
     window.showPage = (p) => {
@@ -107,27 +91,24 @@
         document.getElementById('page-' + p).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('nav-' + p).classList.add('active');
-        
         if (p === 'list') renderList();
         if (p === 'test') startTest();
         if (p === 'rating') loadRatings();
-        if (p !== 'test') clearInterval(timer);
     };
 
     function renderList() {
         document.getElementById('list-content').innerHTML = masterData.map((d, i) => `
-            <div class="q-box">
-                <div class="font-bold text-blue-600 mb-2 border-b pb-1"># ${i+1}-savol</div>
-                <div class="mb-4">${d.question}</div>
-                <div class="space-y-2">
-                    ${d.options.map((opt, j) => `<div class="p-3 rounded-lg border text-sm ${j === d.correctIndex ? 'correct' : 'bg-gray-50'}">${opt}</div>`).join('')}
-                </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm">
+                <div class="font-bold text-blue-600 mb-2">#${i+1}</div>
+                <div>${d.question}</div>
             </div>
         `).join('');
     }
 
     function startTest() {
         currentIdx = 0; score = 0;
+        // Savollarni aralashtirish
+        masterData.sort(() => Math.random() - 0.5);
         displayQuestion();
         let time = 30 * 60;
         clearInterval(timer);
@@ -142,56 +123,59 @@
         if (currentIdx >= 35 || currentIdx >= masterData.length) return endTest();
         document.getElementById('progress').innerText = `${currentIdx + 1}/35`;
         const q = masterData[currentIdx];
+        
+        // Variantlarni aralashtirish
+        let options = q.options.map((text, index) => ({ text, isCorrect: index === q.correctIndex }));
+        options.sort(() => Math.random() - 0.5);
+
         document.getElementById('test-content').innerHTML = `
             <div class="bg-white p-6 rounded-3xl shadow-xl">
-                <div class="mb-6 text-lg">${q.question}</div>
+                <div class="mb-6 text-lg font-medium">${q.question}</div>
                 <div class="space-y-3">
-                    ${q.options.map((opt, i) => `<button onclick="answer(${i}, ${q.correctIndex})" class="opt-btn">${opt}</button>`).join('')}
+                    ${options.map(opt => `<button onclick="handleAnswer(${opt.isCorrect})" class="opt-btn">${opt.text}</button>`).join('')}
                 </div>
             </div>
         `;
     }
 
-    window.answer = (sel, cor) => {
-        if (sel === cor) score += 2;
+    window.handleAnswer = (isCorrect) => {
+        if (isCorrect) score += 2;
         currentIdx++;
         displayQuestion();
     };
 
     async function endTest() {
         clearInterval(timer);
-        const userName = prompt("Imtihon tugadi! Ballingiz: " + score + "\nReyting uchun ismingizni kiriting:");
-        if (userName) {
-            await addDoc(collection(db, "ratings"), {
-                name: userName,
-                score: score,
-                date: Date.now()
-            });
-            showPage('rating');
+        tg.HapticFeedback.notificationOccurred('success');
+        
+        // Faqat eng yaxshi ballni yozish
+        const docRef = doc(db, "ratings", userId.toString());
+        const oldDoc = await getDoc(docRef);
+        const oldScore = oldDoc.exists() ? oldDoc.data().score : 0;
+
+        if (score > oldScore) {
+            await setDoc(docRef, { name: userName, score: score, date: Date.now() });
+            alert("Yangi rekord! Ballingiz: " + score);
         } else {
-            showPage('list');
+            alert("Test tugadi. Ballingiz: " + score + "\nSizning eng yaxshi natijangiz: " + oldScore);
         }
+        showPage('rating');
     }
 
     async function loadRatings() {
         const q = query(collection(db, "ratings"), orderBy("score", "desc"), limit(10));
         const snap = await getDocs(q);
-        let html = "";
-        let rank = 1;
-        snap.forEach(doc => {
-            const d = doc.data();
+        let html = "", rank = 1;
+        snap.forEach(d => {
+            const data = d.data();
             html += `
-                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-l-4 ${rank <= 3 ? 'border-yellow-400':'border-blue-400'}">
-                    <div class="flex items-center">
-                        <span class="w-8 font-black text-gray-400">#${rank}</span>
-                        <span class="font-bold">${d.name}</span>
-                    </div>
-                    <div class="font-black text-blue-600">${d.score} ball</div>
-                </div>
-            `;
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border-l-4 ${rank <= 3 ? 'border-yellow-400':'border-blue-400'}">
+                    <span class="font-bold">#${rank} ${data.name}</span>
+                    <span class="font-black text-blue-600">${data.score}</span>
+                </div>`;
             rank++;
         });
-        document.getElementById('rating-content').innerHTML = html || "<p class='text-center text-gray-500'>Hozircha natijalar yo'q</p>";
+        document.getElementById('rating-content').innerHTML = html || "Hali natijalar yo'q";
     }
 
     init();

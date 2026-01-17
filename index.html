@@ -3,100 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docx Table to Quiz</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <title>Oliy Matematika Tartibli Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; }
+        .nav-active { color: #2563eb !important; border-top: 3px solid #2563eb; background: #f8fbff; }
+        .opt-card { border: 2px solid #e2e8f0; transition: 0.2s; width: 100%; text-align: left; margin-bottom: 8px; border-radius: 12px; padding: 14px; background: white; }
+        .opt-card:hover { border-color: #3b82f6; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; display: block; }
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4">
+<body>
 
-    <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-xl">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Docx Jadvaldan Test</h1>
-        
-        <div class="mb-6">
-            <input type="file" id="docxInput" accept=".docx" 
-                   class="w-full p-3 border-2 border-dashed border-gray-300 rounded-xl">
-        </div>
-
-        <button onclick="convertDocxToQuiz()" id="btn" 
-                class="w-full bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition">
-            FAYLNI O'QISH VA TEST QILISH
-        </button>
-
-        <div id="quizArea" class="mt-10 space-y-6 hidden italic">
-            </div>
+<div id="main-container" class="max-w-xl mx-auto p-4">
+    <div id="loading" class="text-center py-10 text-blue-600 font-bold">
+        <i class="fas fa-spinner fa-spin mr-2"></i> Savollar tartiblanmoqda...
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <section id="page-list" class="page">
+        <h2 class="text-2xl font-bold mb-5 text-gray-800 border-b-2 border-blue-500 pb-2">📚 Savollar Ro'yxati</h2>
+        <div id="list-content" class="space-y-6"></div>
+    </section>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
-            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
-            projectId: "gen-lang-client-0228947349",
-            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
-            messagingSenderId: "253793341504",
-            appId: "1:253793341504:web:709752258000dab44fcfa5"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    <section id="page-test" class="page hidden">
+        <div class="bg-white p-4 rounded-xl shadow-md mb-4 flex justify-between items-center sticky top-2 z-50">
+            <div class="text-red-600 font-bold text-lg" id="timer">30:00</div>
+            <div class="font-bold text-gray-700">Savol: <span id="q-idx">0/35</span></div>
+        </div>
+        <div id="test-content"></div>
+    </section>
 
-        window.convertDocxToQuiz = async () => {
-            const input = document.getElementById('docxInput');
-            const area = document.getElementById('quizArea');
-            if (!input.files[0]) return alert("Faylni tanlang!");
+    <section id="page-rank" class="page hidden text-center">
+        <h2 class="text-2xl font-bold mb-6 text-yellow-600">🏆 Top Reyting</h2>
+        <div class="bg-white rounded-2xl shadow-lg p-6" id="rank-content">
+            <p class="text-gray-500">Telegram foydalanuvchilari reytingi yuklanmoqda...</p>
+        </div>
+    </section>
+</div>
 
-            try {
-                const arrayBuffer = await input.files[0].arrayBuffer();
-                
-                // Docx ni HTML formatida o'qiymiz (jadvallarni saqlab qolish uchun)
-                const result = await mammoth.convertToHtml({ arrayBuffer });
-                const html = result.value;
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-16 shadow-inner z-[100]">
+    <button onclick="openTab('list')" id="nav-list" class="flex-1 flex flex-col items-center justify-center nav-active">
+        <i class="fas fa-list-ol"></i><span class="text-xs mt-1">Ro'yxat</span>
+    </button>
+    <button onclick="openTab('test')" id="nav-test" class="flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-stopwatch"></i><span class="text-xs mt-1">Imtihon</span>
+    </button>
+    <button onclick="openTab('rank')" id="nav-rank" class="flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-users"></i><span class="text-xs mt-1">Reyting</span>
+    </button>
+</nav>
 
-                // Vaqtinchalik element yaratib jadvalni qidiramiz
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-                const rows = tempDiv.querySelectorAll('tr');
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-                let tests = [];
+    const firebaseConfig = {
+        apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+        authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+        projectId: "gen-lang-client-0228947349",
+        storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+        appId: "1:253793341504:web:709752258000dab44fcfa5"
+    };
 
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length >= 2) {
-                        const question = cells[0].innerText || cells[0].innerHTML;
-                        let options = [];
-                        for (let i = 1; i < cells.length; i++) {
-                            options.push(cells[i].innerText || cells[i].innerHTML);
-                        }
-                        tests.push({ q: question, o: options });
-                    }
-                });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let masterData = [];
+    let currentQ = 0;
+    let totalScore = 0;
+    let clock;
 
-                // Firebasega saqlash
-                await addDoc(collection(db, "manual_tests"), {
-                    name: input.files[0].name,
-                    content: tests,
-                    time: new Date()
-                });
+    async function init() {
+        try {
+            // TARTIB BILAN OLISH: serverTime bo'yicha o'sish tartibi (asc)
+            const q = query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc"));
+            const snap = await getDocs(q);
+            
+            masterData = snap.docs.map(doc => doc.data());
+            document.getElementById('loading').classList.add('hidden');
+            
+            renderList();
+        } catch (e) {
+            document.getElementById('loading').innerHTML = `<span class="text-red-500">Xatolik: Firestore Index yaratilmagan bo'lishi mumkin yoki ruxsat yo'q.</span>`;
+            console.error(e);
+        }
+    }
 
-                // Ekranga chiqarish
-                area.innerHTML = "<h2 class='text-xl font-bold'>Savollar:</h2>";
-                tests.forEach((t, i) => {
-                    area.innerHTML += `
-                        <div class="p-5 bg-gray-50 border rounded-2xl shadow-sm">
-                            <p class="font-bold text-lg">${i+1}. ${t.q}</p>
-                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                                ${t.o.map(opt => `<button class="p-3 bg-white border rounded-xl text-left hover:bg-blue-50">${opt}</button>`).join('')}
-                            </div>
-                        </div>`;
-                });
-                area.classList.remove('hidden');
-                alert("Jadval tahlil qilindi va Firebasega saqlandi!");
+    function renderList() {
+        const box = document.getElementById('list-content');
+        box.innerHTML = masterData.map((d, i) => `
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-b-4 border-blue-400">
+                <div class="font-bold text-gray-800 mb-3">${i+1}. ${d.question}</div>
+                <div class="grid gap-2">
+                    ${d.options.map((opt, j) => `
+                        <div class="p-3 rounded-lg border text-sm ${j === d.correctIndex ? 'bg-green-100 border-green-500 font-bold' : 'bg-gray-50 border-gray-100 text-gray-600'}">
+                            ${opt}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
 
-            } catch (err) {
-                alert("Xato: Faylni o'qib bo'lmadi.");
-            }
-        };
-    </script>
+    window.openTab = (tab) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById('page-' + tab).classList.remove('hidden');
+        document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 flex flex-col items-center justify-center text-gray-400");
+        document.getElementById('nav-' + tab).classList.add('nav-active');
+        
+        if (tab === 'test') startExam();
+        else clearInterval(clock);
+    };
+
+    window.startExam = () => {
+        currentQ = 0; totalScore = 0;
+        // Test uchun ham masterData'dan tartib bilan 35 tasini olamiz
+        renderTestCard();
+        let limit = 30 * 60;
+        clearInterval(clock);
+        clock = setInterval(() => {
+            let m = Math.floor(limit / 60), s = limit % 60;
+            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+            if (--limit < 0) finish();
+        }, 1000);
+    };
+
+    function renderTestCard() {
+        if (currentQ >= 35 || currentQ >= masterData.length) return finish();
+        document.getElementById('q-idx').innerText = `${currentQ+1}/35`;
+        const data = masterData[currentQ];
+        document.getElementById('test-content').innerHTML = `
+            <div class="bg-white p-6 rounded-2xl shadow-xl">
+                <div class="text-lg font-medium mb-6 text-gray-800">${data.question}</div>
+                <div class="space-y-2">
+                    ${data.options.map((opt, i) => `
+                        <button onclick="window.checkAns(${i}, ${data.correctIndex})" class="opt-card">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    window.checkAns = (s, c) => {
+        if (s === c) totalScore += 2;
+        currentQ++;
+        renderTestCard();
+    };
+
+    function finish() {
+        clearInterval(clock);
+        const win = totalScore >= 42;
+        document.getElementById('test-content').innerHTML = `
+            <div class="text-center p-10 bg-white rounded-3xl shadow-2xl">
+                <div class="text-6xl mb-4">${win ? '🎉' : '❌'}</div>
+                <h2 class="text-5xl font-black mb-2 ${win ? 'text-green-500' : 'text-red-500'}">${totalScore}</h2>
+                <p class="text-gray-500 font-bold mb-6 text-xl">Maksimal: 70 ball</p>
+                <div class="p-4 rounded-xl ${win ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} font-bold mb-8">
+                    ${win ? 'TABRIKLAYMIZ! IMTIHONDAN O\'TDINGIZ' : 'AFSUS, O\'TISH BALLINI TO\'PLAY OLMADINGIZ'}
+                </div>
+                <button onclick="startExam()" class="bg-blue-600 text-white py-4 px-10 rounded-2xl w-full font-bold shadow-lg">QAYTA TOPSHIRISH</button>
+            </div>
+        `;
+    }
+
+    init();
+</script>
 </body>
 </html>

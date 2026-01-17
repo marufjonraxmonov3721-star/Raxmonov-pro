@@ -3,85 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz - Ultimate Edition</title>
+    <title>Math Quiz - All Results Version</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { background: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; padding-bottom: 100px; }
-        .screen { display: none; animation: fadeIn 0.3s ease; }
-        .screen.active { display: block; }
+        body { background: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; padding-bottom: 90px; }
+        .screen { display: none; } 
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        img { max-width: 100% !important; height: auto !important; max-height: 150px; display: block; margin: 10px auto; border-radius: 12px; }
-        .opt-btn { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; width: 100%; text-align: left; transition: 0.2s; }
-        .opt-btn.correct { border-color: #22c55e !important; background: #f0fdf4 !important; color: #166534; font-weight: bold; }
-        .opt-btn.wrong { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b; }
-        .opt-btn.selected-real { border-color: #3b82f6; background: #eff6ff; }
-        .nav-btn.active { color: #2563eb; }
-        .nav-btn.active i { background: #dbeafe; padding: 8px 16px; border-radius: 12px; }
+        
+        /* Chat va Xabarlar */
+        #chat-messages { height: 280px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .msg { margin: 5px 0; padding: 10px 14px; border-radius: 18px; max-width: 85%; font-size: 13px; line-height: 1.4; }
+        .my-msg { background: #2563eb; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
+        .other-msg { background: white; align-self: flex-start; color: #1e293b; border-bottom-left-radius: 2px; border: 1px solid #e2e8f0; }
+        
+        .opt-btn { background: white; border: 2px solid #e2e8f0; border-radius: 16px; padding: 14px; width: 100%; text-align: left; transition: 0.2s; font-weight: 600; color: #334155; }
+        .correct { border-color: #22c55e !important; background: #f0fdf4 !important; color: #166534; }
+        .wrong { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b; }
+        .selected-real { border-color: #3b82f6; background: #eff6ff; }
+        img { max-width: 100%; height: auto; border-radius: 12px; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-<div id="app" class="max-w-md mx-auto p-5">
-    <div class="bg-white p-3 rounded-2xl shadow-sm mb-6 border border-slate-200">
-        <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center text-green-600 font-bold text-xs">
-                <i class="fas fa-users text-lg mr-2"></i> ONLAYN: <span id="online-count" class="ml-1">0</span>
+<div id="app" class="max-w-md mx-auto p-4">
+    <div class="bg-white p-4 rounded-[2rem] shadow-sm mb-4 border border-slate-100">
+        <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center text-green-600 font-extrabold text-[10px] uppercase">
+                <i class="fas fa-users mr-2 text-lg"></i> ONLAYN: <span id="online-count">0</span>
             </div>
-            <div id="tg-name" class="text-[10px] font-bold text-slate-400 italic"></div>
+            <button onclick="toggleChat()" class="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-black shadow-lg">
+                <i class="fas fa-comments mr-1"></i> CHAT
+            </button>
         </div>
-        <div id="online-users-list" class="text-[9px] text-slate-500 flex flex-wrap gap-1"></div>
+        <div id="online-list" class="flex flex-wrap gap-1 mb-2"></div>
+        
+        <div id="chat-ui" class="hidden border-t pt-4 mt-2">
+            <div id="chat-messages" class="mb-3 space-y-2 p-3 bg-slate-50 rounded-2xl border"></div>
+            <div class="flex gap-2">
+                <input id="chat-input" type="text" placeholder="Hamma bilan yozishing..." class="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-blue-500 transition">
+                <button onclick="sendMsg()" class="bg-blue-600 text-white p-3 rounded-xl w-12 shadow-md shadow-blue-100"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
     </div>
 
     <section id="page-home" class="screen active">
-        <h2 class="text-2xl font-black text-slate-800 mb-6 text-center">Imtihon Markazi</h2>
+        <h2 class="text-2xl font-black text-slate-800 mb-6">Imtihon Markazi</h2>
         <div class="grid gap-4">
-            <button onclick="startTest('real')" class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 text-left">
-                <i class="fas fa-bolt text-yellow-500 text-2xl mb-2"></i>
+            <button onclick="startTest('real')" class="bg-white p-6 rounded-[2.5rem] border-b-8 border-yellow-400 shadow-sm text-left">
+                <i class="fas fa-bolt text-yellow-500 text-3xl mb-3"></i>
                 <div class="font-black text-lg text-slate-800">Real Test (35)</div>
-                <div class="text-[10px] text-slate-500 italic">Natijalar yakunda ma'lum bo'ladi</div>
+                <div class="text-[11px] text-slate-400">42 ball o'tish</div>
             </button>
-            <button onclick="startTest('full')" class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 text-left">
-                <i class="fas fa-graduation-cap text-blue-500 text-2xl mb-2"></i>
+            <button onclick="startTest('full')" class="bg-white p-6 rounded-[2.5rem] border-b-8 border-blue-500 shadow-sm text-left">
+                <i class="fas fa-graduation-cap text-blue-500 text-3xl mb-3"></i>
                 <div class="font-black text-lg text-slate-800">To'liq Test (265)</div>
-                <div class="text-[10px] text-slate-500 italic">Xatoni darhol ko'rish (Yodlash uchun)</div>
+                <div class="text-[11px] text-slate-400">Tartibli va xatoni ko'rsatish</div>
             </button>
         </div>
     </section>
 
     <section id="page-test" class="screen">
-        <div class="bg-white p-4 rounded-3xl shadow-sm mb-4 flex justify-between items-center sticky top-2 z-50">
-            <div id="timer-box" class="text-red-500 font-black"><i class="far fa-clock"></i> <span id="timer">30:00</span></div>
-            <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black" id="progress">0 / 0</div>
-            <button onclick="confirmEnd()" class="text-red-500 font-black text-[10px] bg-red-50 px-3 py-1 rounded-full">YAKUNLASH</button>
+        <div class="bg-white p-4 rounded-3xl mb-4 flex justify-between items-center sticky top-0 shadow-sm z-50">
+            <span id="timer" class="text-red-500 font-black text-sm">30:00</span>
+            <span id="progress" class="bg-blue-50 text-blue-600 px-4 py-1 rounded-full font-black text-[11px]">0 / 0</span>
+            <button onclick="confirmExit()" class="text-slate-400"><i class="fas fa-times-circle text-xl"></i></button>
         </div>
         <div id="test-content"></div>
-        <button id="next-btn" onclick="goToNext()" class="hidden w-full bg-blue-600 text-white py-4 rounded-2xl font-black mt-4 shadow-lg">KEYINGISI</button>
+        <button id="next-btn" onclick="nextQ()" class="hidden w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black mt-6 shadow-xl transition">KEYINGISI</button>
     </section>
 
     <section id="page-rating" class="screen">
-        <div class="flex gap-2 mb-6">
-            <button onclick="loadRatings('real')" id="btn-rat-real" class="flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md">Real Test</button>
-            <button onclick="loadRatings('full')" id="btn-rat-full" class="flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border">To'liq Test</button>
+        <div class="flex gap-2 mb-6 bg-white p-2 rounded-2xl border">
+            <button onclick="loadRat('real')" id="rat-real-btn" class="flex-1 py-3 rounded-xl text-[11px] font-black transition">REAL TEST</button>
+            <button onclick="loadRat('full')" id="rat-full-btn" class="flex-1 py-3 rounded-xl text-[11px] font-black transition">TO'LIQ TEST</button>
         </div>
-        <div id="rating-content" class="space-y-3"></div>
+        <div id="rating-list" class="space-y-3"></div>
     </section>
 </div>
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-20 shadow-2xl z-[100] px-6">
-    <button onclick="showPage('home')" id="nav-home" class="nav-btn flex-1 flex flex-col items-center justify-center text-slate-400">
-        <i class="fas fa-home text-lg"></i><span class="text-[9px] mt-1 font-bold">ASOSIY</span>
-    </button>
-    <button onclick="showPage('rating')" id="nav-rating" class="nav-btn flex-1 flex flex-col items-center justify-center text-slate-400">
-        <i class="fas fa-trophy text-lg"></i><span class="text-[9px] mt-1 font-bold">REYTING</span>
-    </button>
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-20 shadow-2xl px-10 items-center z-[100]">
+    <button onclick="showPage('home')" class="flex-1 text-slate-400 flex flex-col items-center"><i class="fas fa-th-large text-xl"></i><span class="text-[9px] mt-1 font-bold">ASOSIY</span></button>
+    <button onclick="showPage('rating')" class="flex-1 text-slate-400 flex flex-col items-center"><i class="fas fa-crown text-xl"></i><span class="text-[9px] mt-1 font-bold">REYTING</span></button>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, setDoc, doc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -97,140 +108,160 @@
     tg.expand();
 
     const user = tg.initDataUnsafe?.user;
+    const isGuest = !user || !user.first_name || user.first_name.toLowerCase().includes("mehmon");
     const uid = user?.id?.toString() || "guest_" + Math.random().toString(36).substr(2, 5);
     const uName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : "Mehmon";
-    document.getElementById('tg-name').innerText = uName;
 
-    let masterData = [], currentTestData = [], currentIdx = 0, score = 0, timerInterval, mode = 'real', hasAnswered = false;
+    let masterData = [], currentTestData = [], currentIdx = 0, score = 0, timer, mode = 'real', answered = false;
 
     async function init() {
-        const snap = await getDocs(query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc")));
-        masterData = snap.docs.map(d => d.data());
-        
-        // Online tracking with Names
-        const userRef = doc(db, "online_users", uid);
-        setDoc(userRef, { lastSeen: serverTimestamp(), name: uName }, { merge: true });
-        
+        const cached = localStorage.getItem('quiz_cache');
+        if (cached) masterData = JSON.parse(cached);
+
+        try {
+            const snap = await getDocs(query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc")));
+            if (!snap.empty) {
+                masterData = snap.docs.map(d => d.data());
+                localStorage.setItem('quiz_cache', JSON.stringify(masterData));
+            }
+        } catch(e) { console.log("Limit xatosi"); }
+
+        // Online Foydalanuvchilar
+        setDoc(doc(db, "online_users", uid), { name: uName, time: serverTimestamp() }, { merge: true });
         onSnapshot(collection(db, "online_users"), (s) => {
-            document.getElementById('online-count').innerText = s.size;
-            let names = [];
-            s.forEach(d => names.push(`<span class="bg-slate-100 px-2 py-0.5 rounded-full">• ${d.data().name}</span>`));
-            document.getElementById('online-users-list').innerHTML = names.join(" ");
+            let count = 0, names = [];
+            s.forEach(d => {
+                if(!d.data().name.toLowerCase().includes("mehmon")) {
+                    count++;
+                    names.push(`<span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 text-[9px] font-bold">● ${d.data().name}</span>`);
+                }
+            });
+            document.getElementById('online-count').innerText = count;
+            document.getElementById('online-list').innerHTML = names.join("");
+        });
+
+        // Chat (Barchaga real-vaqtda boradi)
+        onSnapshot(query(collection(db, "global_chat"), orderBy("time", "desc"), limit(25)), (s) => {
+            let h = "";
+            s.forEach(d => {
+                const m = d.data();
+                h += `<div class="msg ${m.uid === uid ? 'my-msg' : 'other-msg'}">
+                        <div class="text-[9px] font-black opacity-70 mb-1 uppercase">${m.name}</div>
+                        ${m.text}
+                      </div>`;
+            });
+            document.getElementById('chat-messages').innerHTML = h;
         });
     }
+
+    window.toggleChat = () => document.getElementById('chat-ui').classList.toggle('hidden');
+    window.sendMsg = async () => {
+        const inp = document.getElementById('chat-input');
+        if(!inp.value.trim()) return;
+        await addDoc(collection(db, "global_chat"), { uid, name: uName, text: inp.value, time: serverTimestamp() });
+        inp.value = "";
+    };
 
     window.showPage = (p) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('page-' + p).classList.add('active');
-        if(p === 'rating') loadRatings('real');
-        if(p !== 'test') clearInterval(timerInterval);
+        if(p === 'rating') loadRat('real');
     };
 
     window.startTest = (m) => {
         mode = m; currentIdx = 0; score = 0;
         showPage('test');
-        if (mode === 'real') {
+        if(mode === 'real') {
             currentTestData = [...masterData].sort(() => Math.random() - 0.5).slice(0, 35);
             startTimer(30 * 60);
-            document.getElementById('timer-box').classList.remove('invisible');
         } else {
             currentTestData = [...masterData];
-            document.getElementById('timer-box').classList.add('invisible');
+            document.getElementById('timer').innerText = "LIMITSIZ";
         }
-        displayQuestion();
+        renderQ();
     };
 
-    function displayQuestion() {
-        if (currentIdx >= currentTestData.length) return endTest();
+    function renderQ() {
+        if(currentIdx >= currentTestData.length) return endTest();
         document.getElementById('progress').innerText = `${currentIdx + 1} / ${currentTestData.length}`;
         document.getElementById('next-btn').classList.add('hidden');
-        hasAnswered = false;
-
+        answered = false;
         const q = currentTestData[currentIdx];
-        let opts = q.options.map((t, i) => ({ t, isCorrect: i === q.correctIndex }));
+        let opts = q.options.map((t, i) => ({ t, isC: i === q.correctIndex }));
         opts.sort(() => Math.random() - 0.5);
 
         document.getElementById('test-content').innerHTML = `
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <div class="mb-6 text-lg font-bold text-slate-800">${q.question}</div>
-                <div class="space-y-3" id="options-box">
-                    ${opts.map(o => `<button onclick="handleAnswer(this, ${o.isCorrect})" class="opt-btn" data-correct="${o.isCorrect}">${o.t}</button>`).join('')}
+            <div class="bg-white p-7 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div class="mb-6 font-bold text-slate-800 text-lg">${q.question}</div>
+                <div class="space-y-3">
+                    ${opts.map(o => `<button onclick="check(this, ${o.isC})" class="opt-btn" data-c="${o.isC}">${o.t}</button>`).join("")}
                 </div>
-            </div>
-        `;
+            </div>`;
     }
 
-    window.handleAnswer = (btn, isCorrect) => {
-        if (hasAnswered) return;
-        hasAnswered = true;
-        
-        if (mode === 'full') {
-            // Darhol tekshirish
-            if (isCorrect) {
-                btn.classList.add('correct');
-                score++;
-            } else {
+    window.check = (btn, isC) => {
+        if(answered) return;
+        answered = true;
+        if(mode === 'full') {
+            if(isC) { btn.classList.add('correct'); score++; }
+            else { 
                 btn.classList.add('wrong');
-                // To'g'ri javobni ko'rsatish
-                document.querySelectorAll('.opt-btn').forEach(b => {
-                    if (b.getAttribute('data-correct') === 'true') b.classList.add('correct');
-                });
+                document.querySelectorAll('.opt-btn').forEach(b => { if(b.dataset.c === 'true') b.classList.add('correct'); });
             }
         } else {
-            // Real test: faqat belgilash
             btn.classList.add('selected-real');
-            if (isCorrect) score++;
+            if(isC) score++;
         }
         document.getElementById('next-btn').classList.remove('hidden');
     };
 
-    window.goToNext = () => {
-        currentIdx++;
-        displayQuestion();
-    };
+    window.nextQ = () => { currentIdx++; renderQ(); };
 
-    window.confirmEnd = () => { if (confirm("Natijani saqlab yakunlaysizmi?")) endTest(); };
-
-    async function endTest() {
-        clearInterval(timerInterval);
-        const colName = mode === 'real' ? "ratings_real" : "ratings_full";
-        const docRef = doc(db, colName, uid);
-        const old = await getDoc(docRef);
-        const best = old.exists() ? old.data().score : 0;
-
-        if (score > best) {
-            await setDoc(docRef, { name: uName, score: score, total: currentTestData.length, date: Date.now() });
+    window.endTest = async () => {
+        clearInterval(timer);
+        
+        // BARCHA NATIJALARNI REYTINGGA YOZISH (O'tsa ham, o'tmasa ham)
+        if(!isGuest) {
+            const col = mode === 'real' ? "ratings_real" : "ratings_full";
+            await setDoc(doc(db, col, uid), { name: uName, score: score, total: currentTestData.length, date: Date.now() });
         }
-        alert(`Test yakunlandi! Ball: ${score} / ${currentTestData.length}`);
-        showPage('rating');
-        loadRatings(mode);
-    }
 
-    window.loadRatings = async (m) => {
-        const colName = m === 'real' ? "ratings_real" : "ratings_full";
-        document.getElementById('btn-rat-real').className = m === 'real' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
-        document.getElementById('btn-rat-full').className = m === 'full' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
-
-        const q = query(collection(db, colName), orderBy("score", "desc"), limit(15));
-        const snap = await getDocs(q);
-        let html = "", rank = 1;
-        snap.forEach(d => {
-            const data = d.data();
-            html += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-50">
-                <div class="flex items-center"><span class="w-6 font-black text-slate-300 text-[10px]">${rank}</span><span class="font-bold text-slate-700 text-sm">${data.name}</span></div>
-                <div class="text-blue-600 font-black text-xs">${data.score} / ${data.total}</div>
+        const pass = score >= 42;
+        document.getElementById('test-content').innerHTML = `
+            <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl text-center border-t-[12px] ${pass ? 'border-green-500':'border-red-500'}">
+                <div class="text-5xl mb-2 font-black">${score}</div>
+                <div class="text-xs font-bold text-slate-400 mb-6 uppercase">BALL TO'PLANDI</div>
+                <div class="text-lg font-black mb-8 ${pass ? 'text-green-600':'text-red-600'}">${pass ? "O'TDINGIZ" : "YIQILDINGIZ"}</div>
+                <button onclick="showPage('home')" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">ASOSIY</button>
             </div>`;
-            rank++;
-        });
-        document.getElementById('rating-content').innerHTML = html || "Natijalar yo'q";
     };
 
-    function startTimer(sec) {
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            let m = Math.floor(sec / 60), s = sec % 60;
-            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-            if (--sec < 0) endTest();
+    window.loadRat = async (m) => {
+        const col = m === 'real' ? "ratings_real" : "ratings_full";
+        document.getElementById('rat-real-btn').className = m === 'real' ? "flex-1 py-3 rounded-xl text-[11px] font-black bg-blue-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-[11px] font-black text-slate-400";
+        document.getElementById('rat-full-btn').className = m === 'full' ? "flex-1 py-3 rounded-xl text-[11px] font-black bg-blue-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-[11px] font-black text-slate-400";
+        
+        const q = query(collection(db, col), orderBy("score", "desc"), limit(25));
+        const snap = await getDocs(q);
+        let h = "";
+        snap.forEach((d, i) => {
+            const data = d.data();
+            h += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-50 shadow-sm">
+                    <div class="text-sm font-bold text-slate-700">#${i+1} ${data.name}</div>
+                    <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-black text-xs">${data.score} / ${data.total}</div>
+                </div>`;
+        });
+        document.getElementById('rating-list').innerHTML = h || "<p class='text-center py-20 text-slate-300'>BO'SH</p>";
+    };
+
+    window.confirmExit = () => { if(confirm("Chiqmoqchimisiz?")) showPage('home'); };
+
+    function startTimer(s) {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            let m = Math.floor(s/60), sec = s%60;
+            document.getElementById('timer').innerText = `${m}:${sec<10?'0'+sec:sec}`;
+            if(--s<0) endTest();
         }, 1000);
     }
 

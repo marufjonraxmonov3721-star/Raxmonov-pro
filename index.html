@@ -3,304 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xotira O'yini</title>
+    <title>Texnik ishlar olib borilmoqda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: #333;
+        :root {
+            --primary: #4f46e5;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
         }
 
-        .game-container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f9fafb;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
             text-align: center;
+            padding: 20px;
             max-width: 600px;
-            width: 90%;
-            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        /* Animatsiya qismi */
+        .illustration {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .gear {
+            width: 80px;
+            height: 80px;
+            fill: var(--primary);
+            animation: rotate 4s linear infinite;
+        }
+
+        .gear-small {
+            width: 50px;
+            height: 50px;
+            fill: #a5b4fc;
+            position: absolute;
+            top: 40px;
+            left: 55%;
+            animation: rotate-reverse 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
         }
 
         h1 {
-            color: #007bff;
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4x4 panjara */
-            gap: 10px;
-            width: 100%;
-            max-width: 420px; /* Kartalar hajmini cheklash */
-            margin: 20px auto;
-        }
-
-        .card {
-            width: 100px; /* Karta kengligi */
-            height: 100px; /* Karta balandligi */
-            background-color: #a7d9ff; /* Orqa fon rangi */
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 40px;
-            cursor: pointer;
-            transition: transform 0.3s ease, background-color 0.3s ease;
-            transform-style: preserve-3d;
-            position: relative;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .card.flipped {
-            background-color: #e0f2f7; /* Ochilgan kartaning rangi */
-            transform: rotateY(180deg);
-        }
-        
-        .card.matched {
-            background-color: #d4edda; /* Topilgan kartaning rangi */
-            cursor: default;
-        }
-
-        .card .front-face, .card .back-face {
-            position: absolute;
-            backface-visibility: hidden;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-        }
-
-        .card .front-face {
-            background-color: #a7d9ff; /* Yopiq kartaning old tomoni */
-            color: white; /* Yopiq kartaning yozuv rangi (bu holatda ko'rinmaydi) */
-        }
-
-        .card .back-face {
-            background-color: #e0f2f7; /* Ochilgan kartaning orqa tomoni */
-            color: #333;
-            transform: rotateY(180deg);
-        }
-
-        .card.matched .front-face, .card.matched .back-face {
-             background-color: #d4edda; /* Topilgan kartaning rangi */
-        }
-
-        .stats {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #555;
-        }
-
-        .btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s;
-            margin-top: 20px;
-            font-size: 16px;
-        }
-
-        .btn:hover {
-            background-color: #218838;
-        }
-
-        #game-over-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 400px;
-            color: #333;
-        }
-
-        .modal-content h2 {
-            color: #007bff;
+            font-size: 2.5rem;
+            font-weight: 600;
             margin-bottom: 15px;
+            color: var(--text-main);
         }
 
-        .modal-content p {
-            font-size: 18px;
-            margin-bottom: 25px;
+        p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
         }
 
-        .modal-content .btn {
-            background-color: #007bff;
+        .badge {
+            display: inline-block;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .modal-content .btn:hover {
-            background-color: #0056b3;
+
+        .loader-bar {
+            width: 200px;
+            height: 4px;
+            background: #e5e7eb;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loader-progress {
+            width: 50%;
+            height: 100%;
+            background: var(--primary);
+            position: absolute;
+            animation: move-loader 2s infinite ease-in-out;
+        }
+
+        @keyframes move-loader {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        /* Mobil qurilmalar uchun */
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            p { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>Xotira O'yini</h1>
-        <div class="stats">
-            <p>Har qadam: <span id="moves">0</span></p>
+    <div class="container">
+        <div class="illustration">
+            <!-- Asosiy tishli g'ildirak -->
+            <svg class="gear" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.97C19.47 12.65 19.5 12.33 19.5 12C19.5 11.67 19.47 11.34 19.43 11.03L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.65 15.47 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.53 5.32 7.96 5.65 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11.03C4.53 11.34 4.5 11.67 4.5 12C4.5 12.33 4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.53 18.67 9.13 18.92L9.5 21.57C9.54 21.81 9.75 22 10 22H14C14.25 22 14.46 21.81 14.5 21.57L14.87 18.92C15.47 18.67 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.03 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.97Z"/></svg>
+            <!-- Kichik tishli g'ildirak -->
+            <svg class="gear-small" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5A3.5 3.5 0 0 1 15.5 12A3.5 3.5 0 0 1 12 15.5M19.43 12.97C19.47 12.65 19.5 12.33 19.5 12C19.5 11.67 19.47 11.34 19.43 11.03L21.54 9.37C21.73 9.22 21.78 8.95 21.66 8.73L19.66 5.27C19.54 5.05 19.27 4.96 19.05 5.05L16.56 6.05C16.04 5.65 15.47 5.32 14.87 5.07L14.5 2.42C14.46 2.18 14.25 2 14 2H10C9.75 2 9.54 2.18 9.5 2.42L9.13 5.07C8.53 5.32 7.96 5.65 7.44 6.05L4.95 5.05C4.73 4.96 4.46 5.05 4.34 5.27L2.34 8.73C2.21 8.95 2.27 9.22 2.46 9.37L4.57 11.03C4.53 11.34 4.5 11.67 4.5 12C4.5 12.33 4.53 12.65 4.57 12.97L2.46 14.63C2.27 14.78 2.21 15.05 2.34 15.27L4.34 18.73C4.46 18.95 4.73 19.03 4.95 18.95L7.44 17.94C7.96 18.34 8.53 18.67 9.13 18.92L9.5 21.57C9.54 21.81 9.75 22 10 22H14C14.25 22 14.46 21.81 14.5 21.57L14.87 18.92C15.47 18.67 16.04 18.34 16.56 17.94L19.05 18.95C19.27 19.03 19.54 18.95 19.66 18.73L21.66 15.27C21.78 15.05 21.73 14.78 21.54 14.63L19.43 12.97Z"/></svg>
         </div>
-        <div class="game-board" id="game-board">
-            </div>
-        <button class="btn" onclick="startGame()">Qayta boshlash</button>
+
+        <div class="badge">Yangilanish kutilmoqda</div>
+        <h1>Texnik ishlar ketyapti</h1>
+        <p>Ilovamizni yanada mukammal qilish uchun kichik ta'mirlash ishlarini olib bormoqdamiz. Tez orada yana birga bo'lamiz!</p>
+        
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+
+        <div class="footer">
+            Keltirilgan noqulayliklar uchun uzr so'raymiz.
+        </div>
     </div>
 
-    <div id="game-over-modal">
-        <div class="modal-content">
-            <h2>Tabriklaymiz! 🎉</h2>
-            <p>O'yinni <span id="final-moves">0</span> qadamda yakunladingiz!</p>
-            <button class="btn" onclick="closeModal(); startGame()">Yana o'ynash</button>
-        </div>
-    </div>
-
-    <script>
-        const gameBoard = document.getElementById('game-board');
-        const movesDisplay = document.getElementById('moves');
-        const gameOverModal = document.getElementById('game-over-modal');
-        const finalMovesDisplay = document.getElementById('final-moves');
-
-        const emojis = ['🚀', '🌟', '💡', '🌈', '🔥', '💧', '⚡', '💻']; // 8 ta turli emoji
-        let cards = [];
-        let flippedCards = [];
-        let matchedCards = 0;
-        let moves = 0;
-        let lockBoard = false; // Kartalarni bitta-bitta ochish uchun
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function createBoard() {
-            cards = [];
-            const shuffledEmojis = shuffle([...emojis, ...emojis]); // Har bir emojidan 2 ta qilib aralashtiramiz
-
-            shuffledEmojis.forEach((emoji, index) => {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.dataset.emoji = emoji;
-                card.dataset.index = index;
-
-                const frontFace = document.createElement('div');
-                frontFace.classList.add('front-face');
-                // frontFace.textContent = '?'; // Yopiq karta belgisi, optional
-
-                const backFace = document.createElement('div');
-                backFace.classList.add('back-face');
-                backFace.textContent = emoji;
-
-                card.appendChild(frontFace);
-                card.appendChild(backFace);
-
-                card.addEventListener('click', flipCard);
-                gameBoard.appendChild(card);
-                cards.push(card);
-            });
-        }
-
-        function flipCard() {
-            if (lockBoard) return;
-            if (this === flippedCards[0]) return; // Bir xil kartani ikki marta bosmaslik uchun
-
-            this.classList.add('flipped');
-            flippedCards.push(this);
-            
-            if (flippedCards.length === 2) {
-                moves++;
-                movesDisplay.textContent = moves;
-                lockBoard = true;
-                checkForMatch();
-            }
-        }
-
-        function checkForMatch() {
-            const [card1, card2] = flippedCards;
-            const isMatch = card1.dataset.emoji === card2.dataset.emoji;
-
-            isMatch ? disableCards() : unflipCards();
-        }
-
-        function disableCards() {
-            flippedCards[0].removeEventListener('click', flipCard);
-            flippedCards[1].removeEventListener('click', flipCard);
-            
-            flippedCards[0].classList.add('matched');
-            flippedCards[1].classList.add('matched');
-
-            matchedCards += 2;
-            resetBoard();
-            
-            if (matchedCards === cards.length) {
-                setTimeout(showGameOverModal, 500);
-            }
-        }
-
-        function unflipCards() {
-            setTimeout(() => {
-                flippedCards[0].classList.remove('flipped');
-                flippedCards[1].classList.remove('flipped');
-                resetBoard();
-            }, 1000); // 1 sekund kutib qaytarish
-        }
-
-        function resetBoard() {
-            [flippedCards, lockBoard] = [[], false];
-        }
-
-        function startGame() {
-            gameBoard.innerHTML = ''; // Oldingi kartalarni tozalash
-            flippedCards = [];
-            matchedCards = 0;
-            moves = 0;
-            lockBoard = false;
-            movesDisplay.textContent = moves;
-            closeModal(); // Agar modal ochiq bo'lsa, yopish
-            createBoard();
-        }
-
-        function showGameOverModal() {
-            finalMovesDisplay.textContent = moves;
-            gameOverModal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            gameOverModal.style.display = 'none';
-        }
-
-        // O'yinni sahifa yuklanganda boshlash
-        document.addEventListener('DOMContentLoaded', startGame);
-    </script>
 </body>
 </html>
+

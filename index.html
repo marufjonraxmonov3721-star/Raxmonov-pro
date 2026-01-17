@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz - Training & Exam</title>
+    <title>Math Quiz - Ultimate Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,15 +13,11 @@
         .screen { display: none; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
         img { max-width: 100% !important; height: auto !important; max-height: 150px; display: block; margin: 10px auto; border-radius: 12px; }
-        
-        .opt-btn { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; width: 100%; text-align: left; transition: 0.2s; position: relative; }
-        
-        /* Javob effektlari */
-        .opt-btn.correct { border-color: #22c55e; background: #f0fdf4; color: #166534; font-weight: bold; }
-        .opt-btn.wrong { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
-        
+        .opt-btn { background: white; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; width: 100%; text-align: left; transition: 0.2s; }
+        .opt-btn.correct { border-color: #22c55e !important; background: #f0fdf4 !important; color: #166534; font-weight: bold; }
+        .opt-btn.wrong { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b; }
+        .opt-btn.selected-real { border-color: #3b82f6; background: #eff6ff; }
         .nav-btn.active { color: #2563eb; }
         .nav-btn.active i { background: #dbeafe; padding: 8px 16px; border-radius: 12px; }
     </style>
@@ -29,65 +25,63 @@
 <body>
 
 <div id="app" class="max-w-md mx-auto p-5">
-    <div class="flex justify-between items-center mb-6">
-        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black flex items-center">
-            <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-            ONLAYN: <span id="online-count">1</span>
+    <div class="bg-white p-3 rounded-2xl shadow-sm mb-6 border border-slate-200">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center text-green-600 font-bold text-xs">
+                <i class="fas fa-users text-lg mr-2"></i> ONLAYN: <span id="online-count" class="ml-1">0</span>
+            </div>
+            <div id="tg-name" class="text-[10px] font-bold text-slate-400 italic"></div>
         </div>
-        <div id="tg-name" class="text-[10px] font-bold text-slate-500 italic"></div>
+        <div id="online-users-list" class="text-[9px] text-slate-500 flex flex-wrap gap-1"></div>
     </div>
 
     <section id="page-home" class="screen active">
-        <h2 class="text-2xl font-black text-slate-800 mb-6">Test turini tanlang</h2>
+        <h2 class="text-2xl font-black text-slate-800 mb-6 text-center">Imtihon Markazi</h2>
         <div class="grid gap-4">
             <button onclick="startTest('real')" class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 text-left">
                 <i class="fas fa-bolt text-yellow-500 text-2xl mb-2"></i>
                 <div class="font-black text-lg text-slate-800">Real Test (35)</div>
-                <div class="text-[10px] text-slate-500">Tasodifiy, 30 min, natija yashirin</div>
+                <div class="text-[10px] text-slate-500 italic">Natijalar yakunda ma'lum bo'ladi</div>
             </button>
             <button onclick="startTest('full')" class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 text-left">
                 <i class="fas fa-graduation-cap text-blue-500 text-2xl mb-2"></i>
                 <div class="font-black text-lg text-slate-800">To'liq Test (265)</div>
-                <div class="text-[10px] text-slate-500">Tartibli, vaqtsiz, natija ko'rinadi</div>
+                <div class="text-[10px] text-slate-500 italic">Xatoni darhol ko'rish (Yodlash uchun)</div>
             </button>
         </div>
     </section>
 
     <section id="page-test" class="screen">
         <div class="bg-white p-4 rounded-3xl shadow-sm mb-4 flex justify-between items-center sticky top-2 z-50">
-            <div id="timer-box" class="text-red-500 font-black flex items-center">
-                <i class="far fa-clock mr-2"></i> <span id="timer">--:--</span>
-            </div>
+            <div id="timer-box" class="text-red-500 font-black"><i class="far fa-clock"></i> <span id="timer">30:00</span></div>
             <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black" id="progress">0 / 0</div>
-            <button onclick="confirmEnd()" class="text-red-600 font-black text-[10px] border border-red-100 px-3 py-1 rounded-full hover:bg-red-50">YAKUNLASH</button>
+            <button onclick="confirmEnd()" class="text-red-500 font-black text-[10px] bg-red-50 px-3 py-1 rounded-full">YAKUNLASH</button>
         </div>
         <div id="test-content"></div>
-        <button id="next-btn" onclick="goToNext()" class="hidden w-full bg-blue-600 text-white py-4 rounded-2xl font-black mt-4 shadow-lg">
-            KEYINGISI <i class="fas fa-arrow-right ml-2"></i>
-        </button>
+        <button id="next-btn" onclick="goToNext()" class="hidden w-full bg-blue-600 text-white py-4 rounded-2xl font-black mt-4 shadow-lg">KEYINGISI</button>
     </section>
 
     <section id="page-rating" class="screen">
         <div class="flex gap-2 mb-6">
-            <button onclick="loadRatings('real')" id="btn-rat-real" class="flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold">Real Test</button>
+            <button onclick="loadRatings('real')" id="btn-rat-real" class="flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md">Real Test</button>
             <button onclick="loadRatings('full')" id="btn-rat-full" class="flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border">To'liq Test</button>
         </div>
         <div id="rating-content" class="space-y-3"></div>
     </section>
 </div>
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t flex h-20 shadow-2xl z-[100] px-6">
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-20 shadow-2xl z-[100] px-6">
     <button onclick="showPage('home')" id="nav-home" class="nav-btn flex-1 flex flex-col items-center justify-center text-slate-400">
-        <i class="fas fa-th-large text-lg"></i><span class="text-[9px] mt-1 font-bold">ASOSIY</span>
+        <i class="fas fa-home text-lg"></i><span class="text-[9px] mt-1 font-bold">ASOSIY</span>
     </button>
     <button onclick="showPage('rating')" id="nav-rating" class="nav-btn flex-1 flex flex-col items-center justify-center text-slate-400">
-        <i class="fas fa-crown text-lg"></i><span class="text-[9px] mt-1 font-bold">REYTING</span>
+        <i class="fas fa-trophy text-lg"></i><span class="text-[9px] mt-1 font-bold">REYTING</span>
     </button>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, query, orderBy, limit, getDoc, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -104,7 +98,7 @@
 
     const user = tg.initDataUnsafe?.user;
     const uid = user?.id?.toString() || "guest_" + Math.random().toString(36).substr(2, 5);
-    const uName = user ? `${user.first_name} ${user.last_name || ''}` : "Mehmon";
+    const uName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : "Mehmon";
     document.getElementById('tg-name').innerText = uName;
 
     let masterData = [], currentTestData = [], currentIdx = 0, score = 0, timerInterval, mode = 'real', hasAnswered = false;
@@ -113,10 +107,16 @@
         const snap = await getDocs(query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc")));
         masterData = snap.docs.map(d => d.data());
         
-        // Online tracking
+        // Online tracking with Names
         const userRef = doc(db, "online_users", uid);
         setDoc(userRef, { lastSeen: serverTimestamp(), name: uName }, { merge: true });
-        onSnapshot(collection(db, "online_users"), (s) => document.getElementById('online-count').innerText = s.size);
+        
+        onSnapshot(collection(db, "online_users"), (s) => {
+            document.getElementById('online-count').innerText = s.size;
+            let names = [];
+            s.forEach(d => names.push(`<span class="bg-slate-100 px-2 py-0.5 rounded-full">• ${d.data().name}</span>`));
+            document.getElementById('online-users-list').innerHTML = names.join(" ");
+        });
     }
 
     window.showPage = (p) => {
@@ -132,10 +132,10 @@
         if (mode === 'real') {
             currentTestData = [...masterData].sort(() => Math.random() - 0.5).slice(0, 35);
             startTimer(30 * 60);
-            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('invisible');
         } else {
-            currentTestData = [...masterData]; // Tartibli 265 ta
-            document.getElementById('timer-box').classList.add('hidden');
+            currentTestData = [...masterData];
+            document.getElementById('timer-box').classList.add('invisible');
         }
         displayQuestion();
     };
@@ -148,17 +148,13 @@
 
         const q = currentTestData[currentIdx];
         let opts = q.options.map((t, i) => ({ t, isCorrect: i === q.correctIndex }));
-        opts.sort(() => Math.random() - 0.5); // Variantlar aralashadi
+        opts.sort(() => Math.random() - 0.5);
 
         document.getElementById('test-content').innerHTML = `
-            <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-slate-100">
-                <div class="mb-6 text-lg font-bold text-slate-800 leading-snug">${q.question}</div>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                <div class="mb-6 text-lg font-bold text-slate-800">${q.question}</div>
                 <div class="space-y-3" id="options-box">
-                    ${opts.map((o, i) => `
-                        <button onclick="handleAnswer(this, ${o.isCorrect})" class="opt-btn">
-                            ${o.t}
-                        </button>
-                    `).join('')}
+                    ${opts.map(o => `<button onclick="handleAnswer(this, ${o.isCorrect})" class="opt-btn" data-correct="${o.isCorrect}">${o.t}</button>`).join('')}
                 </div>
             </div>
         `;
@@ -168,21 +164,23 @@
         if (hasAnswered) return;
         hasAnswered = true;
         
-        if (isCorrect) {
-            btn.classList.add('correct');
-            score++;
-        } else {
-            btn.classList.add('wrong');
-            // To'liq testda (265 talikda) to'g'ri javobni ham ko'rsatamiz
-            if (mode === 'full') {
+        if (mode === 'full') {
+            // Darhol tekshirish
+            if (isCorrect) {
+                btn.classList.add('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                // To'g'ri javobni ko'rsatish
                 document.querySelectorAll('.opt-btn').forEach(b => {
-                    // Bu yerda biz isCorrect ma'lumotini saqlashimiz kerak edi, lekin oddiyroq yo'li:
-                    // Savolni qayta tekshirmaslik uchun har bir tugmaga ma'lumot biriktiramiz
+                    if (b.getAttribute('data-correct') === 'true') b.classList.add('correct');
                 });
             }
+        } else {
+            // Real test: faqat belgilash
+            btn.classList.add('selected-real');
+            if (isCorrect) score++;
         }
-        
-        // Agar training bo'lsa darrov keyingisi tugmasini chiqaramiz
         document.getElementById('next-btn').classList.remove('hidden');
     };
 
@@ -191,9 +189,7 @@
         displayQuestion();
     };
 
-    window.confirmEnd = () => {
-        if (confirm("Testni yakunlab natijani saqlamoqchimisiz?")) endTest();
-    };
+    window.confirmEnd = () => { if (confirm("Natijani saqlab yakunlaysizmi?")) endTest(); };
 
     async function endTest() {
         clearInterval(timerInterval);
@@ -205,26 +201,25 @@
         if (score > best) {
             await setDoc(docRef, { name: uName, score: score, total: currentTestData.length, date: Date.now() });
         }
-        alert(`Test tugadi! Natija: ${score} / ${currentTestData.length}`);
+        alert(`Test yakunlandi! Ball: ${score} / ${currentTestData.length}`);
         showPage('rating');
         loadRatings(mode);
     }
 
     window.loadRatings = async (m) => {
         const colName = m === 'real' ? "ratings_real" : "ratings_full";
-        document.getElementById('btn-rat-real').className = m === 'real' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
-        document.getElementById('btn-rat-full').className = m === 'full' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
+        document.getElementById('btn-rat-real').className = m === 'real' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
+        document.getElementById('btn-rat-full').className = m === 'full' ? "flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-bold shadow-md" : "flex-1 bg-white text-slate-500 py-2 rounded-xl text-xs font-bold border";
 
-        const q = query(collection(db, colName), orderBy("score", "desc"), limit(10));
+        const q = query(collection(db, colName), orderBy("score", "desc"), limit(15));
         const snap = await getDocs(q);
         let html = "", rank = 1;
         snap.forEach(d => {
             const data = d.data();
-            html += `
-                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-50 shadow-sm">
-                    <div class="flex items-center"><span class="w-8 font-black text-slate-300 text-xs">${rank}</span><span class="font-bold text-slate-700">${data.name}</span></div>
-                    <div class="text-blue-600 font-black text-sm">${data.score} / ${data.total}</div>
-                </div>`;
+            html += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-50">
+                <div class="flex items-center"><span class="w-6 font-black text-slate-300 text-[10px]">${rank}</span><span class="font-bold text-slate-700 text-sm">${data.name}</span></div>
+                <div class="text-blue-600 font-black text-xs">${data.score} / ${data.total}</div>
+            </div>`;
             rank++;
         });
         document.getElementById('rating-content').innerHTML = html || "Natijalar yo'q";

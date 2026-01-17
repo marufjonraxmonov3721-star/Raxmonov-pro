@@ -3,61 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oliy Matematika Tartibli Test</title>
+    <title>Math Quiz Pro - Live Rating</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f1f5f9; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; }
-        .nav-active { color: #2563eb !important; border-top: 3px solid #2563eb; background: #f8fbff; }
-        .opt-card { border: 2px solid #e2e8f0; transition: 0.2s; width: 100%; text-align: left; margin-bottom: 8px; border-radius: 12px; padding: 14px; background: white; }
-        .opt-card:hover { border-color: #3b82f6; }
-        img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; display: block; }
-        .hidden { display: none; }
+        body { background-color: #f1f5f9; padding-bottom: 80px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        
+        /* Matritsalar va rasmlar uchun maxsus stil */
+        img { 
+            max-width: 100% !important; 
+            height: auto !important; 
+            max-height: 200px; 
+            display: block; 
+            margin: 10px auto;
+            border-radius: 8px;
+        }
+
+        .opt-btn { 
+            background: white; border: 2px solid #e2e8f0; border-radius: 15px; 
+            padding: 12px; width: 100%; text-align: left; transition: 0.2s;
+            margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .opt-btn:hover { border-color: #3b82f6; background: #f0f7ff; }
+        .correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #166534; font-weight: bold; }
+        
+        .nav-btn.active { color: #2563eb; border-top: 4px solid #2563eb; background: #f8fbff; }
+        .q-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div id="main-container" class="max-w-xl mx-auto p-4">
-    <div id="loading" class="text-center py-10 text-blue-600 font-bold">
-        <i class="fas fa-spinner fa-spin mr-2"></i> Savollar tartiblanmoqda...
+<div id="app" class="max-w-md mx-auto p-4">
+    <div id="loader" class="text-center py-20 font-bold text-blue-600">
+        <i class="fas fa-spinner fa-spin mr-2"></i> Yuklanmoqda...
     </div>
 
-    <section id="page-list" class="page">
-        <h2 class="text-2xl font-bold mb-5 text-gray-800 border-b-2 border-blue-500 pb-2">📚 Savollar Ro'yxati</h2>
-        <div id="list-content" class="space-y-6"></div>
+    <section id="page-list" class="screen">
+        <h2 class="text-2xl font-bold mb-5 flex items-center text-gray-800">
+            <i class="fas fa-book-open mr-3 text-blue-600"></i> Savollar Ro'yxati
+        </h2>
+        <div id="list-content" class="space-y-4"></div>
     </section>
 
-    <section id="page-test" class="page hidden">
-        <div class="bg-white p-4 rounded-xl shadow-md mb-4 flex justify-between items-center sticky top-2 z-50">
+    <section id="page-test" class="screen">
+        <div class="bg-white p-4 rounded-xl shadow mb-4 flex justify-between items-center sticky top-2 z-50">
             <div class="text-red-600 font-bold text-lg" id="timer">30:00</div>
-            <div class="font-bold text-gray-700">Savol: <span id="q-idx">0/35</span></div>
+            <div class="font-bold text-gray-700" id="progress">1/35</div>
         </div>
         <div id="test-content"></div>
     </section>
 
-    <section id="page-rank" class="page hidden text-center">
-        <h2 class="text-2xl font-bold mb-6 text-yellow-600">🏆 Top Reyting</h2>
-        <div class="bg-white rounded-2xl shadow-lg p-6" id="rank-content">
-            <p class="text-gray-500">Telegram foydalanuvchilari reytingi yuklanmoqda...</p>
-        </div>
+    <section id="page-rating" class="screen">
+        <h2 class="text-2xl font-bold mb-5 flex items-center text-gray-800">
+            <i class="fas fa-trophy mr-3 text-yellow-500"></i> Eng Kuchli 10 Talik
+        </h2>
+        <div id="rating-content" class="space-y-3"></div>
     </section>
 </div>
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-16 shadow-inner z-[100]">
-    <button onclick="openTab('list')" id="nav-list" class="flex-1 flex flex-col items-center justify-center nav-active">
-        <i class="fas fa-list-ol"></i><span class="text-xs mt-1">Ro'yxat</span>
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex h-16 shadow-lg z-[100]">
+    <button onclick="showPage('list')" id="nav-list" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-list-ul"></i><span class="text-[10px] mt-1 font-bold">SAVOLLAR</span>
     </button>
-    <button onclick="openTab('test')" id="nav-test" class="flex-1 flex flex-col items-center justify-center text-gray-400">
-        <i class="fas fa-stopwatch"></i><span class="text-xs mt-1">Imtihon</span>
+    <button onclick="showPage('test')" id="nav-test" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-stopwatch"></i><span class="text-[10px] mt-1 font-bold">IMTIHON</span>
     </button>
-    <button onclick="openTab('rank')" id="nav-rank" class="flex-1 flex flex-col items-center justify-center text-gray-400">
-        <i class="fas fa-users"></i><span class="text-xs mt-1">Reyting</span>
+    <button onclick="showPage('rating')" id="nav-rating" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400">
+        <i class="fas fa-chart-bar"></i><span class="text-[10px] mt-1 font-bold">REYTING</span>
     </button>
 </nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
@@ -70,103 +90,108 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let masterData = [];
-    let currentQ = 0;
-    let totalScore = 0;
-    let clock;
+    let currentIdx = 0, score = 0, timer;
 
     async function init() {
         try {
-            // TARTIB BILAN OLISH: serverTime bo'yicha o'sish tartibi (asc)
             const q = query(collection(db, "oliy_matematika_testlar"), orderBy("serverTime", "asc"));
             const snap = await getDocs(q);
-            
             masterData = snap.docs.map(doc => doc.data());
-            document.getElementById('loading').classList.add('hidden');
-            
-            renderList();
-        } catch (e) {
-            document.getElementById('loading').innerHTML = `<span class="text-red-500">Xatolik: Firestore Index yaratilmagan bo'lishi mumkin yoki ruxsat yo'q.</span>`;
-            console.error(e);
-        }
+            document.getElementById('loader').classList.add('hidden');
+            showPage('list');
+        } catch (e) { alert("Firebase xatosi!"); }
     }
 
+    window.showPage = (p) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('page-' + p).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-' + p).classList.add('active');
+        
+        if (p === 'list') renderList();
+        if (p === 'test') startTest();
+        if (p === 'rating') loadRatings();
+        if (p !== 'test') clearInterval(timer);
+    };
+
     function renderList() {
-        const box = document.getElementById('list-content');
-        box.innerHTML = masterData.map((d, i) => `
-            <div class="bg-white p-5 rounded-2xl shadow-sm border-b-4 border-blue-400">
-                <div class="font-bold text-gray-800 mb-3">${i+1}. ${d.question}</div>
-                <div class="grid gap-2">
-                    ${d.options.map((opt, j) => `
-                        <div class="p-3 rounded-lg border text-sm ${j === d.correctIndex ? 'bg-green-100 border-green-500 font-bold' : 'bg-gray-50 border-gray-100 text-gray-600'}">
-                            ${opt}
-                        </div>
-                    `).join('')}
+        document.getElementById('list-content').innerHTML = masterData.map((d, i) => `
+            <div class="q-box">
+                <div class="font-bold text-blue-600 mb-2 border-b pb-1"># ${i+1}-savol</div>
+                <div class="mb-4">${d.question}</div>
+                <div class="space-y-2">
+                    ${d.options.map((opt, j) => `<div class="p-3 rounded-lg border text-sm ${j === d.correctIndex ? 'correct' : 'bg-gray-50'}">${opt}</div>`).join('')}
                 </div>
             </div>
         `).join('');
     }
 
-    window.openTab = (tab) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-        document.getElementById('page-' + tab).classList.remove('hidden');
-        document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 flex flex-col items-center justify-center text-gray-400");
-        document.getElementById('nav-' + tab).classList.add('nav-active');
-        
-        if (tab === 'test') startExam();
-        else clearInterval(clock);
-    };
-
-    window.startExam = () => {
-        currentQ = 0; totalScore = 0;
-        // Test uchun ham masterData'dan tartib bilan 35 tasini olamiz
-        renderTestCard();
-        let limit = 30 * 60;
-        clearInterval(clock);
-        clock = setInterval(() => {
-            let m = Math.floor(limit / 60), s = limit % 60;
+    function startTest() {
+        currentIdx = 0; score = 0;
+        displayQuestion();
+        let time = 30 * 60;
+        clearInterval(timer);
+        timer = setInterval(() => {
+            let m = Math.floor(time / 60), s = time % 60;
             document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-            if (--limit < 0) finish();
+            if (--time < 0) endTest();
         }, 1000);
-    };
+    }
 
-    function renderTestCard() {
-        if (currentQ >= 35 || currentQ >= masterData.length) return finish();
-        document.getElementById('q-idx').innerText = `${currentQ+1}/35`;
-        const data = masterData[currentQ];
+    function displayQuestion() {
+        if (currentIdx >= 35 || currentIdx >= masterData.length) return endTest();
+        document.getElementById('progress').innerText = `${currentIdx + 1}/35`;
+        const q = masterData[currentIdx];
         document.getElementById('test-content').innerHTML = `
-            <div class="bg-white p-6 rounded-2xl shadow-xl">
-                <div class="text-lg font-medium mb-6 text-gray-800">${data.question}</div>
-                <div class="space-y-2">
-                    ${data.options.map((opt, i) => `
-                        <button onclick="window.checkAns(${i}, ${data.correctIndex})" class="opt-card">
-                            ${opt}
-                        </button>
-                    `).join('')}
+            <div class="bg-white p-6 rounded-3xl shadow-xl">
+                <div class="mb-6 text-lg">${q.question}</div>
+                <div class="space-y-3">
+                    ${q.options.map((opt, i) => `<button onclick="answer(${i}, ${q.correctIndex})" class="opt-btn">${opt}</button>`).join('')}
                 </div>
             </div>
         `;
     }
 
-    window.checkAns = (s, c) => {
-        if (s === c) totalScore += 2;
-        currentQ++;
-        renderTestCard();
+    window.answer = (sel, cor) => {
+        if (sel === cor) score += 2;
+        currentIdx++;
+        displayQuestion();
     };
 
-    function finish() {
-        clearInterval(clock);
-        const win = totalScore >= 42;
-        document.getElementById('test-content').innerHTML = `
-            <div class="text-center p-10 bg-white rounded-3xl shadow-2xl">
-                <div class="text-6xl mb-4">${win ? '🎉' : '❌'}</div>
-                <h2 class="text-5xl font-black mb-2 ${win ? 'text-green-500' : 'text-red-500'}">${totalScore}</h2>
-                <p class="text-gray-500 font-bold mb-6 text-xl">Maksimal: 70 ball</p>
-                <div class="p-4 rounded-xl ${win ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} font-bold mb-8">
-                    ${win ? 'TABRIKLAYMIZ! IMTIHONDAN O\'TDINGIZ' : 'AFSUS, O\'TISH BALLINI TO\'PLAY OLMADINGIZ'}
+    async function endTest() {
+        clearInterval(timer);
+        const userName = prompt("Imtihon tugadi! Ballingiz: " + score + "\nReyting uchun ismingizni kiriting:");
+        if (userName) {
+            await addDoc(collection(db, "ratings"), {
+                name: userName,
+                score: score,
+                date: Date.now()
+            });
+            showPage('rating');
+        } else {
+            showPage('list');
+        }
+    }
+
+    async function loadRatings() {
+        const q = query(collection(db, "ratings"), orderBy("score", "desc"), limit(10));
+        const snap = await getDocs(q);
+        let html = "";
+        let rank = 1;
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-l-4 ${rank <= 3 ? 'border-yellow-400':'border-blue-400'}">
+                    <div class="flex items-center">
+                        <span class="w-8 font-black text-gray-400">#${rank}</span>
+                        <span class="font-bold">${d.name}</span>
+                    </div>
+                    <div class="font-black text-blue-600">${d.score} ball</div>
                 </div>
-                <button onclick="startExam()" class="bg-blue-600 text-white py-4 px-10 rounded-2xl w-full font-bold shadow-lg">QAYTA TOPSHIRISH</button>
-            </div>
-        `;
+            `;
+            rank++;
+        });
+        document.getElementById('rating-content').innerHTML = html || "<p class='text-center text-gray-500'>Hozircha natijalar yo'q</p>";
     }
 
     init();

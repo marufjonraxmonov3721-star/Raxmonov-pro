@@ -1,58 +1,108 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baza Tozalandi</title>
+    <title>Xotira O'yini</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4x4 panjara */
+            gap: 10px;
+            width: 100%;
+            max-width: 420px; /* Kartalar hajmini cheklash */
+            margin: 20px auto;
         }
 
         .card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 100%;
-        }
-
-        .icon-box {
-            width: 80px;
-            height: 80px;
-            background-color: #d4edda;
-            color: #28a745;
-            border-radius: 50%;
+            width: 100px; /* Karta kengligi */
+            height: 100px; /* Karta balandligi */
+            background-color: #a7d9ff; /* Orqa fon rangi */
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 40px;
-            margin: 0 auto 20px;
-            animation: scaleIn 0.5s ease-out;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            transform-style: preserve-3d;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        h1 {
+        .card.flipped {
+            background-color: #e0f2f7; /* Ochilgan kartaning rangi */
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched {
+            background-color: #d4edda; /* Topilgan kartaning rangi */
+            cursor: default;
+        }
+
+        .card .front-face, .card .back-face {
+            position: absolute;
+            backface-visibility: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+        }
+
+        .card .front-face {
+            background-color: #a7d9ff; /* Yopiq kartaning old tomoni */
+            color: white; /* Yopiq kartaning yozuv rangi (bu holatda ko'rinmaydi) */
+        }
+
+        .card .back-face {
+            background-color: #e0f2f7; /* Ochilgan kartaning orqa tomoni */
             color: #333;
-            margin-bottom: 10px;
-            font-size: 24px;
+            transform: rotateY(180deg);
         }
 
-        p {
-            color: #666;
-            margin-bottom: 25px;
+        .card.matched .front-face, .card.matched .back-face {
+             background-color: #d4edda; /* Topilgan kartaning rangi */
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
         }
 
         .btn {
-            background-color: #007bff;
+            background-color: #28a745;
             color: white;
             border: none;
             padding: 12px 25px;
@@ -61,28 +111,196 @@
             text-decoration: none;
             font-weight: bold;
             transition: background 0.3s;
+            margin-top: 20px;
+            font-size: 16px;
         }
 
         .btn:hover {
-            background-color: #0056b3;
+            background-color: #218838;
         }
 
-        @keyframes scaleIn {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        #game-over-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            color: #333;
+        }
+
+        .modal-content h2 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+
+        .modal-content .btn {
+            background-color: #007bff;
+        }
+        .modal-content .btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="icon-box">
-            ✓
+    <div class="game-container">
+        <h1>Xotira O'yini</h1>
+        <div class="stats">
+            <p>Har qadam: <span id="moves">0</span></p>
         </div>
-        <h1>Baza Tozalandi!</h1>
-        <p>Barcha keraksiz ma'lumotlar va vaqtinchalik kesh muvaffaqiyatli o'chirildi.</p>
-        <a href="#" class="btn" onclick="window.location.reload()">Bosh sahifaga qaytish</a>
+        <div class="game-board" id="game-board">
+            </div>
+        <button class="btn" onclick="startGame()">Qayta boshlash</button>
     </div>
 
+    <div id="game-over-modal">
+        <div class="modal-content">
+            <h2>Tabriklaymiz! 🎉</h2>
+            <p>O'yinni <span id="final-moves">0</span> qadamda yakunladingiz!</p>
+            <button class="btn" onclick="closeModal(); startGame()">Yana o'ynash</button>
+        </div>
+    </div>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const movesDisplay = document.getElementById('moves');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalMovesDisplay = document.getElementById('final-moves');
+
+        const emojis = ['🚀', '🌟', '💡', '🌈', '🔥', '💧', '⚡', '💻']; // 8 ta turli emoji
+        let cards = [];
+        let flippedCards = [];
+        let matchedCards = 0;
+        let moves = 0;
+        let lockBoard = false; // Kartalarni bitta-bitta ochish uchun
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createBoard() {
+            cards = [];
+            const shuffledEmojis = shuffle([...emojis, ...emojis]); // Har bir emojidan 2 ta qilib aralashtiramiz
+
+            shuffledEmojis.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front-face');
+                // frontFace.textContent = '?'; // Yopiq karta belgisi, optional
+
+                const backFace = document.createElement('div');
+                backFace.classList.add('back-face');
+                backFace.textContent = emoji;
+
+                card.appendChild(frontFace);
+                card.appendChild(backFace);
+
+                card.addEventListener('click', flipCard);
+                gameBoard.appendChild(card);
+                cards.push(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === flippedCards[0]) return; // Bir xil kartani ikki marta bosmaslik uchun
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+            
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+                lockBoard = true;
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            const isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            flippedCards[0].removeEventListener('click', flipCard);
+            flippedCards[1].removeEventListener('click', flipCard);
+            
+            flippedCards[0].classList.add('matched');
+            flippedCards[1].classList.add('matched');
+
+            matchedCards += 2;
+            resetBoard();
+            
+            if (matchedCards === cards.length) {
+                setTimeout(showGameOverModal, 500);
+            }
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                flippedCards[0].classList.remove('flipped');
+                flippedCards[1].classList.remove('flipped');
+                resetBoard();
+            }, 1000); // 1 sekund kutib qaytarish
+        }
+
+        function resetBoard() {
+            [flippedCards, lockBoard] = [[], false];
+        }
+
+        function startGame() {
+            gameBoard.innerHTML = ''; // Oldingi kartalarni tozalash
+            flippedCards = [];
+            matchedCards = 0;
+            moves = 0;
+            lockBoard = false;
+            movesDisplay.textContent = moves;
+            closeModal(); // Agar modal ochiq bo'lsa, yopish
+            createBoard();
+        }
+
+        function showGameOverModal() {
+            finalMovesDisplay.textContent = moves;
+            gameOverModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            gameOverModal.style.display = 'none';
+        }
+
+        // O'yinni sahifa yuklanganda boshlash
+        document.addEventListener('DOMContentLoaded', startGame);
+    </script>
 </body>
 </html>

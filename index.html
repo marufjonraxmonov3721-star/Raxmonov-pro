@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Texnik tizimlarda AKT</title>
+    <title>AKT Quiz Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -16,7 +16,7 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
         
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; padding: 12px 0; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { cursor: pointer; text-align: center; flex: 1; font-size: 11px; color: #9ca3af; transition: 0.2s; }
+        .nav-item { cursor: pointer; text-align: center; flex: 1; font-size: 11px; color: #9ca3af; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
 
@@ -27,19 +27,18 @@
         .card { background: var(--card); padding: 22px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
         .btn-main { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; transition: 0.2s; cursor: pointer; }
+        .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; cursor: pointer; }
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; }
 
-        .switch { position: relative; width: 44px; height: 24px; }
+        .switch { position: relative; width: 44px; height: 24px; display: inline-block; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; border-radius: 24px; cursor: pointer; transition: 0.4s; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; border-radius: 24px; transition: 0.4s; }
         .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
         input:checked + .slider { background: var(--p); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .review-item { border-bottom: 1px solid #eee; padding: 15px 0; }
-        .cert-img { width: 100%; border-radius: 10px; margin-top: 15px; border: 2px solid var(--p); box-shadow: var(--shadow); }
+        .cert-img { width: 100%; border-radius: 10px; margin-top: 15px; border: 2px solid var(--p); }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -49,18 +48,18 @@
         <h2>AKT Quiz Pro</h2>
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>Imtihon Rejimi</h3>
-            <p>35 ta tasodifiy savol. 30 daqiqa vaqt. 80% dan yuqori ball uchun sertifikat!</p>
-            <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">TESTNI BOSHLASH</button>
+            <p>35 ta savol. 30 daqiqa. 80% dan yuqori ball uchun sertifikat!</p>
+            <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
         </div>
         <div class="card">
             <h3>O'quv kursi</h3>
-            <p>245 ta savol tartib bilan. Vaqt cheklovisiz o'rganing.</p>
+            <p>245 ta savol tartib bilan. Vaqt cheklovisiz.</p>
             <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
         </div>
     </div>
 
     <div id="page-rank" class="page">
-        <h2>Peshqadamlar</h2>
+        <h2>Reyting</h2>
         <div class="card" id="rank-container">Yuklanmoqda...</div>
     </div>
 
@@ -96,20 +95,16 @@
         <div class="card" style="text-align: center;">
             <h2 id="res-status">Natija</h2>
             <p id="res-text"></p>
-            
             <div id="cert-area" style="display: none;">
-                <h4 style="color: var(--p);">Tabriklaymiz! Sertifikat yashaldi:</h4>
                 <img id="cert-display" class="cert-img">
-                <p style="font-size: 11px; color: gray;">Rasmni bosib turib saqlab oling</p>
             </div>
-
-            <button class="btn-main" onclick="showReview()">XATOLARNI TAHLIL QILISH</button>
-            <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">ASOSIY MENYU</button>
+            <button class="btn-main" onclick="showReview()">XATOLAR TAHLILI</button>
+            <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">MENYU</button>
         </div>
     </div>
 
     <div id="page-review" class="page">
-        <h2>Xatolar tahlili</h2>
+        <h2>Xatolar</h2>
         <div id="review-list" class="card"></div>
         <button class="btn-main" onclick="nav('page-home')">QAYTISH</button>
     </div>
@@ -149,7 +144,6 @@
     const userId = tg.initDataUnsafe?.user?.id || "guest";
     document.getElementById('tg-name').innerText = userName;
 
-    // TUNGI REJIM
     window.toggleDarkMode = () => {
         const isDark = document.getElementById('theme-toggle').checked;
         document.body.classList.toggle('dark', isDark);
@@ -160,7 +154,6 @@
         document.getElementById('theme-toggle').checked = true;
     }
 
-    // MA'LUMOTLARNI YUKLASH
     async function loadData() {
         const snap = await getDocs(collection(db, "savollar"));
         let list = [];
@@ -177,22 +170,17 @@
         }
     };
 
-    // TESTNI BOSHLASH
     window.startMode = async (m) => {
         if(allQs.length === 0) await loadData();
         mode = m; curIdx = 0; userAnswers = [];
-        
         if(mode === 'real') {
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
-            document.getElementById('timer-label').style.color = "#ef4444";
             startTimer(30 * 60);
         } else {
             currentQs = [...allQs];
             clearInterval(timerInt);
-            document.getElementById('timer-label').innerText = "📖 O'quv rejimi";
-            document.getElementById('timer-label').style.color = "var(--p)";
+            document.getElementById('timer-label').innerText = "📖 O'quv";
         }
-        
         nav('quiz-screen');
         render();
     };
@@ -201,7 +189,7 @@
         clearInterval(timerInt);
         timerInt = setInterval(() => {
             let m = Math.floor(sec/60), s = sec%60;
-            document.getElementById('timer-label').innerText = `⏱ ${m}:${s<10?'0':''}${s}`;
+            document.getElementById('timer-label').innerText = `${m}:${s<10?'0':''}${s}`;
             if(--sec < 0) finish();
         }, 1000);
     }
@@ -213,21 +201,15 @@
         const box = document.getElementById('options-box'); box.innerHTML = '';
         const correct = q.variants[0];
         let opts = [...q.variants].sort(() => 0.5 - Math.random());
-
         opts.forEach(opt => {
             const b = document.createElement('button');
             b.className = 'option'; b.innerText = opt;
             b.onclick = () => {
-                box.querySelectorAll('.option').forEach(btn => btn.style.pointerEvents = 'none');
                 userAnswers.push({q: q.text, s: opt, c: correct});
                 if(mode !== 'real') {
                     b.classList.add(opt === correct ? 'correct' : 'wrong');
-                    if(opt !== correct) box.querySelectorAll('.option').forEach(btn => { if(btn.innerText === correct) btn.classList.add('correct'); });
-                    setTimeout(next, 1200);
-                } else { 
-                    b.style.borderColor = "var(--p)"; 
-                    setTimeout(next, 200); 
-                }
+                    setTimeout(next, 1000);
+                } else { b.style.borderColor = "var(--p)"; setTimeout(next, 200); }
             };
             box.appendChild(b);
         });
@@ -235,11 +217,11 @@
 
     function next() { curIdx++; if(curIdx < currentQs.length) render(); else finish(); }
 
-    // TUGATISH VA NATIJA
     async function finish() {
         clearInterval(timerInt);
         const cor = userAnswers.filter(a => a.s === a.c).length;
         const per = Math.round((cor/currentQs.length)*100);
+        const score = cor * 2;
         nav('page-result');
         document.getElementById('res-status').innerText = per >= 60 ? "Ajoyib! 🎉" : "Yana o'qing! 📚";
         document.getElementById('res-text').innerText = `${currentQs.length} tadan ${cor} ta to'g'ri.`;
@@ -250,46 +232,43 @@
         }
 
         if(mode === 'real' && userId !== 'guest') {
-            const score = cor * 2;
+            // Guruhga chiroyli xabar yuborish
+            const now = new Date().toLocaleString('uz-UZ');
+            const botText = `🏆 *YANGI NATIJA (REAL TEST)* 🏆%0A%0A👤 *Talaba:* ${userName}%0A✅ *To'g'ri javob:* ${cor} / 35 ta%0A📊 *To'plangan ball:* ${score} ball%0A📈 *Ko'rsatkich:* ${per}%25%0A%0A🕒 _Vaqti: ${now}_%0A🔥 *Siz ham bilimingizni sinang!*`;
+            
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${botText}&parse_mode=markdown`);
+
+            // Reytingni yangilash
             const userRef = doc(db, "reyting", userId.toString());
             const userDoc = await getDoc(userRef);
             if(!userDoc.exists() || score > userDoc.data().score) {
                 await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()});
             }
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=🏆 *${userName}* testni tugatdi: ${score} ball (${per}%)&parse_mode=markdown`);
         }
     }
 
-    // XATOLAR TAHLILI
     window.showReview = () => {
         nav('page-review');
         const list = document.getElementById('review-list'); list.innerHTML = '';
         userAnswers.forEach(a => {
-            list.innerHTML += `<div class="review-item"><b>${a.q}</b><br><span style="color:#10b981">To'g'ri: ${a.c}</span>${a.s !== a.c ? `<br><span style="color:#ef4444">Siz: ${a.s}</span>` : ''}</div>`;
+            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${a.q}</b><br><span style="color:green">To'g'ri: ${a.c}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${a.s}</span>`:''}</div>`;
         });
     };
 
-    // SERTIFIKAT YARATISH
     function generateCertificate(name, score) {
         const canvas = document.getElementById('cert-canvas');
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 800, 560);
         ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 15; ctx.strokeRect(10, 10, 780, 540);
         ctx.fillStyle = '#1f2937'; ctx.textAlign = 'center';
-        ctx.font = 'bold 35px Serif'; ctx.fillText('MUVAFFAQIYAT SERTIFIKATI', 400, 100);
-        ctx.font = '22px Sans-serif'; ctx.fillText('Ushbu hujjat tasdiqlaydi:', 400, 180);
-        ctx.font = 'italic bold 55px Serif'; ctx.fillStyle = '#4f46e5'; ctx.fillText(name, 400, 270);
-        ctx.fillStyle = '#1f2937'; ctx.font = '20px Sans-serif';
-        ctx.fillText(`"Texnik tizimlarda AKT" fanidan imtihonda`, 400, 340);
-        ctx.fillText(`${score}% natija qayd etib, muvaffaqiyatli o'tdi.`, 400, 380);
-        ctx.font = 'bold 18px Sans-serif'; ctx.fillText(new Date().toLocaleDateString(), 400, 480);
-        ctx.fillText('AKT TEST MARKAZI', 400, 510);
-
+        ctx.font = 'bold 40px Serif'; ctx.fillText('SERTIFIKAT', 400, 100);
+        ctx.font = 'italic bold 50px Serif'; ctx.fillStyle = '#4f46e5'; ctx.fillText(name, 400, 260);
+        ctx.fillStyle = '#1f2937'; ctx.font = '25px Sans-serif';
+        ctx.fillText(`AKT fanidan ${score}% natija bilan muvaffaqiyatli o'tdi.`, 400, 360);
         document.getElementById('cert-display').src = canvas.toDataURL();
         document.getElementById('cert-area').style.display = 'block';
     }
 
-    // REYTINGNI YUKLASH
     window.loadRankings = async () => {
         const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(10));
         const snap = await getDocs(q);

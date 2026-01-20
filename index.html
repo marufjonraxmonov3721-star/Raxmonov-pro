@@ -12,9 +12,7 @@
             --p: #4f46e5; --gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             --shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        /* Dark Mode Styles */
         body.dark { --bg: #111827; --card: #1f2937; --text: #f9fafb; --shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
         
         .page { display: none; padding: 20px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
@@ -29,13 +27,11 @@
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
         
-        /* Nav Bar */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; padding: 12px 0; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { cursor: pointer; text-align: center; flex: 1; font-size: 11px; color: #9ca3af; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
 
-        /* Switch Switch */
         .switch { position: relative; width: 44px; height: 24px; display: inline-block; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; border-radius: 24px; transition: 0.4s; }
@@ -53,12 +49,12 @@
         <h2>AKT Quiz Pro</h2>
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>Imtihon Rejimi</h3>
-            <p>35 ta savol (Tasodifiy). 30 daqiqa. 50% ball uchun sertifikat!</p>
+            <p>35 ta savol. 30 daqiqa. 80% ball uchun sertifikat!</p>
             <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
         </div>
         <div class="card">
             <h3>O'quv kursi</h3>
-            <p>245 ta savol (Tartib bilan). Har bir savoldan so'ng tahlil.</p>
+            <p>245 ta savol (Tartib bilan). Tahlil va "Keyingi" tugmasi.</p>
             <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
         </div>
     </div>
@@ -104,19 +100,15 @@
                 </label>
             </div>
             <hr style="opacity: 0.1; margin: 15px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between;">
                 <span>Foydalanuvchi:</span>
-                <b id="tg-name" style="color: var(--p);">...</b>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                <span>ID:</span>
-                <small id="tg-id" style="opacity: 0.6;">...</small>
+                <b id="tg-name">...</b>
             </div>
         </div>
     </div>
 
     <div id="page-review" class="page">
-        <h2>Xatolar tahlili</h2>
+        <h2>Xatolar</h2>
         <div id="review-list" class="card"></div>
         <button class="btn-main" onclick="nav('page-home')">QAYTISH</button>
     </div>
@@ -150,20 +142,15 @@
     let allQs = [], currentQs = [], userAnswers = [];
     let curIdx = 0, timerInt = null, mode = "", isFinished = false; 
     
-    // Sozlamalarni yuklash
     const userName = tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi";
     const userId = tg.initDataUnsafe?.user?.id || "guest";
     document.getElementById('tg-name').innerText = userName;
-    document.getElementById('tg-id').innerText = userId;
 
-    // Dark Mode Funksiyasi
     window.toggleDarkMode = () => {
         const isDark = document.getElementById('theme-toggle').checked;
         document.body.classList.toggle('dark', isDark);
         localStorage.setItem('quizDarkMode', isDark);
     };
-
-    // Saqlangan rejimni tekshirish
     if(localStorage.getItem('quizDarkMode') === 'true') {
         document.body.classList.add('dark');
         document.getElementById('theme-toggle').checked = true;
@@ -173,7 +160,6 @@
         const snap = await getDocs(collection(db, "savollar"));
         let list = [];
         snap.forEach(d => list.push({ ...d.data(), id: d.id }));
-        // Tartib bilan chiqishi uchun saralash
         allQs = list.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
     }
 
@@ -217,8 +203,7 @@
         document.getElementById('q-text').innerText = q.text;
         document.getElementById('btn-next-step').style.display = 'none';
         
-        const box = document.getElementById('options-box'); 
-        box.innerHTML = '';
+        const box = document.getElementById('options-box'); box.innerHTML = '';
         const correctVal = q.variants[0];
         let opts = [...q.variants].sort(() => 0.5 - Math.random());
         
@@ -226,8 +211,8 @@
             const b = document.createElement('button');
             b.className = 'option'; b.innerText = opt;
             b.onclick = () => {
-                const allBtns = box.querySelectorAll('.option');
                 if (mode === 'all') {
+                    const allBtns = box.querySelectorAll('.option');
                     allBtns.forEach(btn => btn.disabled = true);
                     if(opt === correctVal) { b.classList.add('correct'); } 
                     else { b.classList.add('wrong'); allBtns.forEach(btn => {if(btn.innerText === correctVal) btn.classList.add('correct');}); }
@@ -255,20 +240,17 @@
 
         nav('page-result');
         document.getElementById('res-status').innerText = per >= 50 ? "Ajoyib! 🎉" : "Yana o'qing! 📚";
-        document.getElementById('res-text').innerHTML = `
-            Natija: <b style="color:var(--p)">${correct}/${total}</b><br>
-            To'plangan ball: <b>${score} ball</b><br>
-            Ko'rsatkich: <b>${per}%</b>
-        `;
+        document.getElementById('res-text').innerHTML = `Natija: <b style="color:var(--p)">${correct}/${total}</b><br>Ball: <b>${score} ball</b><br>Ko'rsatkich: <b>${per}%</b>`;
 
-        if(per >= 50 && mode === 'real') {
+        if(per >= 80 && mode === 'real') {
             confetti({particleCount: 150, spread: 70});
             generateCertificate(userName, per);
         }
 
         if(mode === 'real' && userId !== 'guest') {
             const botText = `🏆 *YANGI NATIJA* 🏆%0A%0A👤 *Talaba:* ${userName}%0A✅ *Natija:* ${correct} / ${total}%0A📊 *Ball:* ${score} ball%0A📈 *Ko'rsatkich:* ${per}%25`;
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${botText}&parse_mode=markdown`);
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${botText}&parse_mode=markdown`)
+            .catch(e => console.error("Telegram error:", e));
             
             const userRef = doc(db, "reyting", userId.toString());
             const userDoc = await getDoc(userRef);
@@ -286,7 +268,7 @@
         ctx.fillStyle = '#1f2937'; ctx.textAlign = 'center';
         ctx.font = 'bold 40px Serif'; ctx.fillText('SERTIFIKAT', 400, 100);
         ctx.font = 'italic bold 50px Serif'; ctx.fillStyle = '#4f46e5'; ctx.fillText(name, 400, 260);
-        ctx.fillStyle = '#1f2937'; ctx.font = '25px Sans-serif';
+        ctx.font = '25px Sans-serif'; ctx.fillStyle = '#1f2937';
         ctx.fillText(`AKT fanidan ${score}% natija bilan muvaffaqiyatli o'tdi.`, 400, 360);
         document.getElementById('cert-display').src = canvas.toDataURL("image/png");
         document.getElementById('cert-area').style.display = 'block';
@@ -303,7 +285,7 @@
         nav('page-review');
         const list = document.getElementById('review-list'); list.innerHTML = '';
         userAnswers.forEach(a => {
-            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; margin-bottom:10px;"><b>${a.q}</b><br><span style="color:green">Tog'ri: ${a.c}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${a.s}</span>`:''}</div>`;
+            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; margin-bottom:10px;"><b>${a.q}</b><br><span style="color:green">To'g'ri: ${a.c}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${a.s}</span>`:''}</div>`;
         });
     };
 

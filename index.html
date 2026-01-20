@@ -14,30 +14,24 @@
         }
         body.dark { --bg: #111827; --card: #1f2937; --text: #f9fafb; --shadow: 0 4px 20px rgba(0,0,0,0.4); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; }
-        
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; padding: 12px 0; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { cursor: pointer; text-align: center; flex: 1; font-size: 11px; color: #9ca3af; }
         .nav-item.active { color: var(--p); font-weight: bold; }
         .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
-
         .page { display: none; padding: 20px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .card { background: var(--card); padding: 22px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
         .btn-main { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; cursor: pointer; }
-        .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
-        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; }
-
+        .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
         .switch { position: relative; width: 44px; height: 24px; display: inline-block; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; border-radius: 24px; transition: 0.4s; }
         .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
         input:checked + .slider { background: var(--p); }
         input:checked + .slider:before { transform: translateX(20px); }
-
         .cert-img { width: 100%; border-radius: 10px; margin-top: 15px; border: 2px solid var(--p); }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,12 +42,12 @@
         <h2>AKT Quiz Pro</h2>
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>Imtihon Rejimi</h3>
-            <p>35 ta savol. 30 daqiqa. 80% dan yuqori ball uchun sertifikat!</p>
+            <p>35 ta savol. 30 daqiqa. 50% ball uchun sertifikat!</p>
             <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
         </div>
         <div class="card">
             <h3>O'quv kursi</h3>
-            <p>245 ta savol tartib bilan. Vaqt cheklovisiz.</p>
+            <p>245 ta savol tartib bilan. Xatolar darhol ko'rsatiladi.</p>
             <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
         </div>
     </div>
@@ -94,10 +88,13 @@
     <div id="page-result" class="page">
         <div class="card" style="text-align: center;">
             <h2 id="res-status">Natija</h2>
-            <p id="res-text"></p>
+            <div id="res-text" style="margin: 15px 0; line-height: 1.6;"></div>
+            
             <div id="cert-area" style="display: none;">
                 <img id="cert-display" class="cert-img">
+                <button class="btn-main" id="download-btn" style="background: #10b981;" onclick="downloadCert()">SERTIFIKATNI SAQLASH</button>
             </div>
+
             <button class="btn-main" onclick="showReview()">XATOLAR TAHLILI</button>
             <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">MENYU</button>
         </div>
@@ -139,6 +136,7 @@
 
     let allQs = [], currentQs = [], userAnswers = [];
     let curIdx = 0, timerInt = null, mode = "";
+    let isFinished = false; 
     
     const userName = tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi";
     const userId = tg.initDataUnsafe?.user?.id || "guest";
@@ -172,7 +170,8 @@
 
     window.startMode = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; userAnswers = [];
+        mode = m; curIdx = 0; userAnswers = []; isFinished = false;
+        document.getElementById('cert-area').style.display = 'none';
         if(mode === 'real') {
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
@@ -195,50 +194,65 @@
     }
 
     function render() {
+        if(curIdx >= currentQs.length) { finish(); return; }
         const q = currentQs[curIdx];
         document.getElementById('counter-label').innerText = `${curIdx+1}/${currentQs.length}`;
         document.getElementById('q-text').innerText = q.text;
         const box = document.getElementById('options-box'); box.innerHTML = '';
-        const correct = q.variants[0];
+        const correctValue = q.variants[0];
         let opts = [...q.variants].sort(() => 0.5 - Math.random());
+        
         opts.forEach(opt => {
             const b = document.createElement('button');
             b.className = 'option'; b.innerText = opt;
             b.onclick = () => {
-                userAnswers.push({q: q.text, s: opt, c: correct});
+                userAnswers.push({q: q.text, s: opt, c: correctValue});
+                const allBtns = box.querySelectorAll('.option');
+                allBtns.forEach(btn => btn.disabled = true);
+
                 if(mode !== 'real') {
-                    b.classList.add(opt === correct ? 'correct' : 'wrong');
-                    setTimeout(next, 1000);
-                } else { b.style.borderColor = "var(--p)"; setTimeout(next, 200); }
+                    if(opt === correctValue) {
+                        b.classList.add('correct');
+                    } else {
+                        b.classList.add('wrong');
+                        allBtns.forEach(btn => { if(btn.innerText === correctValue) btn.classList.add('correct'); });
+                    }
+                    setTimeout(next, 1200);
+                } else { 
+                    b.style.borderColor = "var(--p)"; 
+                    setTimeout(next, 300); 
+                }
             };
             box.appendChild(b);
         });
     }
 
-    function next() { curIdx++; if(curIdx < currentQs.length) render(); else finish(); }
+    function next() { curIdx++; render(); }
 
     async function finish() {
+        if (isFinished) return; 
+        isFinished = true;
         clearInterval(timerInt);
+        const total = currentQs.length;
         const cor = userAnswers.filter(a => a.s === a.c).length;
-        const per = Math.round((cor/currentQs.length)*100);
+        const per = Math.round((cor/total)*100);
         const score = cor * 2;
+        
         nav('page-result');
-        document.getElementById('res-status').innerText = per >= 60 ? "Ajoyib! 🎉" : "Yana o'qing! 📚";
-        document.getElementById('res-text').innerText = `${currentQs.length} tadan ${cor} ta to'g'ri.`;
+        document.getElementById('res-status').innerText = per >= 50 ? "Ajoyib! 🎉" : "Yana o'qing! 📚";
+        document.getElementById('res-text').innerHTML = `<b>${total}</b> ta savoldan <b>${userAnswers.length}</b> tasini ishladingiz.<br>To'g'ri: <b>${cor}</b> ta. Ball: <b style="color:var(--p)">${score} ball</b>.`;
 
-        if(per >= 80 && mode === 'real') {
+        if(per >= 50 && mode === 'real') {
             confetti({particleCount: 150, spread: 70});
             generateCertificate(userName, per);
         }
 
         if(mode === 'real' && userId !== 'guest') {
-            // Guruhga chiroyli xabar yuborish
             const now = new Date().toLocaleString('uz-UZ');
-            const botText = `🏆 *YANGI NATIJA (REAL TEST)* 🏆%0A%0A👤 *Talaba:* ${userName}%0A✅ *To'g'ri javob:* ${cor} / 35 ta%0A📊 *To'plangan ball:* ${score} ball%0A📈 *Ko'rsatkich:* ${per}%25%0A%0A🕒 _Vaqti: ${now}_%0A🔥 *Siz ham bilimingizni sinang!*`;
-            
+            let certText = per >= 50 ? "%0A%0A📜 *SERTIFIKAT TOPSHIRILDI!*" : "";
+            const botText = `🏆 *YANGI NATIJA (REAL TEST)* 🏆%0A%0A👤 *Talaba:* ${userName}%0A✅ *To'g'ri:* ${cor} / 35%0A📊 *Ball:* ${score}%0A📈 *Natija:* ${per}%25${certText}%0A%0A🕒 _Vaqti: ${now}_`;
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${botText}&parse_mode=markdown`);
-
-            // Reytingni yangilash
+            
             const userRef = doc(db, "reyting", userId.toString());
             const userDoc = await getDoc(userRef);
             if(!userDoc.exists() || score > userDoc.data().score) {
@@ -246,14 +260,6 @@
             }
         }
     }
-
-    window.showReview = () => {
-        nav('page-review');
-        const list = document.getElementById('review-list'); list.innerHTML = '';
-        userAnswers.forEach(a => {
-            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${a.q}</b><br><span style="color:green">To'g'ri: ${a.c}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${a.s}</span>`:''}</div>`;
-        });
-    };
 
     function generateCertificate(name, score) {
         const canvas = document.getElementById('cert-canvas');
@@ -265,9 +271,24 @@
         ctx.font = 'italic bold 50px Serif'; ctx.fillStyle = '#4f46e5'; ctx.fillText(name, 400, 260);
         ctx.fillStyle = '#1f2937'; ctx.font = '25px Sans-serif';
         ctx.fillText(`AKT fanidan ${score}% natija bilan muvaffaqiyatli o'tdi.`, 400, 360);
-        document.getElementById('cert-display').src = canvas.toDataURL();
+        document.getElementById('cert-display').src = canvas.toDataURL("image/png");
         document.getElementById('cert-area').style.display = 'block';
     }
+
+    window.downloadCert = () => {
+        const link = document.createElement('a');
+        link.download = `sertifikat_${userName}.png`;
+        link.href = document.getElementById('cert-display').src;
+        link.click();
+    };
+
+    window.showReview = () => {
+        nav('page-review');
+        const list = document.getElementById('review-list'); list.innerHTML = '';
+        userAnswers.forEach(a => {
+            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${a.q}</b><br><span style="color:green">To'g'ri: ${a.c}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${a.s}</span>`:''}</div>`;
+        });
+    };
 
     window.loadRankings = async () => {
         const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(10));

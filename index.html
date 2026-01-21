@@ -164,14 +164,14 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_U-8vvU8GUk";
+    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
     let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
     let userAnswers = [];
 
     const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
-    const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
+    const uname = (tg.initDataUnsafe?.user?.first_name || "") + " " + (tg.initDataUnsafe?.user?.last_name || "");
 
     window.nav = (id, el, title) => {
         if(restartTimer) clearInterval(restartTimer);
@@ -215,7 +215,6 @@
         mode = m; curIdx = 0; score = 0; lives = 3;
         document.getElementById('error-msg').style.display = 'none';
         document.getElementById('quiz-btns').style.display = 'flex';
-        
         document.getElementById('finish-btn').style.display = 'none';
 
         if(mode === 'real') {
@@ -260,32 +259,23 @@
 
         const box = document.getElementById('options');
         box.innerHTML = '';
-        
         if(!q.shuffledVariants) q.shuffledVariants = [...q.variants].sort(() => 0.5 - Math.random());
 
         q.shuffledVariants.forEach((opt) => {
             const b = document.createElement('button');
             b.className = 'option';
             if(userAnswers[curIdx] === opt) b.classList.add('selected');
-
             if(mode === 'all' && userAnswers[curIdx] !== null) {
                 if(opt === q.variants[0]) b.classList.add('correct');
                 else if(opt === userAnswers[curIdx]) b.classList.add('wrong');
                 b.disabled = true;
             }
-
             b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
-            
             b.onclick = () => {
                 userAnswers[curIdx] = opt;
-                
-                if(mode === 'real') {
-                    document.getElementById('finish-btn').style.display = 'block';
-                }
-
+                if(mode === 'real') document.getElementById('finish-btn').style.display = 'block';
                 if(mode === 'all' && opt !== q.variants[0]) {
-                    lives--; 
-                    updateLivesUI();
+                    lives--; updateLivesUI();
                     if(lives <= 0) handleGameOver();
                 }
                 renderQ();
@@ -296,10 +286,7 @@
 
     window.nextQuestion = () => { if(curIdx < currentQs.length - 1) { curIdx++; renderQ(); } };
     window.prevQuestion = () => { if(curIdx > 0) { curIdx--; renderQ(); } };
-
-    window.confirmFinish = () => {
-        tg.showConfirm("Testni yakunlab, natijalarni ko'rishni xohlaysizmi?", (ok) => { if(ok) finish(); });
-    };
+    window.confirmFinish = () => { tg.showConfirm("Testni yakunlaysizmi?", (ok) => { if(ok) finish(); }); };
 
     function handleGameOver() {
         if(timer) clearInterval(timer);
@@ -309,43 +296,53 @@
         document.getElementById('countdown-num').innerText = t;
         restartTimer = setInterval(() => {
             document.getElementById('countdown-num').innerText = --t;
-            if(t <= 0) { 
-                clearInterval(restartTimer); 
-                startQuiz('all'); 
-            }
+            if(t <= 0) { clearInterval(restartTimer); startQuiz('all'); }
         }, 1000);
     }
 
     window.finish = async () => {
         clearInterval(timer);
-        if(restartTimer) clearInterval(restartTimer);
-        
         nav('p-res', null, 'Natija');
         score = 0;
         currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
-
         const ball = score * 2;
         document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
-        document.getElementById('res-details').innerHTML = `To'g'ri javoblar: <b>${score} ta</b><br>To'plangan ball: <b>${ball}</b>`;
-        
+        document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
         if(score >= 21) confetti({ particleCount: 150, spread: 70 });
 
-        if(mode === 'real' && uid) {
-            const ref = doc(db, "reyting", uid);
-            const snap = await getDoc(ref);
-            let data = { name: uname, totalTests: increment(1), lastActive: serverTimestamp() };
-            if(!snap.exists() || ball > (snap.data().score || 0)) data.score = ball;
-            
-            if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
-            else await updateDoc(ref, data);
+        if(mode === 'real') {
+            if(uid) {
+                const ref = doc(db, "reyting", uid);
+                const snap = await getDoc(ref);
+                let data = { name: uname, totalTests: increment(1), lastActive: serverTimestamp() };
+                if(!snap.exists() || ball > (snap.data().score || 0)) data.score = ball;
+                if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
+                else await updateDoc(ref, data);
+            }
 
-            // Telegram uchun chiroyli xabar tayyorlash
             let holat = ball >= 62 ? "A'lo 🏆" : ball >= 52 ? "Yaxshi ✅" : ball >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
-            let xulosa = ball >= 62 ? "Siz haqiqiy professorsiz!" : ball >= 52 ? "Juda yaxshi natija, ozgina harakat qolsa bo'ldi!" : ball >= 42 ? "Yomon emas, lekin ko'proq o'qishingiz kerak." : "Afsuski, natija past. Ko'proq tayyorlaning!";
+            let xulosa = ball >= 62 ? "Siz haqiqiy professorsiz!" : ball >= 52 ? "Juda yaxshi natija!" : ball >= 42 ? "Yomon emas, harakat qiling." : "Ko'proq tayyorlaning!";
 
-            let message = `✨ YANGI NATIJA ✨\n\n🥇 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\n💎 To'plangan ball: ${ball} ball\n🌟 Holati: ${holat}\n\n💬 Xulosa: ${xulosa}\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
+            let text = `✨ YANGI NATIJA ✨\n\n` +
+                       `🥇 Talaba: ${uname}\n` +
+                       `────────────────────\n` +
+                       `🎯 Natija: ${score} / ${currentQs.length} ta\n` +
+                       `💎 To'plangan ball: ${ball} ball\n` +
+                       `🌟 Holati: ${holat}\n\n` +
+                       `💬 Xulosa: ${xulosa}\n` +
+                       `────────────────────\n` +
+                       `🚀 O'z ustingizda ishlashda davom eting!`;
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(message)}`);
+            // Bot orqali xabar yuborish
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: GROUP_ID,
+                    text: text,
+                    parse_mode: 'HTML'
+                })
+            }).catch(err => console.error("Xabar ketmadi:", err));
         }
     };
 

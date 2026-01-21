@@ -3,130 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yo'nalishga kirish</title>
+    <title>Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
-            --bg: #f3f4f6; --card: #ffffff; --text: #1f2937;
-            --p: #4f46e5; --gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21;
+            --p: #0088cc; --gradient: linear-gradient(135deg, #0088cc 0%, #005588 100%);
         }
-        body.dark { --bg: #111827; --card: #1f2937; --text: #f9fafb; --shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        body.dark { --bg: #18191a; --card: #242526; --text: #e4e6eb; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
-        
-        .page { display: none; padding: 20px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
+
+        /* Sarlavha stili */
+        .header-title { text-align: center; padding: 20px 0; margin: 0; font-size: 24px; font-weight: bold; text-transform: capitalize; }
+
+        .page { display: none; padding: 15px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card { background: var(--card); padding: 22px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
-        .btn-main { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .btn-next { display: none; background: #10b981; margin-top: 20px; border: none; border-radius: 14px; padding: 16px; color: white; width: 100%; font-weight: bold; cursor: pointer; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: 0.2s; }
+        .btn-p { background: var(--gradient); color: white; }
+        .btn-next { background: #10b981; color: white; display: none; margin-top: 15px; }
 
-        .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; }
-        /* Variant ichidagi rasm uslubi */
-        .option img { max-height: 80px; max-width: 100%; object-fit: contain; }
+        /* Variantlar */
+        .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
+        .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
         
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
-        
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; padding: 12px 0; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { cursor: pointer; text-align: center; flex: 1; font-size: 11px; color: #9ca3af; }
+
+        /* Navigatsiya */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: #888; cursor: pointer; }
         .nav-item.active { color: var(--p); font-weight: bold; }
-        .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
-
-        .switch { position: relative; width: 44px; height: 24px; display: inline-block; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d1d5db; border-radius: 24px; transition: 0.4s; }
-        .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
-        input:checked + .slider { background: var(--p); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .cert-img { width: 100%; border-radius: 10px; margin-top: 15px; border: 2px solid var(--p); }
         
-        /* Savol rasmi uslubi */
-        .q-img { width: 100%; max-height: 250px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; display: none; }
+        /* Ikonka 25px */
+        .nav-item i { font-size: 25px; display: block; margin-bottom: 4px; }
+
+        #img-modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+        #img-modal img { max-width: 95%; max-height: 95%; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: var(--p); color: white; margin-top: 5px; display: inline-block; }
+        #timer-box { font-weight: bold; color: #d93025; font-size: 18px; }
+
+        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .rank-name { flex: 1; margin-left: 10px; font-weight: 500; }
+        .rank-score { font-weight: bold; color: #10b981; }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--p); }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <div id="page-home" class="page active">
-        <h2>Yo'nalishga kirish</h2>
+    <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img" src=""></div>
+
+    <h2 id="main-title" class="header-title">Asosiy</h2>
+
+    <div id="p-home" class="page active">
         <div class="card" style="background: var(--gradient); color: white;">
-            <h3>Imtihon Rejimi</h3>
-            <p>35 ta savol. 30 daqiqa. 80% ball uchun sertifikat!</p>
-            <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
-        </div>
-        <div class="card">
             <h3>O'quv kursi</h3>
-            <p>245 ta savol (Tartib bilan). Tahlil va "Keyingi" tugmasi.</p>
-            <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
+            <p>Barcha savollar tartib bilan. Cheksiz vaqt.</p>
+            <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">MASHQ QILISH</button>
+        </div>
+        <div class="card" style="border: 2px solid var(--p);">
+            <h3>Real Test</h3>
+            <p>35 ta savol | 30 daqiqa</p>
+            <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
         </div>
     </div>
 
-    <div id="quiz-screen" class="page">
+    <div id="p-quiz" class="page">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <span id="timer-label" style="font-weight: bold;">--:--</span>
-                <span id="counter-label" style="font-weight: bold;">0/0</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span id="timer-box">--:--</span>
+                <span id="progress" style="font-weight: bold;">0/0</span>
             </div>
-            <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
-            <img id="q-image" class="q-img">
-            <div id="options-box"></div>
-            <button id="btn-next-step" class="btn-next" onclick="next()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+            <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
+            <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
+            <div id="options"></div>
+            <button id="next-btn" class="btn btn-next">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
 
-    <div id="page-result" class="page">
+    <div id="p-res" class="page">
         <div class="card" style="text-align: center;">
-            <h2 id="res-status">Natija</h2>
-            <div id="res-text" style="font-size: 20px; margin: 20px 0; line-height: 1.8;"></div>
-            <div id="cert-area" style="display: none; margin-bottom: 15px;">
-                <img id="cert-display" class="cert-img">
-                <button class="btn-main" style="background: #10b981;" onclick="downloadCert()">SERTIFIKATNI SAQLASH</button>
-            </div>
-            <button class="btn-main" onclick="showReview()">XATOLAR TAHLILI</button>
-            <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">ASOSIY MENYU</button>
+            <h2 id="res-status">--</h2>
+            <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
+            <button class="btn btn-p" onclick="location.reload()">BOSH SAHIFA</button>
         </div>
     </div>
 
-    <div id="page-rank" class="page">
-        <h2>Reyting</h2>
-        <div class="card" id="rank-container">Yuklanmoqda...</div>
+    <div id="p-rank" class="page">
+        <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
     </div>
 
-    <div id="page-settings" class="page">
-        <h2>Sozlamalar</h2>
+    <div id="p-settings" class="page">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--p); color:white; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fas fa-user"></i></div>
+                <div>
+                    <b id="u-name">...</b><br>
+                    <span class="badge" id="u-level">Daraja: Yuklanmoqda...</span>
+                </div>
+            </div>
+            <hr style="margin:20px 0; opacity:0.1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Tungi rejim</span>
                 <label class="switch">
-                    <input type="checkbox" id="theme-toggle" onchange="toggleDarkMode()">
+                    <input type="checkbox" id="dark-toggle" onchange="toggleDark()">
                     <span class="slider"></span>
                 </label>
             </div>
-            <hr style="opacity: 0.1; margin: 15px 0;">
-            <div style="display: flex; justify-content: space-between;">
-                <span>Foydalanuvchi:</span>
-                <b id="tg-name">...</b>
-            </div>
         </div>
     </div>
 
-    <div id="page-review" class="page">
-        <h2>Xatolar</h2>
-        <div id="review-list" class="card"></div>
-        <button class="btn-main" onclick="nav('page-home')">QAYTISH</button>
-    </div>
-
     <div class="nav-bar">
-        <div class="nav-item active" onclick="nav('page-home', this)"><i class="fas fa-home"></i>Asosiy</div>
-        <div class="nav-item" onclick="nav('page-rank', this); loadRankings();"><i class="fas fa-trophy"></i>Reyting</div>
-        <div class="nav-item" onclick="nav('page-settings', this)"><i class="fas fa-cog"></i>Sozlamalar</div>
+        <div class="nav-item active" onclick="nav('p-home', this, 'Asosiy')"><i class="fas fa-home"></i>Asosiy</div>
+        <div class="nav-item" onclick="nav('p-rank', this, 'Reyting'); loadRank()"><i class="fas fa-chart-line"></i>Reyting</div>
+        <div class="nav-item" onclick="nav('p-settings', this, 'Sozlamalar')"><i class="fas fa-cog"></i>Sozlamalar</div>
     </div>
-
-    <canvas id="cert-canvas" width="800" height="560" style="display:none;"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -143,190 +145,130 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
-    const GROUP_ID = "-1003218015225";
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer;
+    const rawId = tg.initDataUnsafe?.user?.id;
+    const uid = rawId ? rawId.toString() : null;
+    const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
 
-    let allQs = [], currentQs = [], userAnswers = [];
-    let curIdx = 0, timerInt = null, mode = "", isFinished = false; 
-    
-    const userName = tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi";
-    const userId = tg.initDataUnsafe?.user?.id || "guest";
-    document.getElementById('tg-name').innerText = userName;
-
-    window.toggleDarkMode = () => {
-        const isDark = document.getElementById('theme-toggle').checked;
-        document.body.classList.toggle('dark', isDark);
-        localStorage.setItem('quizDarkMode', isDark);
-    };
-    if(localStorage.getItem('quizDarkMode') === 'true') {
-        document.body.classList.add('dark');
-        document.getElementById('theme-toggle').checked = true;
-    }
-
-    async function loadData() {
-        const snap = await getDocs(collection(db, "savollar"));
-        let list = [];
-        snap.forEach(d => list.push({ ...d.data(), id: d.id }));
-        allQs = list.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-    }
-
-    window.nav = (id, el) => {
+    window.nav = (id, el, title) => {
+        document.getElementById('main-title').innerText = title;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(el) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-        }
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+        if(id === 'p-settings') updateLevelDisplay();
     };
 
-    window.startMode = async (m) => {
+    window.toggleDark = () => {
+        const dark = document.getElementById('dark-toggle').checked;
+        document.body.classList.toggle('dark', dark);
+        localStorage.setItem('dark', dark);
+    };
+    if(localStorage.getItem('dark') === 'true') {
+        document.getElementById('dark-toggle').checked = true;
+        document.body.classList.add('dark');
+    }
+
+    async function updateLevelDisplay() {
+        document.getElementById('u-name').innerText = uname;
+        if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
+        const snap = await getDoc(doc(db, "reyting", uid));
+        let s = snap.exists() ? snap.data().score : 0;
+        let lv = s >= 60 ? "Grand Master 🏆" : s >= 50 ? "Bilimdon 🎓" : s >= 40 ? "O'quvchi 📚" : "Yangi 🌟";
+        document.getElementById('u-level').innerText = "Daraja: " + lv;
+    }
+
+    window.zoomImg = (s) => { document.getElementById('modal-img').src = s; document.getElementById('img-modal').style.display = 'flex'; };
+
+    async function loadData() {
+        const q = query(collection(db, "savollar"), orderBy("createdAt", "asc"));
+        const snap = await getDocs(q);
+        allQs = snap.docs.map(d => d.data());
+    }
+
+    window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; userAnswers = []; isFinished = false;
+        mode = m; curIdx = 0; score = 0;
+        clearInterval(timer);
+        document.getElementById('main-title').innerText = "Test";
         if(mode === 'real') {
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
         } else {
             currentQs = [...allQs];
-            clearInterval(timerInt);
-            document.getElementById('timer-label').innerText = "📖 O'quv";
+            document.getElementById('timer-box').innerText = "Mashq";
         }
-        nav('quiz-screen');
-        render();
+        nav('p-quiz', null, 'Test'); renderQ();
     };
 
-    function startTimer(sec) {
-        clearInterval(timerInt);
-        timerInt = setInterval(() => {
-            let m = Math.floor(sec/60), s = sec%60;
-            document.getElementById('timer-label').innerText = `${m}:${s<10?'0':''}${s}`;
-            if(--sec < 0) finish();
+    function startTimer(s) {
+        timer = setInterval(() => {
+            let m = Math.floor(s/60), sc = s%60;
+            document.getElementById('timer-box').innerText = `${m}:${sc<10?'0':''}${sc}`;
+            if(--s < 0) finish();
         }, 1000);
     }
 
-    // PNG/Base64 tekshirish funksiyasi
-    function formatContent(content) {
-        if (content && typeof content === 'string' && content.startsWith('data:image')) {
-            return `<img src="${content}">`;
-        }
-        return content;
-    }
-
-    function render() {
-        if(curIdx >= currentQs.length) { finish(); return; }
+    function renderQ() {
+        if(curIdx >= currentQs.length) return finish();
         const q = currentQs[curIdx];
-        document.getElementById('counter-label').innerText = `${curIdx+1}/${currentQs.length}`;
-        document.getElementById('q-text').innerText = q.text;
-        document.getElementById('btn-next-step').style.display = 'none';
+        document.getElementById('progress').innerText = `${curIdx+1}/${currentQs.length}`;
+        document.getElementById('next-btn').style.display = 'none';
         
-        // Savol rasmini ko'rsatish
-        const qImg = document.getElementById('q-image');
-        if (q.image && q.image.startsWith('data:image')) {
-            qImg.src = q.image;
-            qImg.style.display = 'block';
-        } else {
-            qImg.style.display = 'none';
-        }
-        
-        const box = document.getElementById('options-box'); box.innerHTML = '';
-        const correctVal = q.variants[0];
+        const qTxt = document.getElementById('q-text');
+        const qImgC = document.getElementById('q-img-cont');
+        if(q.text.startsWith('data:image')) {
+            qTxt.innerText = "Savol:";
+            document.getElementById('q-image').src = q.text;
+            qImgC.style.display = 'block';
+        } else { qTxt.innerText = q.text; qImgC.style.display = 'none'; }
+
+        const box = document.getElementById('options');
+        box.innerHTML = '';
+        const correct = q.variants[0];
         let opts = [...q.variants].sort(() => 0.5 - Math.random());
-        
+
         opts.forEach(opt => {
             const b = document.createElement('button');
-            b.className = 'option'; 
-            b.innerHTML = formatContent(opt);
-            
+            b.className = 'option';
+            b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
             b.onclick = () => {
-                if (mode === 'all') {
-                    const allBtns = box.querySelectorAll('.option');
-                    allBtns.forEach(btn => btn.disabled = true);
-                    if(opt === correctVal) { b.classList.add('correct'); } 
-                    else { 
-                        b.classList.add('wrong'); 
-                        allBtns.forEach(btn => {
-                            if(btn.innerHTML === formatContent(correctVal)) btn.classList.add('correct');
-                        }); 
-                    }
-                    userAnswers.push({q: q.text, s: opt, c: correctVal});
-                    document.getElementById('btn-next-step').style.display = 'block';
-                } else {
-                    userAnswers.push({q: q.text, s: opt, c: correctVal});
-                    curIdx++;
-                    render();
-                }
+                const btns = box.querySelectorAll('.option');
+                if(mode === 'all') {
+                    btns.forEach(x => x.disabled = true);
+                    if(opt === correct) { b.classList.add('correct'); score++; }
+                    else { b.classList.add('wrong'); btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); }); }
+                    document.getElementById('next-btn').style.display = 'block';
+                } else { if(opt === correct) score++; curIdx++; renderQ(); }
             };
             box.appendChild(b);
         });
     }
 
-    window.next = () => { curIdx++; render(); };
+    document.getElementById('next-btn').onclick = () => { curIdx++; renderQ(); };
 
     async function finish() {
-        if (isFinished) return; isFinished = true;
-        clearInterval(timerInt);
-        const total = currentQs.length;
-        const correct = userAnswers.filter(a => a.s === a.c).length;
-        const score = correct * 2;
-        const per = Math.round((correct/total)*100);
-
-        nav('page-result');
-        document.getElementById('res-status').innerText = per >= 50 ? "Ajoyib! 🎉" : "Yana o'qing! 📚";
-        document.getElementById('res-text').innerHTML = `Natija: <b style="color:var(--p)">${correct}/${total}</b><br>Ball: <b>${score} ball</b><br>Ko'rsatkich: <b>${per}%</b>`;
-
-        if(per >= 80 && mode === 'real') {
-            confetti({particleCount: 150, spread: 70});
-            generateCertificate(userName, per);
-        }
-
-        if(mode === 'real' && userId !== 'guest') {
-            const botText = `🏆 *YANGI NATIJA* 🏆%0A%0A👤 *Talaba:* ${userName}%0A✅ *Natija:* ${correct} / ${total}%0A📊 *Ball:* ${score} ball%0A📈 *Ko'rsatkich:* ${per}%25`;
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${botText}&parse_mode=markdown`)
-            .catch(e => console.error("Telegram error:", e));
-            
-            const userRef = doc(db, "reyting", userId.toString());
-            const userDoc = await getDoc(userRef);
-            if(!userDoc.exists() || score > userDoc.data().score) {
-                await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()});
-            }
+        clearInterval(timer);
+        nav('p-res', null, 'Natija');
+        const ball = score * 2;
+        document.getElementById('res-status').innerText = ball >= 42 ? "O'tdingiz! 🎉" : "Yiqildingiz! ❌";
+        document.getElementById('res-details').innerHTML = `To'g'ri: ${score}/${currentQs.length}<br>Ball: ${ball}`;
+        if(mode === 'real' && uid) {
+            const ref = doc(db, "reyting", uid);
+            const old = await getDoc(ref);
+            if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
         }
     }
 
-    function generateCertificate(name, score) {
-        const canvas = document.getElementById('cert-canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 800, 560);
-        ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 15; ctx.strokeRect(10, 10, 780, 540);
-        ctx.fillStyle = '#1f2937'; ctx.textAlign = 'center';
-        ctx.font = 'bold 40px Serif'; ctx.fillText('SERTIFIKAT', 400, 100);
-        ctx.font = 'italic bold 50px Serif'; ctx.fillStyle = '#4f46e5'; ctx.fillText(name, 400, 260);
-        ctx.font = '25px Sans-serif'; ctx.fillStyle = '#1f2937';
-        ctx.fillText(`${score}% natija bilan muvaffaqiyatli o'tdi.`, 400, 360);
-        document.getElementById('cert-display').src = canvas.toDataURL("image/png");
-        document.getElementById('cert-area').style.display = 'block';
-    }
-
-    window.downloadCert = () => {
-        const link = document.createElement('a');
-        link.download = `cert_${userName}.png`;
-        link.href = document.getElementById('cert-display').src;
-        link.click();
-    };
-
-    window.showReview = () => {
-        nav('page-review');
-        const list = document.getElementById('review-list'); list.innerHTML = '';
-        userAnswers.forEach(a => {
-            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; margin-bottom:10px;"><b>${a.q}</b><br><span style="color:green">To'g'ri: ${formatContent(a.c)}</span>${a.s!==a.c ? `<br><span style="color:red">Siz: ${formatContent(a.s)}</span>`:''}</div>`;
-        });
-    };
-
-    window.loadRankings = async () => {
-        const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(10));
+    window.loadRank = async () => {
+        const list = document.getElementById('rank-list');
+        list.innerHTML = '<p style="text-align:center">Yuklanmoqda...</p>';
+        const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(20));
         const snap = await getDocs(q);
-        const container = document.getElementById('rank-container'); container.innerHTML = '';
+        list.innerHTML = '';
         let i = 1;
         snap.forEach(d => {
-            container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid rgba(0,0,0,0.05);"><span>${i++}. ${d.data().name}</span><b>${d.data().score} ball</b></div>`;
+            list.innerHTML += `<div class="rank-item"><span>${i++}. ${d.data().name}</span><span class="rank-score">${d.data().score}</span></div>`;
         });
     };
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard</title>
+    <title>Quiz Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -53,6 +53,16 @@
         
         #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.05); }
         #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
+        #lives-box { font-weight: bold; font-size: 20px; }
+
+        /* Yangi qo'shilgan uslublar */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .stat-item { background: rgba(0,136,204,0.05); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(0,136,204,0.1); }
+        .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--p); }
+        .stat-lbl { font-size: 11px; color: #666; }
+        .error-review-item { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .error-q { font-weight: bold; margin-bottom: 5px; }
+        .error-a { color: #10b981; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -64,13 +74,18 @@
     <div id="p-home" class="page active">
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>O'quv kursi</h3>
-            <p>Xato qilsangiz, test boshidan boshlanadi!</p>
+            <p>3 marta xato qilsangiz, test boshidan boshlanadi!</p>
             <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">O'RGANISH</button>
         </div>
         <div class="card" style="border: 2px solid var(--p);">
             <h3>Real Test</h3>
-            <p>35 ta savol | 30 daqiqa | Guruhga natija yuboriladi.</p>
+            <p>35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
             <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
+        </div>
+        <div class="card">
+            <h3>Do'stlar bilan Duel ⚔️</h3>
+            <p>Tasodifiy raqib bilan ball bellashuvi.</p>
+            <button class="btn" style="background: #6366f1; color: white;" onclick="startDuel()">DUEL QIDIRISH</button>
         </div>
     </div>
 
@@ -78,12 +93,13 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span id="timer-box">--:--</span>
+                <span id="lives-box" style="display:none;">❤️❤️❤️</span>
                 <span id="progress" style="font-weight: bold;">0/0</span>
             </div>
             <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
-            <div id="error-msg">Xato! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
+            <div id="error-msg">Imkoniyat tugadi! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
             <button id="next-btn" class="btn btn-next">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
@@ -91,12 +107,27 @@
     <div id="p-res" class="page">
         <div class="card" style="text-align: center;">
             <h2 id="res-status">--</h2>
-            <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
+            <div id="res-details" style="font-size: 18px; margin: 10px 0;"></div>
+            
+            <div id="error-analysis" style="display:none; margin: 15px 0;">
+                <h4 style="margin-bottom:10px;">Xatolar tahlili:</h4>
+                <div id="error-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px;"></div>
+            </div>
+
             <button class="btn btn-p" onclick="location.reload()">ASOSIY MENYU</button>
         </div>
     </div>
 
     <div id="p-rank" class="page">
+        <div class="card">
+            <h4 style="margin-top:0">Mening Statistikam</h4>
+            <div class="stat-grid">
+                <div class="stat-item"><span class="stat-val" id="st-total">0</span><span class="stat-lbl">Jami test</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-high">0</span><span class="stat-lbl">Eng yuqori ball</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (o'rtacha)</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-duel">0</span><span class="stat-lbl">Duellar</span></div>
+            </div>
+        </div>
         <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
     </div>
 
@@ -122,13 +153,13 @@
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="nav('p-home', this, 'Asosiy')"><i class="fas fa-home"></i>Asosiy</div>
-        <div class="nav-item" onclick="nav('p-rank', this, 'Reyting'); loadRank()"><i class="fas fa-chart-line"></i>Reyting</div>
+        <div class="nav-item" onclick="nav('p-rank', this, 'Reyting'); loadRank(); updateStatsUI();"><i class="fas fa-chart-line"></i>Reyting</div>
         <div class="nav-item" onclick="nav('p-settings', this, 'Sozlamalar')"><i class="fas fa-cog"></i>Sozlamalar</div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM", projectId: "meningquizilovam", appId: "1:107483720751:web:505d527fbccbbf4ce26ada" };
     const app = initializeApp(firebaseConfig);
@@ -139,9 +170,24 @@
     const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer;
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
+    let wrongAnswers = []; // Xatolar ustida ishlash uchun
     const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
     const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
+
+    // KUNDALIK BILDIRISHNOMA
+    const quotes = [
+        "Bugun yangi bilimlar olish uchun ajoyib kun!",
+        "Xatolar - muvaffaqiyat sari qo'yilgan qadamdir.",
+        "Har kuni 10 daqiqa test yechish sizni professional qiladi!",
+        "Duelda do'stlaringizni mag'lub etishga tayyormisiz?"
+    ];
+
+    window.onload = () => {
+        if(tg.initDataUnsafe?.user) {
+            tg.showAlert("Salom " + uname + "! " + quotes[Math.floor(Math.random() * quotes.length)]);
+        }
+    };
 
     window.nav = (id, el, title) => {
         document.getElementById('main-title').innerText = title;
@@ -167,9 +213,8 @@
         document.getElementById('u-name').innerText = uname;
         if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
         const snap = await getDoc(doc(db, "reyting", uid));
-        let s = snap.exists() ? snap.data().score : 0;
-        let correctCount = s / 2;
-        let lv = correctCount >= 31 ? "A'lo 🏆" : correctCount >= 26 ? "Yaxshi ✅" : correctCount >= 21 ? "Qoniqarli ⚠️" : "Yomon 🛑";
+        let s = snap.exists() ? (snap.data().score || 0) : 0;
+        let lv = s >= 62 ? "A'lo 🏆" : s >= 52 ? "Yaxshi ✅" : s >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 
@@ -183,19 +228,34 @@
 
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0;
+        mode = m; curIdx = 0; score = 0; lives = 3; wrongAnswers = [];
         clearInterval(timer);
         if(restartTimer) clearInterval(restartTimer);
         document.getElementById('error-msg').style.display = 'none';
-        if(mode === 'real') {
+        document.getElementById('error-analysis').style.display = 'none';
+        
+        if(mode === 'real' || mode === 'duel') {
+            document.getElementById('lives-box').style.display = 'none';
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
         } else {
+            document.getElementById('lives-box').style.display = 'block';
+            updateLivesUI();
             currentQs = [...allQs]; 
             document.getElementById('timer-box').innerText = "Mashq";
         }
-        nav('p-quiz', null, 'Test'); renderQ();
+        nav('p-quiz', null, mode === 'duel' ? 'Duel' : 'Test'); renderQ();
     };
+
+    window.startDuel = () => {
+        tg.showConfirm("Tasodifiy raqib balli bilan bellashishni istaysizmi?", (ok) => {
+            if(ok) startQuiz('duel');
+        });
+    };
+
+    function updateLivesUI() {
+        document.getElementById('lives-box').innerText = "❤️".repeat(lives);
+    }
 
     function startTimer(s) {
         timer = setInterval(() => {
@@ -227,34 +287,35 @@
             b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
             b.onclick = () => {
                 const btns = box.querySelectorAll('.option');
-                if(mode === 'all') {
-                    btns.forEach(x => x.disabled = true);
-                    if(opt === correct) { 
-                        b.classList.add('correct'); 
-                        score++; 
-                        document.getElementById('next-btn').style.display = 'block';
-                    } else { 
-                        b.classList.add('wrong'); 
-                        btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); });
-                        
-                        // SANASH LOGIKASI
-                        let timeLeft = 5;
-                        document.getElementById('error-msg').style.display = 'block';
-                        document.getElementById('countdown-num').innerText = timeLeft;
-                        
-                        restartTimer = setInterval(() => {
-                            timeLeft--;
-                            document.getElementById('countdown-num').innerText = timeLeft;
-                            if(timeLeft <= 0) {
-                                clearInterval(restartTimer);
-                                startQuiz('all');
-                            }
-                        }, 1000);
-                    }
+                btns.forEach(x => x.disabled = true);
+
+                if(opt === correct) { 
+                    b.classList.add('correct'); 
+                    score++; 
+                    document.getElementById('next-btn').style.display = 'block';
                 } else { 
-                    if(opt === correct) score++; 
-                    curIdx++; 
-                    renderQ(); 
+                    b.classList.add('wrong'); 
+                    wrongAnswers.push({q: q.text, a: correct});
+                    btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); });
+
+                    if(mode === 'all') {
+                        lives--;
+                        updateLivesUI();
+                        if (lives > 0) {
+                            document.getElementById('next-btn').style.display = 'block';
+                        } else {
+                            let timeLeft = 10;
+                            document.getElementById('error-msg').style.display = 'block';
+                            document.getElementById('countdown-num').innerText = timeLeft;
+                            restartTimer = setInterval(() => {
+                                timeLeft--;
+                                document.getElementById('countdown-num').innerText = timeLeft;
+                                if(timeLeft <= 0) { clearInterval(restartTimer); startQuiz('all'); }
+                            }, 1000);
+                        }
+                    } else {
+                        document.getElementById('next-btn').style.display = 'block';
+                    }
                 }
             };
             box.appendChild(b);
@@ -278,15 +339,57 @@
         document.getElementById('res-status').innerText = grade + " " + icon;
         document.getElementById('res-details').innerHTML = `To'g'ri javob: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
         
+        // Xatolar tahlilini ko'rsatish
+        if(wrongAnswers.length > 0) {
+            document.getElementById('error-analysis').style.display = 'block';
+            const errList = document.getElementById('error-list');
+            errList.innerHTML = '';
+            wrongAnswers.forEach(err => {
+                const item = document.createElement('div');
+                item.className = 'error-review-item';
+                const qDisplay = err.q.startsWith('data:image') ? "[Rasm savol]" : err.q;
+                item.innerHTML = `<div class="error-q">${qDisplay}</div><div class="error-a">To'g'ri javob: ${err.a}</div>`;
+                errList.appendChild(item);
+            });
+        }
+
         if(score >= 21) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
-        if(mode === 'real' && uid) {
+        if((mode === 'real' || mode === 'duel') && uid) {
             const ref = doc(db, "reyting", uid);
-            const old = await getDoc(ref);
-            if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
+            const snap = await getDoc(ref);
+            
+            let data = {
+                name: uname,
+                totalTests: increment(1),
+                lastActive: serverTimestamp()
+            };
 
-            const text = `✨ *YANGI NATIJA* ✨\n\n🎖 *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade} ${icon}\n\n💬 *Xulosa:* _${msg}_\n────────────────────\n🚀 *O'z ustingizda ishlashda davom eting!*`;
+            if(!snap.exists() || ball > (snap.data().score || 0)) {
+                data.score = ball;
+            }
+            if(mode === 'duel') data.duels = increment(1);
+
+            if(!snap.exists()) {
+                await setDoc(ref, { ...data, score: ball, duels: (mode === 'duel' ? 1 : 0), totalTests: 1 });
+            } else {
+                await updateDoc(ref, data);
+            }
+
+            const text = `✨ *YANGI ${mode.toUpperCase()} NATIJA* ✨\n\n🎖 *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade} ${icon}\n\n💬 *Xulosa:* _${msg}_\n────────────────────`;
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+        }
+    }
+
+    window.updateStatsUI = async () => {
+        if(!uid) return;
+        const snap = await getDoc(doc(db, "reyting", uid));
+        if(snap.exists()) {
+            const d = snap.data();
+            document.getElementById('st-total').innerText = d.totalTests || 0;
+            document.getElementById('st-high').innerText = d.score || 0;
+            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / 2) + " ta";
+            document.getElementById('st-duel').innerText = d.duels || 0;
         }
     }
 
@@ -295,7 +398,7 @@
         list.innerHTML = '<p style="text-align:center">Yuklanmoqda...</p>';
         const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(20));
         const snap = await getDocs(q);
-        list.innerHTML = '';
+        list.innerHTML = '<h4 style="margin-top:0">Top 20 Reyting</h4>';
         let i = 1;
         snap.forEach(d => {
             list.innerHTML += `<div class="rank-item"><span>${i++}. ${d.data().name}</span><span class="rank-score">${d.data().score}</span></div>`;

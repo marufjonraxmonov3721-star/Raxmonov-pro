@@ -24,7 +24,8 @@
         .btn-next { display: none; background: #10b981; margin-top: 20px; border: none; border-radius: 14px; padding: 16px; color: white; width: 100%; font-weight: bold; cursor: pointer; }
 
         .option { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e5e7eb; border-radius: 12px; background: none; color: var(--text); text-align: left; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; }
-        .option img { max-height: 22px; max-width: 100%; object-fit: contain; }
+        /* Variant ichidagi rasm uslubi */
+        .option img { max-height: 80px; max-width: 100%; object-fit: contain; }
         
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
@@ -42,108 +43,94 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         .cert-img { width: 100%; border-radius: 10px; margin-top: 15px; border: 2px solid var(--p); }
+        
+        /* Savol rasmi uslubi */
         .q-img { width: 100%; max-height: 250px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; display: none; }
-
-        /* BLOK EKRANI */
-        #ban-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111827; z-index: 9999; color: white; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center; padding: 20px;
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <div id="ban-overlay">
-        <i class="fas fa-user-slash" style="font-size: 70px; color: #ef4444; margin-bottom: 20px;"></i>
-        <h1 style="margin: 0;">Siz bloklangansiz!</h1>
-        <p style="color: #9ca3af; margin-top: 15px;">Ilovadan foydalanish huquqingiz admin tomonidan cheklangan.</p>
-        <button class="btn-main" onclick="tg.close()" style="width: auto; padding: 12px 30px; margin-top: 20px;">YOPISH</button>
+    <div id="page-home" class="page active">
+        <h2>Yo'nalishga kirish</h2>
+        <div class="card" style="background: var(--gradient); color: white;">
+            <h3>Imtihon Rejimi</h3>
+            <p>35 ta savol. 30 daqiqa. 80% ball uchun sertifikat!</p>
+            <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
+        </div>
+        <div class="card">
+            <h3>O'quv kursi</h3>
+            <p>245 ta savol (Tartib bilan). Tahlil va "Keyingi" tugmasi.</p>
+            <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
+        </div>
     </div>
 
-    <div id="main-app">
-        <div id="page-home" class="page active">
-            <h2>Yo'nalishga kirish</h2>
-            <div class="card" style="background: var(--gradient); color: white;">
-                <h3>Imtihon Rejimi</h3>
-                <p>35 ta savol. 30 daqiqa. 80% ball uchun sertifikat!</p>
-                <button class="btn-main" style="background: white; color: var(--p);" onclick="startMode('real')">BOSHLASH</button>
+    <div id="quiz-screen" class="page">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span id="timer-label" style="font-weight: bold;">--:--</span>
+                <span id="counter-label" style="font-weight: bold;">0/0</span>
             </div>
-            <div class="card">
-                <h3>O'quv kursi</h3>
-                <p>245 ta savol (Tartib bilan). Tahlil va "Keyingi" tugmasi.</p>
-                <button class="btn-main" onclick="startMode('all')">O'RGANISH</button>
+            <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+            <img id="q-image" class="q-img">
+            <div id="options-box"></div>
+            <button id="btn-next-step" class="btn-next" onclick="next()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div id="page-result" class="page">
+        <div class="card" style="text-align: center;">
+            <h2 id="res-status">Natija</h2>
+            <div id="res-text" style="font-size: 20px; margin: 20px 0; line-height: 1.8;"></div>
+            <div id="cert-area" style="display: none; margin-bottom: 15px;">
+                <img id="cert-display" class="cert-img">
+                <button class="btn-main" style="background: #10b981;" onclick="downloadCert()">SERTIFIKATNI SAQLASH</button>
             </div>
+            <button class="btn-main" onclick="showReview()">XATOLAR TAHLILI</button>
+            <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">ASOSIY MENYU</button>
         </div>
+    </div>
 
-        <div id="quiz-screen" class="page">
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span id="timer-label" style="font-weight: bold;">--:--</span>
-                    <span id="counter-label" style="font-weight: bold;">0/0</span>
-                </div>
-                <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
-                <img id="q-image" class="q-img">
-                <div id="options-box"></div>
-                <button id="btn-next-step" class="btn-next" onclick="next()">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+    <div id="page-rank" class="page">
+        <h2>Reyting</h2>
+        <div class="card" id="rank-container">Yuklanmoqda...</div>
+    </div>
+
+    <div id="page-settings" class="page">
+        <h2>Sozlamalar</h2>
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span>Tungi rejim</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle" onchange="toggleDarkMode()">
+                    <span class="slider"></span>
+                </label>
             </div>
-        </div>
-
-        <div id="page-result" class="page">
-            <div class="card" style="text-align: center;">
-                <h2 id="res-status">Natija</h2>
-                <div id="res-text" style="font-size: 20px; margin: 20px 0; line-height: 1.8;"></div>
-                <div id="cert-area" style="display: none; margin-bottom: 15px;">
-                    <img id="cert-display" class="cert-img">
-                    <button class="btn-main" style="background: #10b981;" onclick="downloadCert()">SERTIFIKATNI SAQLASH</button>
-                </div>
-                <button class="btn-main" onclick="showReview()">XATOLAR TAHLILI</button>
-                <button class="btn-main" style="background: #6b7280;" onclick="location.reload()">ASOSIY MENYU</button>
-            </div>
-        </div>
-
-        <div id="page-rank" class="page">
-            <h2>Reyting</h2>
-            <div class="card" id="rank-container">Yuklanmoqda...</div>
-        </div>
-
-        <div id="page-settings" class="page">
-            <h2>Sozlamalar</h2>
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <span>Tungi rejim</span>
-                    <label class="switch">
-                        <input type="checkbox" id="theme-toggle" onchange="toggleDarkMode()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <hr style="opacity: 0.1; margin: 15px 0;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Foydalanuvchi:</span>
-                    <b id="tg-name">...</b>
-                </div>
+            <hr style="opacity: 0.1; margin: 15px 0;">
+            <div style="display: flex; justify-content: space-between;">
+                <span>Foydalanuvchi:</span>
+                <b id="tg-name">...</b>
             </div>
         </div>
+    </div>
 
-        <div id="page-review" class="page">
-            <h2>Xatolar</h2>
-            <div id="review-list" class="card"></div>
-            <button class="btn-main" onclick="nav('page-home')">QAYTISH</button>
-        </div>
+    <div id="page-review" class="page">
+        <h2>Xatolar</h2>
+        <div id="review-list" class="card"></div>
+        <button class="btn-main" onclick="nav('page-home')">QAYTISH</button>
+    </div>
 
-        <div class="nav-bar">
-            <div class="nav-item active" onclick="nav('page-home', this)"><i class="fas fa-home"></i>Asosiy</div>
-            <div class="nav-item" onclick="nav('page-rank', this); loadRankings();"><i class="fas fa-trophy"></i>Reyting</div>
-            <div class="nav-item" onclick="nav('page-settings', this)"><i class="fas fa-cog"></i>Sozlamalar</div>
-        </div>
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="nav('page-home', this)"><i class="fas fa-home"></i>Asosiy</div>
+        <div class="nav-item" onclick="nav('page-rank', this); loadRankings();"><i class="fas fa-trophy"></i>Reyting</div>
+        <div class="nav-item" onclick="nav('page-settings', this)"><i class="fas fa-cog"></i>Sozlamalar</div>
     </div>
 
     <canvas id="cert-canvas" width="800" height="560" style="display:none;"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, onSnapshot, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM",
@@ -163,38 +150,8 @@
     let curIdx = 0, timerInt = null, mode = "", isFinished = false; 
     
     const userName = tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi";
-    const userId = (tg.initDataUnsafe?.user?.id || "guest").toString();
+    const userId = tg.initDataUnsafe?.user?.id || "guest";
     document.getElementById('tg-name').innerText = userName;
-
-    // --- 📢 BROADCAST (REAL VAQTDA XABAR) ---
-    function setupBroadcast() {
-        onSnapshot(doc(db, "settings", "announcement"), (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                tg.showPopup({
-                    title: '📢 Admin xabari',
-                    message: data.text,
-                    buttons: [{type: 'ok', text: 'Yopish'}]
-                });
-            }
-        });
-    }
-
-    // --- REAL VAQTDA BLOKLASHNI TEKSHIRISH ---
-    function setupRealtimeBan() {
-        if(userId === "guest") return;
-        const banRef = doc(db, "banned_users", userId);
-        onSnapshot(banRef, (snap) => {
-            if(snap.exists()) {
-                document.getElementById('main-app').style.display = 'none';
-                document.getElementById('ban-overlay').style.display = 'flex';
-                if(timerInt) clearInterval(timerInt);
-            } else {
-                document.getElementById('main-app').style.display = 'block';
-                document.getElementById('ban-overlay').style.display = 'none';
-            }
-        });
-    }
 
     window.toggleDarkMode = () => {
         const isDark = document.getElementById('theme-toggle').checked;
@@ -246,6 +203,7 @@
         }, 1000);
     }
 
+    // PNG/Base64 tekshirish funksiyasi
     function formatContent(content) {
         if (content && typeof content === 'string' && content.startsWith('data:image')) {
             return `<img src="${content}">`;
@@ -260,6 +218,7 @@
         document.getElementById('q-text').innerText = q.text;
         document.getElementById('btn-next-step').style.display = 'none';
         
+        // Savol rasmini ko'rsatish
         const qImg = document.getElementById('q-image');
         if (q.image && q.image.startsWith('data:image')) {
             qImg.src = q.image;
@@ -277,7 +236,7 @@
             b.className = 'option'; 
             b.innerHTML = formatContent(opt);
             
-            b.onclick = async () => {
+            b.onclick = () => {
                 if (mode === 'all') {
                     const allBtns = box.querySelectorAll('.option');
                     allBtns.forEach(btn => btn.disabled = true);
@@ -327,7 +286,7 @@
             const userRef = doc(db, "reyting", userId.toString());
             const userDoc = await getDoc(userRef);
             if(!userDoc.exists() || score > userDoc.data().score) {
-                await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()}, {merge: true});
+                await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()});
             }
         }
     }
@@ -371,9 +330,6 @@
         });
     };
 
-    // ILOVA YUKLANGANDA
-    setupRealtimeBan();
-    setupBroadcast();
     loadData();
 </script>
 </body>

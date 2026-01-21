@@ -50,6 +50,9 @@
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--p); }
         input:checked + .slider:before { transform: translateX(20px); }
+        
+        #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.05); }
+        #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -61,7 +64,7 @@
     <div id="p-home" class="page active">
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>O'quv kursi</h3>
-            <p>Vaqt cheksiz, xatolar ustida ishlash mumkin.</p>
+            <p>Xato qilsangiz, test boshidan boshlanadi!</p>
             <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">O'RGANISH</button>
         </div>
         <div class="card" style="border: 2px solid var(--p);">
@@ -80,6 +83,7 @@
             <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
+            <div id="error-msg">Xato! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
             <button id="next-btn" class="btn btn-next">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
         </div>
     </div>
@@ -135,7 +139,7 @@
     const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer;
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer;
     const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
     const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
 
@@ -146,6 +150,7 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if(el) el.classList.add('active');
         if(id === 'p-settings') updateLevelDisplay();
+        if(restartTimer) clearInterval(restartTimer);
     };
 
     window.toggleDark = () => {
@@ -180,11 +185,13 @@
         if(allQs.length === 0) await loadData();
         mode = m; curIdx = 0; score = 0;
         clearInterval(timer);
+        if(restartTimer) clearInterval(restartTimer);
+        document.getElementById('error-msg').style.display = 'none';
         if(mode === 'real') {
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
         } else {
-            currentQs = [...allQs];
+            currentQs = [...allQs]; 
             document.getElementById('timer-box').innerText = "Mashq";
         }
         nav('p-quiz', null, 'Test'); renderQ();
@@ -203,6 +210,7 @@
         const q = currentQs[curIdx];
         document.getElementById('progress').innerText = `${curIdx+1}/${currentQs.length}`;
         document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('error-msg').style.display = 'none';
         const qTxt = document.getElementById('q-text');
         const qImgC = document.getElementById('q-img-cont');
         if(q.text.startsWith('data:image')) {
@@ -221,10 +229,33 @@
                 const btns = box.querySelectorAll('.option');
                 if(mode === 'all') {
                     btns.forEach(x => x.disabled = true);
-                    if(opt === correct) { b.classList.add('correct'); score++; }
-                    else { b.classList.add('wrong'); btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); }); }
-                    document.getElementById('next-btn').style.display = 'block';
-                } else { if(opt === correct) score++; curIdx++; renderQ(); }
+                    if(opt === correct) { 
+                        b.classList.add('correct'); 
+                        score++; 
+                        document.getElementById('next-btn').style.display = 'block';
+                    } else { 
+                        b.classList.add('wrong'); 
+                        btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); });
+                        
+                        // SANASH LOGIKASI
+                        let timeLeft = 5;
+                        document.getElementById('error-msg').style.display = 'block';
+                        document.getElementById('countdown-num').innerText = timeLeft;
+                        
+                        restartTimer = setInterval(() => {
+                            timeLeft--;
+                            document.getElementById('countdown-num').innerText = timeLeft;
+                            if(timeLeft <= 0) {
+                                clearInterval(restartTimer);
+                                startQuiz('all');
+                            }
+                        }, 1000);
+                    }
+                } else { 
+                    if(opt === correct) score++; 
+                    curIdx++; 
+                    renderQ(); 
+                }
             };
             box.appendChild(b);
         });
@@ -234,26 +265,15 @@
 
     async function finish() {
         clearInterval(timer);
+        if(restartTimer) clearInterval(restartTimer);
         nav('p-res', null, 'Natija');
         const ball = score * 2;
-        let grade = "", medal = "", msg = "", icon = "";
+        let grade = "", msg = "", icon = "";
 
-        if(score >= 31) { 
-            grade = "A'lo"; icon = "🏆";
-            msg = "Siz haqiqiy professorsiz! Bilimingizga gap bo'lishi mumkin emas."; 
-        }
-        else if(score >= 26) { 
-            grade = "Yaxshi"; icon = "✅";
-            msg = "Ajoyib natija! Yana ozgina harakat qilsangiz, cho'qqini zabt etasiz."; 
-        }
-        else if(score >= 21) { 
-            grade = "Qoniqarli"; icon = "⚠️";
-            msg = "Yomon emas, lekin bilimingizni yanada mustahkamlashingiz kerak."; 
-        }
-        else { 
-            grade = "Yomon"; icon = "🛑";
-            msg = "Xafa bo'lmang, qaytadan urinib ko'ring!"; 
-        }
+        if(score >= 31) { grade = "A'lo"; icon = "🏆"; msg = "Siz haqiqiy professorsiz!"; }
+        else if(score >= 26) { grade = "Yaxshi"; icon = "✅"; msg = "Ajoyib natija!"; }
+        else if(score >= 21) { grade = "Qoniqarli"; icon = "⚠️"; msg = "Yomon emas, yanada harakat qiling."; }
+        else { grade = "Yomon"; icon = "🛑"; msg = "Xafa bo'lmang, qaytadan urinib ko'ring!"; }
 
         document.getElementById('res-status').innerText = grade + " " + icon;
         document.getElementById('res-details').innerHTML = `To'g'ri javob: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
@@ -265,9 +285,7 @@
             const old = await getDoc(ref);
             if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
 
-            // GURUHGA CHIROYLI XABAR YUBORISH
             const text = `✨ *YANGI NATIJA* ✨\n\n🎖 *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade} ${icon}\n\n💬 *Xulosa:* _${msg}_\n────────────────────\n🚀 *O'z ustingizda ishlashda davom eting!*`;
-            
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
         }
     }

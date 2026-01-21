@@ -320,11 +320,11 @@
                 else await updateDoc(ref, data);
             }
 
-            let holat = ball >= 62 ? "A'lo 🏆" : ball >= 52 ? "Yaxshi ✅" : ball >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
+            let holat = ball >= 62 ? "A'lo 🥇" : ball >= 52 ? "Yaxshi 🥈" : ball >= 42 ? "Qoniqarli🥉 " : "Yomon ❌";
             let xulosa = ball >= 62 ? "Siz haqiqiy professorsiz!" : ball >= 52 ? "Juda yaxshi natija!" : ball >= 42 ? "Yomon emas, harakat qiling." : "Ko'proq tayyorlaning!";
 
             let text = `✨ YANGI NATIJA ✨\n\n` +
-                       `🥇 Talaba: ${uname}\n` +
+                       `🧑🏻‍🎓 Talaba: ${uname}\n` +
                        `────────────────────\n` +
                        `🎯 Natija: ${score} / ${currentQs.length} ta\n` +
                        `💎 To'plangan ball: ${ball} ball\n` +

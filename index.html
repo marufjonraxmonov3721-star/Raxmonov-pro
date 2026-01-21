@@ -143,7 +143,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, onSnapshot, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM",
@@ -166,12 +166,42 @@
     const userId = (tg.initDataUnsafe?.user?.id || "guest").toString();
     document.getElementById('tg-name').innerText = userName;
 
+    // --- 🛡 CHEAT DETECTOR ---
+    document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState === 'hidden' && mode === 'real' && !isFinished) {
+            const userRef = doc(db, "reyting", userId);
+            try {
+                const userSnap = await getDoc(userRef);
+                let currentCheats = 0;
+                if(userSnap.exists()) currentCheats = userSnap.data().cheats || 0;
+                await updateDoc(userRef, { cheats: currentCheats + 1 });
+                tg.showPopup({
+                    title: 'Ogohlantirish!',
+                    message: 'Imtihon paytida ekrandan chiqish mumkin emas. Ma\'lumot admin panelga yuborildi.',
+                    buttons: [{type: 'ok', text: 'Tushundim'}]
+                });
+            } catch(e) { console.error("Cheat log error", e); }
+        }
+    });
+
+    // --- 📢 BROADCAST (REAL VAQTDA XABAR) ---
+    function setupBroadcast() {
+        onSnapshot(doc(db, "settings", "announcement"), (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                tg.showPopup({
+                    title: '📢 Admin xabari',
+                    message: data.text,
+                    buttons: [{type: 'ok', text: 'Yopish'}]
+                });
+            }
+        });
+    }
+
     // --- REAL VAQTDA BLOKLASHNI TEKSHIRISH ---
     function setupRealtimeBan() {
         if(userId === "guest") return;
         const banRef = doc(db, "banned_users", userId);
-        
-        // onSnapshot orqali real vaqtda kuzatamiz
         onSnapshot(banRef, (snap) => {
             if(snap.exists()) {
                 document.getElementById('main-app').style.display = 'none';
@@ -315,7 +345,7 @@
             const userRef = doc(db, "reyting", userId.toString());
             const userDoc = await getDoc(userRef);
             if(!userDoc.exists() || score > userDoc.data().score) {
-                await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()});
+                await setDoc(userRef, {name: userName, score: score, updatedAt: serverTimestamp()}, {merge: true});
             }
         }
     }
@@ -360,8 +390,9 @@
     };
 
     // ILOVA YUKLANGANDA
-    setupRealtimeBan(); // Real vaqtda blokni kuzatishni boshlash
-    loadData(); // Savollarni yuklash
+    setupRealtimeBan();
+    setupBroadcast();
+    loadData();
 </script>
 </body>
 </html>

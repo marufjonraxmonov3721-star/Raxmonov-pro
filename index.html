@@ -163,7 +163,6 @@
         if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? snap.data().score : 0;
-        // Reyting sahifasidagi ballni to'g'ri hisoblash uchun score/2 qilib tekshiramiz
         let correctCount = s / 2;
         let lv = correctCount >= 31 ? "A'lo 🏆" : correctCount >= 26 ? "Yaxshi ✅" : correctCount >= 21 ? "Qoniqarli ⚠️" : "Yomon 🛑";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
@@ -237,49 +236,38 @@
         clearInterval(timer);
         nav('p-res', null, 'Natija');
         const ball = score * 2;
-        let grade = "", medal = "", msg = "", statusEmoji = "🔴";
+        let grade = "", medal = "", msg = "", icon = "";
 
-        // Yangi baholash tizimi (To'g'ri javoblar soniga qarab)
         if(score >= 31) { 
-            grade = "Alo"; 
-            medal = "🏆"; 
-            statusEmoji = "🟢";
-            msg = "Siz haqiqiy professorsiz!"; 
+            grade = "A'lo"; icon = "🏆";
+            msg = "Siz haqiqiy professorsiz! Bilimingizga gap bo'lishi mumkin emas."; 
         }
         else if(score >= 26) { 
-            grade = "Yaxshi"; 
-            medal = "✅"; 
-            statusEmoji = "🔵";
-            msg = "Ajoyib natija, ozgina qoldi!"; 
+            grade = "Yaxshi"; icon = "✅";
+            msg = "Ajoyib natija! Yana ozgina harakat qilsangiz, cho'qqini zabt etasiz."; 
         }
         else if(score >= 21) { 
-            grade = "Qoniqarli"; 
-            medal = "⚠️"; 
-            statusEmoji = "🟡";
-            msg = "Yana ko'proq o'qing!"; 
+            grade = "Qoniqarli"; icon = "⚠️";
+            msg = "Yomon emas, lekin bilimingizni yanada mustahkamlashingiz kerak."; 
         }
         else { 
-            grade = "Yomon"; 
-            medal = "🛑"; 
-            statusEmoji = "🔴";
+            grade = "Yomon"; icon = "🛑";
             msg = "Xafa bo'lmang, qaytadan urinib ko'ring!"; 
         }
 
-        document.getElementById('res-status').innerText = grade + " " + medal;
+        document.getElementById('res-status').innerText = grade + " " + icon;
         document.getElementById('res-details').innerHTML = `To'g'ri javob: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
         
-        // Konfetti effekti
-        if(score >= 21) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        }
+        if(score >= 21) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
         if(mode === 'real' && uid) {
             const ref = doc(db, "reyting", uid);
             const old = await getDoc(ref);
             if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
 
-            // Guruhga yuboriladigan xabar
-            const text = `📊 *Yangi Natija*\n\n👤 *Foydalanuvchi:* ${uname}\n✅ *To'g'ri javob:* ${score} ta\n📈 *To'plangan ball:* ${ball}\n📝 *Holati:* ${grade} ${statusEmoji}\n🆔 *ID:* ${uid}`;
+            // GURUHGA CHIROYLI XABAR YUBORISH
+            const text = `✨ *YANGI NATIJA* ✨\n\n🎖 *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade} ${icon}\n\n💬 *Xulosa:* _${msg}_\n────────────────────\n🚀 *O'z ustingizda ishlashda davom eting!*`;
+            
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
         }
     }

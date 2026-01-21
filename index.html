@@ -166,35 +166,6 @@
     const userId = (tg.initDataUnsafe?.user?.id || "guest").toString();
     document.getElementById('tg-name').innerText = userName;
 
-    // --- 🛡 CHEAT DETECTOR & AUTO BAN ---
-    document.addEventListener("visibilitychange", async () => {
-        if (document.visibilityState === 'hidden' && mode === 'real' && !isFinished) {
-            const userRef = doc(db, "reyting", userId);
-            const banRef = doc(db, "banned_users", userId);
-            try {
-                const userSnap = await getDoc(userRef);
-                let currentCheats = 0;
-                if(userSnap.exists()) currentCheats = userSnap.data().cheats || 0;
-                await updateDoc(userRef, { cheats: currentCheats + 1 });
-                
-                // Avtomatik bloklash
-                await setDoc(banRef, {
-                    reason: "Imtihon paytida ekrandan chiqish",
-                    bannedAt: serverTimestamp(),
-                    userName: userName
-                });
-
-                tg.showPopup({
-                    title: 'Ogohlantirish!',
-                    message: 'Imtihon paytida ekrandan chiqish taqiqlangan! Siz bloklandingiz.',
-                    buttons: [{type: 'ok', text: 'Tushundim'}]
-                }, () => {
-                    tg.close();
-                });
-            } catch(e) { console.error("Cheat/Ban error", e); }
-        }
-    });
-
     // --- 📢 BROADCAST (REAL VAQTDA XABAR) ---
     function setupBroadcast() {
         onSnapshot(doc(db, "settings", "announcement"), (snap) => {

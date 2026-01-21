@@ -70,7 +70,6 @@
         .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); }
         .rank-score { font-weight: bold; color: var(--text); }
 
-        /* REJIM TUGMASI UCHUN STIL */
         .theme-btn { 
             background: var(--opt-bg); 
             border: 1px solid var(--border); 
@@ -221,13 +220,11 @@
         const btn = document.getElementById('theme-icon-btn');
         
         if(!isCurrentlyLight) {
-            // Kunduzgi rejimga o'tish
             document.body.classList.add('light-mode');
             label.innerText = "Kunduzgi rejim";
             btn.innerText = "☀️";
             localStorage.setItem('theme', 'light');
         } else {
-            // Tungi rejimga o'tish
             document.body.classList.remove('light-mode');
             label.innerText = "Tungi rejim";
             btn.innerText = "🌙";
@@ -235,7 +232,6 @@
         }
     };
 
-    // Sahifa yuklanganda oxirgi rejimni tiklash
     window.applySavedTheme = () => {
         const savedTheme = localStorage.getItem('theme');
         const label = document.getElementById('theme-label');
@@ -404,27 +400,18 @@
         const card = document.getElementById('quiz-card');
         const err = document.getElementById('error-msg');
         const btns = document.getElementById('quiz-btns');
-        
         btns.style.display = 'none';
         err.style.display = 'block';
         card.classList.add('rewind');
-        
         let t = 5;
         document.getElementById('countdown-num').innerText = t;
-        
         let targetIdx = Math.max(0, curIdx - 5);
         let animSteps = Math.max(1, curIdx - targetIdx);
         let animSpeed = 5000 / animSteps;
-
         let animInterval = setInterval(() => {
-            if(curIdx > targetIdx) {
-                curIdx--;
-                renderQ();
-            } else {
-                clearInterval(animInterval);
-            }
+            if(curIdx > targetIdx) { curIdx--; renderQ(); }
+            else { clearInterval(animInterval); }
         }, animSpeed);
-
         restartTimer = setInterval(() => {
             document.getElementById('countdown-num').innerText = --t;
             if(t <= 0) { 
@@ -447,9 +434,14 @@
         score = 0;
         currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
         const ball = Math.round((score / currentQs.length) * config.max);
-        document.getElementById('res-status').innerText = ball >= config.min ? "Tugadi 🏆" : "Tugadi ❌";
+        
+        const isPassed = ball >= config.min;
+        const statusText = isPassed ? "Yaxshi ✅" : "Yomon ❌";
+        const xulosaText = isPassed ? "Barakalla, shunday davom eting!" : "Ko'proq tayyorlaning!";
+        
+        document.getElementById('res-status').innerText = isPassed ? "Tugadi 🏆" : "Tugadi 🛑";
         document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
-        if(ball >= config.min) confetti({ particleCount: 150, spread: 70 });
+        if(isPassed) confetti({ particleCount: 150, spread: 70 });
 
         if(mode === 'real') {
             if(uid) {
@@ -460,11 +452,13 @@
                 if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
                 else await updateDoc(ref, data);
             }
-            let text = `🆕 YANGI NATIJA 📈\n\n🧑🏻‍🎓 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\\⭐ Ball: ${ball} / ${config.max}\n🚀 O'z ustingizda ishlashda davom eting!`;
+            
+            let telegramText = `🆕 YANGI NATIJA 📈\n \n🧑🏻‍🎓 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\n💎 Ball: ${ball} / ${config.max}\n🌟 Holati: ${statusText}\n \n💬 Xulosa: ${xulosaText}\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
+            
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: GROUP_ID, text: text, parse_mode: 'HTML' })
+                body: JSON.stringify({ chat_id: GROUP_ID, text: telegramText, parse_mode: 'HTML' })
             }).catch(e => console.error(e));
         }
     };

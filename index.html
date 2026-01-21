@@ -22,11 +22,17 @@
         .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: 0.2s; }
         .btn-p { background: var(--gradient); color: white; }
-        .btn-next { background: #10b981; color: white; display: none; margin-top: 15px; }
+        
+        .quiz-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .btn-nav { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 100px; }
+        .btn-prev { background: #6b7280; color: white; }
+        .btn-next { background: #10b981; color: white; }
+        .btn-finish { background: #ef4444; color: white; width: 100%; margin-top: 10px; }
 
         .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
         .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
         
+        .selected { border-color: var(--p) !important; background: rgba(0, 136, 204, 0.1) !important; font-weight: bold; }
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
 
@@ -55,7 +61,6 @@
         #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
         #lives-box { font-weight: bold; font-size: 20px; }
 
-        /* Yangi qo'shilgan uslublar */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .stat-item { background: rgba(0,136,204,0.05); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(0,136,204,0.1); }
         .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--p); }
@@ -82,11 +87,6 @@
             <p>35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
             <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
         </div>
-        <div class="card">
-            <h3>Do'stlar bilan Duel ⚔️</h3>
-            <p>Tasodifiy raqib bilan ball bellashuvi.</p>
-            <button class="btn" style="background: #6366f1; color: white;" onclick="startDuel()">DUEL QIDIRISH</button>
-        </div>
     </div>
 
     <div id="p-quiz" class="page">
@@ -100,7 +100,12 @@
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
             <div id="error-msg">Imkoniyat tugadi! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
-            <button id="next-btn" class="btn btn-next">KEYINGI SAVOL <i class="fas fa-arrow-right"></i></button>
+            
+            <div class="quiz-controls">
+                <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
+                <button id="next-btn" class="btn-nav btn-next" onclick="nextQuestion()">KEYINGI <i class="fas fa-arrow-right"></i></button>
+                <button id="finish-btn" class="btn-nav btn-finish" onclick="confirmFinish()">TESTNI YAKUNLASH <i class="fas fa-check-double"></i></button>
+            </div>
         </div>
     </div>
 
@@ -125,7 +130,7 @@
                 <div class="stat-item"><span class="stat-val" id="st-total">0</span><span class="stat-lbl">Jami test</span></div>
                 <div class="stat-item"><span class="stat-val" id="st-high">0</span><span class="stat-lbl">Eng yuqori ball</span></div>
                 <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (o'rtacha)</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-duel">0</span><span class="stat-lbl">Duellar</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-duel" style="color:#ccc">---</span><span class="stat-lbl">Statistika</span></div>
             </div>
         </div>
         <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
@@ -171,23 +176,10 @@
     const GROUP_ID = "-1003218015225";
 
     let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
-    let wrongAnswers = []; // Xatolar ustida ishlash uchun
+    let userAnswers = [];
+
     const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
     const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
-
-    // KUNDALIK BILDIRISHNOMA
-    const quotes = [
-        "Bugun yangi bilimlar olish uchun ajoyib kun!",
-        "Xatolar - muvaffaqiyat sari qo'yilgan qadamdir.",
-        "Har kuni 10 daqiqa test yechish sizni professional qiladi!",
-        "Duelda do'stlaringizni mag'lub etishga tayyormisiz?"
-    ];
-
-    window.onload = () => {
-        if(tg.initDataUnsafe?.user) {
-            tg.showAlert("Salom " + uname + "! " + quotes[Math.floor(Math.random() * quotes.length)]);
-        }
-    };
 
     window.nav = (id, el, title) => {
         document.getElementById('main-title').innerText = title;
@@ -196,7 +188,6 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if(el) el.classList.add('active');
         if(id === 'p-settings') updateLevelDisplay();
-        if(restartTimer) clearInterval(restartTimer);
     };
 
     window.toggleDark = () => {
@@ -211,7 +202,7 @@
 
     async function updateLevelDisplay() {
         document.getElementById('u-name').innerText = uname;
-        if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
+        if (!uid) return;
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? (snap.data().score || 0) : 0;
         let lv = s >= 62 ? "A'lo 🏆" : s >= 52 ? "Yaxshi ✅" : s >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
@@ -228,34 +219,23 @@
 
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0; lives = 3; wrongAnswers = [];
-        clearInterval(timer);
-        if(restartTimer) clearInterval(restartTimer);
-        document.getElementById('error-msg').style.display = 'none';
-        document.getElementById('error-analysis').style.display = 'none';
+        mode = m; curIdx = 0; score = 0; lives = 3;
         
-        if(mode === 'real' || mode === 'duel') {
+        if(mode === 'real') {
             document.getElementById('lives-box').style.display = 'none';
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
         } else {
             document.getElementById('lives-box').style.display = 'block';
             updateLivesUI();
-            currentQs = [...allQs]; 
+            currentQs = [...allQs];
             document.getElementById('timer-box').innerText = "Mashq";
         }
-        nav('p-quiz', null, mode === 'duel' ? 'Duel' : 'Test'); renderQ();
+        userAnswers = new Array(currentQs.length).fill(null);
+        nav('p-quiz', null, 'Test'); renderQ();
     };
 
-    window.startDuel = () => {
-        tg.showConfirm("Tasodifiy raqib balli bilan bellashishni istaysizmi?", (ok) => {
-            if(ok) startQuiz('duel');
-        });
-    };
-
-    function updateLivesUI() {
-        document.getElementById('lives-box').innerText = "❤️".repeat(lives);
-    }
+    function updateLivesUI() { document.getElementById('lives-box').innerText = "❤️".repeat(lives); }
 
     function startTimer(s) {
         timer = setInterval(() => {
@@ -266,11 +246,11 @@
     }
 
     function renderQ() {
-        if(curIdx >= currentQs.length) return finish();
         const q = currentQs[curIdx];
         document.getElementById('progress').innerText = `${curIdx+1}/${currentQs.length}`;
-        document.getElementById('next-btn').style.display = 'none';
-        document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('prev-btn').style.visibility = curIdx === 0 ? 'hidden' : 'visible';
+        document.getElementById('next-btn').style.display = curIdx === currentQs.length - 1 ? 'none' : 'block';
+
         const qTxt = document.getElementById('q-text');
         const qImgC = document.getElementById('q-img-cont');
         if(q.text.startsWith('data:image')) {
@@ -279,107 +259,87 @@
 
         const box = document.getElementById('options');
         box.innerHTML = '';
-        const correct = q.variants[0];
-        let opts = [...q.variants].sort(() => 0.5 - Math.random());
-        opts.forEach(opt => {
+        
+        if(!q.shuffledVariants) q.shuffledVariants = [...q.variants].sort(() => 0.5 - Math.random());
+
+        q.shuffledVariants.forEach((opt) => {
             const b = document.createElement('button');
             b.className = 'option';
+            if(userAnswers[curIdx] === opt) b.classList.add('selected');
+
+            if(mode === 'all' && userAnswers[curIdx] !== null) {
+                if(opt === q.variants[0]) b.classList.add('correct');
+                else if(opt === userAnswers[curIdx]) b.classList.add('wrong');
+                b.disabled = true;
+            }
+
             b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
+            
             b.onclick = () => {
-                const btns = box.querySelectorAll('.option');
-                btns.forEach(x => x.disabled = true);
-
-                if(opt === correct) { 
-                    b.classList.add('correct'); 
-                    score++; 
-                    document.getElementById('next-btn').style.display = 'block';
-                } else { 
-                    b.classList.add('wrong'); 
-                    wrongAnswers.push({q: q.text, a: correct});
-                    btns.forEach(x => { if(x.innerHTML.includes(correct)) x.classList.add('correct'); });
-
-                    if(mode === 'all') {
-                        lives--;
-                        updateLivesUI();
-                        if (lives > 0) {
-                            document.getElementById('next-btn').style.display = 'block';
-                        } else {
-                            let timeLeft = 10;
-                            document.getElementById('error-msg').style.display = 'block';
-                            document.getElementById('countdown-num').innerText = timeLeft;
-                            restartTimer = setInterval(() => {
-                                timeLeft--;
-                                document.getElementById('countdown-num').innerText = timeLeft;
-                                if(timeLeft <= 0) { clearInterval(restartTimer); startQuiz('all'); }
-                            }, 1000);
-                        }
-                    } else {
-                        document.getElementById('next-btn').style.display = 'block';
-                    }
+                userAnswers[curIdx] = opt;
+                if(mode === 'all' && opt !== q.variants[0]) {
+                    lives--; 
+                    updateLivesUI();
+                    if(lives <= 0) handleGameOver();
                 }
+                renderQ();
             };
             box.appendChild(b);
         });
     }
 
-    document.getElementById('next-btn').onclick = () => { curIdx++; renderQ(); };
+    window.nextQuestion = () => { if(curIdx < currentQs.length - 1) { curIdx++; renderQ(); } };
+    window.prevQuestion = () => { if(curIdx > 0) { curIdx--; renderQ(); } };
 
-    async function finish() {
+    window.confirmFinish = () => {
+        tg.showConfirm("Testni yakunlab, natijalarni ko'rishni xohlaysizmi?", (ok) => {
+            if(ok) finish();
+        });
+    };
+
+    function handleGameOver() {
+        document.getElementById('error-msg').style.display = 'block';
+        let t = 10;
+        restartTimer = setInterval(() => {
+            document.getElementById('countdown-num').innerText = --t;
+            if(t <= 0) { clearInterval(restartTimer); startQuiz('all'); }
+        }, 1000);
+    }
+
+    window.finish = async () => {
         clearInterval(timer);
-        if(restartTimer) clearInterval(restartTimer);
         nav('p-res', null, 'Natija');
+        score = 0;
+        let wrongs = [];
+        currentQs.forEach((q, i) => {
+            if(userAnswers[i] === q.variants[0]) score++;
+            else wrongs.push({q: q.text, a: q.variants[0], u: userAnswers[i]});
+        });
+
         const ball = score * 2;
-        let grade = "", msg = "", icon = "";
-
-        if(score >= 31) { grade = "A'lo"; icon = "🏆"; msg = "Siz haqiqiy professorsiz!"; }
-        else if(score >= 26) { grade = "Yaxshi"; icon = "✅"; msg = "Ajoyib natija!"; }
-        else if(score >= 21) { grade = "Qoniqarli"; icon = "⚠️"; msg = "Yomon emas, yanada harakat qiling."; }
-        else { grade = "Yomon"; icon = "🛑"; msg = "Xafa bo'lmang, qaytadan urinib ko'ring!"; }
-
-        document.getElementById('res-status').innerText = grade + " " + icon;
-        document.getElementById('res-details').innerHTML = `To'g'ri javob: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
+        document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
+        document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
         
-        // Xatolar tahlilini ko'rsatish
-        if(wrongAnswers.length > 0) {
+        if(wrongs.length > 0) {
             document.getElementById('error-analysis').style.display = 'block';
-            const errList = document.getElementById('error-list');
-            errList.innerHTML = '';
-            wrongAnswers.forEach(err => {
-                const item = document.createElement('div');
-                item.className = 'error-review-item';
-                const qDisplay = err.q.startsWith('data:image') ? "[Rasm savol]" : err.q;
-                item.innerHTML = `<div class="error-q">${qDisplay}</div><div class="error-a">To'g'ri javob: ${err.a}</div>`;
-                errList.appendChild(item);
-            });
+            const list = document.getElementById('error-list');
+            list.innerHTML = wrongs.map(w => `<div class="error-review-item"><div class="error-q">${w.q.startsWith('data:image') ? '[Rasmli savol]' : w.q}</div><div class="error-a">To'g'ri: ${w.a}</div></div>`).join('');
         }
 
-        if(score >= 21) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if(score >= 21) confetti({ particleCount: 150, spread: 70 });
 
-        if((mode === 'real' || mode === 'duel') && uid) {
+        if(mode === 'real' && uid) {
             const ref = doc(db, "reyting", uid);
             const snap = await getDoc(ref);
+            let data = { name: uname, totalTests: increment(1), lastActive: serverTimestamp() };
+            if(!snap.exists() || ball > (snap.data().score || 0)) data.score = ball;
             
-            let data = {
-                name: uname,
-                totalTests: increment(1),
-                lastActive: serverTimestamp()
-            };
+            if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
+            else await updateDoc(ref, data);
 
-            if(!snap.exists() || ball > (snap.data().score || 0)) {
-                data.score = ball;
-            }
-            if(mode === 'duel') data.duels = increment(1);
-
-            if(!snap.exists()) {
-                await setDoc(ref, { ...data, score: ball, duels: (mode === 'duel' ? 1 : 0), totalTests: 1 });
-            } else {
-                await updateDoc(ref, data);
-            }
-
-            const text = `✨ *YANGI ${mode.toUpperCase()} NATIJA* ✨\n\n🎖 *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade} ${icon}\n\n💬 *Xulosa:* _${msg}_\n────────────────────`;
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent("🎖 "+uname+"\n🎯 Natija: "+score+"/"+currentQs.length+"\n💎 Ball: "+ball)}`);
         }
-    }
+    };
 
     window.updateStatsUI = async () => {
         if(!uid) return;
@@ -389,13 +349,12 @@
             document.getElementById('st-total').innerText = d.totalTests || 0;
             document.getElementById('st-high').innerText = d.score || 0;
             document.getElementById('st-avg').innerText = Math.round((d.score || 0) / 2) + " ta";
-            document.getElementById('st-duel').innerText = d.duels || 0;
         }
-    }
+    };
 
     window.loadRank = async () => {
         const list = document.getElementById('rank-list');
-        list.innerHTML = '<p style="text-align:center">Yuklanmoqda...</p>';
+        list.innerHTML = 'Yuklanmoqda...';
         const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(20));
         const snap = await getDocs(q);
         list.innerHTML = '<h4 style="margin-top:0">Top 20 Reyting</h4>';

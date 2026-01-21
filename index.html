@@ -25,7 +25,7 @@
         .btn-next { background: #10b981; color: white; display: none; margin-top: 15px; }
 
         .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
-        .option img { max-height: 25px; max-width: 100%; object-fit: contain; }
+        .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
         
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
@@ -61,12 +61,12 @@
     <div id="p-home" class="page active">
         <div class="card" style="background: var(--gradient); color: white;">
             <h3>O'quv kursi</h3>
-            <p>Barcha savollar tartib bilan. Cheksiz vaqt.</p>
-            <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">MASHQ QILISH</button>
+            <p>Vaqt cheksiz, xatolar ustida ishlash mumkin.</p>
+            <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">O'RGANISH</button>
         </div>
         <div class="card" style="border: 2px solid var(--p);">
             <h3>Real Test</h3>
-            <p>35 ta savol | 30 daqiqa</p>
+            <p>35 ta savol | 30 daqiqa | Guruhga natija yuboriladi.</p>
             <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
         </div>
     </div>
@@ -88,7 +88,7 @@
         <div class="card" style="text-align: center;">
             <h2 id="res-status">--</h2>
             <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
-            <button class="btn btn-p" onclick="location.reload()">BOSH SAHIFA</button>
+            <button class="btn btn-p" onclick="location.reload()">ASOSIY MENYU</button>
         </div>
     </div>
 
@@ -163,7 +163,7 @@
         if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? snap.data().score : 0;
-        let lv = s >= 66 ? "A'lo 🏆" : s >= 51 ? "Yaxshi ✅" : s >= 31 ? "Qoniqarli ⚠️" : "Yomon 🌟";
+        let lv = s >= 66 ? "A'lo 🏆" : s >= 51 ? "Yaxshi ✅" : s >= 31 ? "Qoniqarli ⚠️" : "Yomon 🛑";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 
@@ -235,22 +235,28 @@
         clearInterval(timer);
         nav('p-res', null, 'Natija');
         const ball = score * 2;
-        let grade = "";
-        if(ball >= 66) grade = "A'lo 🏆";
-        else if(ball >= 51) grade = "Yaxshi ✅";
-        else if(ball >= 31) grade = "Qoniqarli ⚠️";
-        else grade = "Yomon 🛑";
+        let grade = "", medal = "", msg = "";
+
+        if(ball >= 66) { grade = "A'lo 🏆"; medal = "🥇"; msg = "Siz haqiqiy professorsiz!"; }
+        else if(ball >= 51) { grade = "Yaxshi ✅"; medal = "🥈"; msg = "Ajoyib natija, ozgina qoldi!"; }
+        else if(ball >= 31) { grade = "Qoniqarli ⚠️"; medal = "🥉"; msg = "Yana ko'proq o'qing!"; }
+        else { grade = "Yomon 🛑"; medal = "🎖"; msg = "Xafa bo'lmang, qaytadan urinib ko'ring!"; }
 
         document.getElementById('res-status').innerText = grade;
         document.getElementById('res-details').innerHTML = `To'g'ri: ${score}/${currentQs.length}<br>Ball: ${ball}`;
         
+        // Konfetti effekti
+        if(ball >= 31) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
         if(mode === 'real' && uid) {
             const ref = doc(db, "reyting", uid);
             const old = await getDoc(ref);
             if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
 
-            // Telegram guruhga yuborish
-            const text = `📊 *Yangi Natija*\n\n👤 *Foydalanuvchi:* ${uname}\n✅ *To'g'ri javob:* ${score} ta\n📈 *To'plangan ball:* ${ball}\n📝 *Holati:* ${grade}\n🆔 *ID:* ${uid}`;
+            // Guruhga chiroyli xabar
+            const text = `✨ *YANGI FOVIY NATIJA* ✨\n\n${medal} *Talaba:* ${uname}\n────────────────────\n🎯 *Natija:* ${score} / ${currentQs.length} ta\n💎 *To'plangan ball:* ${ball} ball\n🌟 *Holati:* ${grade}\n\n💬 *Xulosa:* _${msg}_\n────────────────────\n🚀 *O'z ustingizda ishlashda davom eting!*`;
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
         }
     }

@@ -27,7 +27,7 @@
         .btn-nav { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 100px; }
         .btn-prev { background: #6b7280; color: white; }
         .btn-next { background: #10b981; color: white; }
-        .btn-finish { background: #ef4444; color: white; width: 100%; margin-top: 10px; }
+        .btn-finish { background: #ef4444; color: white; width: 100%; margin-top: 10px; display: none; }
 
         .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
         .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
@@ -65,9 +65,6 @@
         .stat-item { background: rgba(0,136,204,0.05); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(0,136,204,0.1); }
         .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--p); }
         .stat-lbl { font-size: 11px; color: #666; }
-        .error-review-item { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .error-q { font-weight: bold; margin-bottom: 5px; }
-        .error-a { color: #10b981; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -99,9 +96,10 @@
             <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
+            
             <div id="error-msg">Imkoniyat tugadi! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
             
-            <div class="quiz-controls">
+            <div class="quiz-controls" id="quiz-btns">
                 <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
                 <button id="next-btn" class="btn-nav btn-next" onclick="nextQuestion()">KEYINGI <i class="fas fa-arrow-right"></i></button>
                 <button id="finish-btn" class="btn-nav btn-finish" onclick="confirmFinish()">TESTNI YAKUNLASH <i class="fas fa-check-double"></i></button>
@@ -112,13 +110,7 @@
     <div id="p-res" class="page">
         <div class="card" style="text-align: center;">
             <h2 id="res-status">--</h2>
-            <div id="res-details" style="font-size: 18px; margin: 10px 0;"></div>
-            
-            <div id="error-analysis" style="display:none; margin: 15px 0;">
-                <h4 style="margin-bottom:10px;">Xatolar tahlili:</h4>
-                <div id="error-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px;"></div>
-            </div>
-
+            <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
             <button class="btn btn-p" onclick="location.reload()">ASOSIY MENYU</button>
         </div>
     </div>
@@ -129,8 +121,8 @@
             <div class="stat-grid">
                 <div class="stat-item"><span class="stat-val" id="st-total">0</span><span class="stat-lbl">Jami test</span></div>
                 <div class="stat-item"><span class="stat-val" id="st-high">0</span><span class="stat-lbl">Eng yuqori ball</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (o'rtacha)</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-duel" style="color:#ccc">---</span><span class="stat-lbl">Statistika</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (avg)</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-misc" style="color:#ccc">---</span><span class="stat-lbl">Statistika</span></div>
             </div>
         </div>
         <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
@@ -172,7 +164,7 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
+    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_U-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
     let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
@@ -182,6 +174,7 @@
     const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
 
     window.nav = (id, el, title) => {
+        if(restartTimer) clearInterval(restartTimer);
         document.getElementById('main-title').innerText = title;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -220,7 +213,11 @@
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
         mode = m; curIdx = 0; score = 0; lives = 3;
+        document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('quiz-btns').style.display = 'flex';
         
+        document.getElementById('finish-btn').style.display = 'none';
+
         if(mode === 'real') {
             document.getElementById('lives-box').style.display = 'none';
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
@@ -238,10 +235,14 @@
     function updateLivesUI() { document.getElementById('lives-box').innerText = "❤️".repeat(lives); }
 
     function startTimer(s) {
+        if(timer) clearInterval(timer);
         timer = setInterval(() => {
             let m = Math.floor(s/60), sc = s%60;
             document.getElementById('timer-box').innerText = `${m}:${sc<10?'0':''}${sc}`;
-            if(--s < 0) finish();
+            if(--s < 0) {
+                clearInterval(timer);
+                finish(); 
+            }
         }, 1000);
     }
 
@@ -277,6 +278,11 @@
             
             b.onclick = () => {
                 userAnswers[curIdx] = opt;
+                
+                if(mode === 'real') {
+                    document.getElementById('finish-btn').style.display = 'block';
+                }
+
                 if(mode === 'all' && opt !== q.variants[0]) {
                     lives--; 
                     updateLivesUI();
@@ -292,40 +298,36 @@
     window.prevQuestion = () => { if(curIdx > 0) { curIdx--; renderQ(); } };
 
     window.confirmFinish = () => {
-        tg.showConfirm("Testni yakunlab, natijalarni ko'rishni xohlaysizmi?", (ok) => {
-            if(ok) finish();
-        });
+        tg.showConfirm("Testni yakunlab, natijalarni ko'rishni xohlaysizmi?", (ok) => { if(ok) finish(); });
     };
 
     function handleGameOver() {
+        if(timer) clearInterval(timer);
+        document.getElementById('quiz-btns').style.display = 'none';
         document.getElementById('error-msg').style.display = 'block';
         let t = 10;
+        document.getElementById('countdown-num').innerText = t;
         restartTimer = setInterval(() => {
             document.getElementById('countdown-num').innerText = --t;
-            if(t <= 0) { clearInterval(restartTimer); startQuiz('all'); }
+            if(t <= 0) { 
+                clearInterval(restartTimer); 
+                startQuiz('all'); 
+            }
         }, 1000);
     }
 
     window.finish = async () => {
         clearInterval(timer);
+        if(restartTimer) clearInterval(restartTimer);
+        
         nav('p-res', null, 'Natija');
         score = 0;
-        let wrongs = [];
-        currentQs.forEach((q, i) => {
-            if(userAnswers[i] === q.variants[0]) score++;
-            else wrongs.push({q: q.text, a: q.variants[0], u: userAnswers[i]});
-        });
+        currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
 
         const ball = score * 2;
         document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
-        document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
+        document.getElementById('res-details').innerHTML = `To'g'ri javoblar: <b>${score} ta</b><br>To'plangan ball: <b>${ball}</b>`;
         
-        if(wrongs.length > 0) {
-            document.getElementById('error-analysis').style.display = 'block';
-            const list = document.getElementById('error-list');
-            list.innerHTML = wrongs.map(w => `<div class="error-review-item"><div class="error-q">${w.q.startsWith('data:image') ? '[Rasmli savol]' : w.q}</div><div class="error-a">To'g'ri: ${w.a}</div></div>`).join('');
-        }
-
         if(score >= 21) confetti({ particleCount: 150, spread: 70 });
 
         if(mode === 'real' && uid) {
@@ -337,7 +339,13 @@
             if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
             else await updateDoc(ref, data);
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent("🎖 "+uname+"\n🎯 Natija: "+score+"/"+currentQs.length+"\n💎 Ball: "+ball)}`);
+            // Telegram uchun chiroyli xabar tayyorlash
+            let holat = ball >= 62 ? "A'lo 🏆" : ball >= 52 ? "Yaxshi ✅" : ball >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
+            let xulosa = ball >= 62 ? "Siz haqiqiy professorsiz!" : ball >= 52 ? "Juda yaxshi natija, ozgina harakat qolsa bo'ldi!" : ball >= 42 ? "Yomon emas, lekin ko'proq o'qishingiz kerak." : "Afsuski, natija past. Ko'proq tayyorlaning!";
+
+            let message = `✨ YANGI NATIJA ✨\n\n🥇 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\n💎 To'plangan ball: ${ball} ball\n🌟 Holati: ${holat}\n\n💬 Xulosa: ${xulosa}\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
+
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(message)}`);
         }
     };
 
@@ -348,7 +356,7 @@
             const d = snap.data();
             document.getElementById('st-total').innerText = d.totalTests || 0;
             document.getElementById('st-high').innerText = d.score || 0;
-            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / 2) + " ta";
+            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / (d.totalTests || 1) / 2) + " ta";
         }
     };
 

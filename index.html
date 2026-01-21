@@ -8,66 +8,104 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
-            --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21;
-            --p: #0088cc; --gradient: linear-gradient(135deg, #0088cc 0%, #005588 100%);
+            --bg: #000000; 
+            --card: #121212; 
+            --text: #D4AF37; 
+            --p: #D4AF37; 
+            --gradient: linear-gradient(135deg, #D4AF37 0%, #8A6E2F 100%);
+            --border: #2a2a2a;
+            --nav-bg: #0a0a0a;
+            --opt-bg: #1a1a1a;
         }
-        body.dark { --bg: #18191a; --card: #242526; --text: #e4e6eb; }
+
+        /* KUNDUZGI REJIM (Oppoq fon, qora matn) */
+        body.light-mode { 
+            --bg: #ffffff; 
+            --card: #f8f9fa; 
+            --text: #000000; 
+            --p: #000000;
+            --border: #dee2e6;
+            --nav-bg: #f1f3f5;
+            --opt-bg: #ffffff;
+            --gradient: linear-gradient(135deg, #000000 0%, #333333 100%);
+        }
+
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
 
-        .header-title { text-align: center; padding: 20px 0; margin: 0; font-size: 24px; font-weight: bold; text-transform: capitalize; }
+        .header-title { text-align: center; padding: 20px 0; margin: 0; font-size: 24px; font-weight: bold; text-transform: capitalize; color: var(--text); border-bottom: 1px solid var(--border); }
         .page { display: none; padding: 15px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); margin-bottom: 15px; border: 1px solid var(--border); }
         .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: 0.2s; }
-        .btn-p { background: var(--gradient); color: white; }
+        .btn-p { background: var(--gradient); color: #fff; }
+        body:not(.light-mode) .btn-p { color: #000; }
         
         .quiz-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .btn-nav { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 100px; }
-        .btn-prev { background: #6b7280; color: white; }
-        .btn-next { background: #10b981; color: white; }
+        .btn-prev { background: #333; color: #fff; border: 1px solid var(--border); }
+        .btn-next { background: var(--text); color: var(--bg); }
         .btn-finish { background: #ef4444; color: white; width: 100%; margin-top: 10px; display: none; }
 
-        .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
-        .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
+        .option { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--opt-bg); color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; transition: 0.3s; }
         
-        .selected { border-color: var(--p) !important; background: rgba(0, 136, 204, 0.1) !important; font-weight: bold; }
-        .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
-        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
+        .selected { border-color: var(--text) !important; background: rgba(212, 175, 55, 0.1) !important; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; }
 
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--nav-bg); display: flex; border-top: 1px solid var(--border); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: #888; cursor: pointer; }
-        .nav-item.active { color: var(--p); font-weight: bold; }
+        .nav-item.active { color: var(--text); font-weight: bold; }
         .nav-item i { font-size: 25px; display: block; margin-bottom: 4px; }
 
-        #img-modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
-        #img-modal img { max-width: 95%; max-height: 95%; }
+        #img-modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
+        #img-modal img { max-width: 95%; max-height: 95%; border: 2px solid var(--text); }
 
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: var(--p); color: white; margin-top: 5px; display: inline-block; }
-        #timer-box { font-weight: bold; color: #d93025; font-size: 18px; }
-
-        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .rank-score { font-weight: bold; color: #10b981; }
-
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--p); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: var(--gradient); color: #fff; margin-top: 5px; display: inline-block; font-weight: bold; }
+        body:not(.light-mode) .badge { color: #000; }
         
-        #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.05); }
+        #timer-box { font-weight: bold; color: #ef4444; font-size: 18px; }
+
+        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); }
+        .rank-score { font-weight: bold; color: var(--text); }
+
+        /* REJIM TUGMASI UCHUN STIL */
+        .theme-btn { 
+            background: var(--opt-bg); 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            padding: 8px 15px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: 0.3s;
+        }
+        
+        #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.1); }
         #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
         #lives-box { font-weight: bold; font-size: 20px; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .stat-item { background: rgba(0,136,204,0.05); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(0,136,204,0.1); }
-        .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--p); }
-        .stat-lbl { font-size: 11px; color: #666; }
+        .stat-item { background: var(--opt-bg); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--text); }
+        .stat-lbl { font-size: 11px; color: #888; }
 
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .setting-input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid #ddd; text-align: center; }
+        .setting-input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid var(--border); background: var(--opt-bg); color: var(--text); text-align: center; }
+        
+        .rewind { animation: rewindEffect 0.1s infinite; opacity: 0.7; pointer-events: none; }
+        @keyframes rewindEffect {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-3px); }
+            100% { transform: translateX(0); }
+        }
+        
+        h3, h4 { color: var(--text); }
+        p { color: inherit; opacity: 0.8; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -77,12 +115,12 @@
     <h2 id="main-title" class="header-title">Asosiy</h2>
 
     <div id="p-home" class="page active">
-        <div class="card" style="background: var(--gradient); color: white;">
-            <h3>O'quv kursi</h3>
-            <p>3 marta xato qilsangiz, test boshidan boshlanadi!</p>
-            <button class="btn" style="background: white; color: var(--p);" onclick="startQuiz('all')">O'RGANISH</button>
+        <div class="card" style="background: var(--gradient); border: none;">
+            <h3 style="color: #fff;">O'quv kursi</h3>
+            <p style="color: #fff; font-weight: 500;">1 ta xato qilsangiz, 5 ta savol orqaga qaytasiz!</p>
+            <button class="btn" style="background: var(--bg); color: var(--text);" onclick="startQuiz('all')">O'RGANISH</button>
         </div>
-        <div class="card" style="border: 2px solid var(--p);">
+        <div class="card" style="border: 1px solid var(--text);">
             <h3>Real Test</h3>
             <p id="real-info">35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
             <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
@@ -90,17 +128,17 @@
     </div>
 
     <div id="p-quiz" class="page">
-        <div class="card">
+        <div class="card" id="quiz-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span id="timer-box">--:--</span>
-                <span id="lives-box" style="display:none;">❤️❤️❤️</span>
+                <span id="lives-box" style="display:none;">❤️</span>
                 <span id="progress" style="font-weight: bold;">0/0</span>
             </div>
             <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
-            <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in;" onclick="zoomImg(this.src)"></div>
+            <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:200px; cursor:zoom-in; border: 1px solid var(--border);" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
             
-            <div id="error-msg">Imkoniyat tugadi! Boshidan boshlanadi: <span id="countdown-num">10</span></div>
+            <div id="error-msg">Xato! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
             
             <div class="quiz-controls" id="quiz-btns">
                 <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
@@ -112,7 +150,7 @@
 
     <div id="p-res" class="page">
         <div class="card" style="text-align: center;">
-            <h2 id="res-status">--</h2>
+            <h2 id="res-status" style="color: var(--text);">--</h2>
             <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
             <button class="btn btn-p" onclick="location.reload()">ASOSIY MENYU</button>
         </div>
@@ -125,7 +163,7 @@
                 <div class="stat-item"><span class="stat-val" id="st-total">0</span><span class="stat-lbl">Jami test</span></div>
                 <div class="stat-item"><span class="stat-val" id="st-high">0</span><span class="stat-lbl">Eng yuqori ball</span></div>
                 <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (avg)</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-misc" style="color:#ccc">---</span><span class="stat-lbl">Statistika</span></div>
+                <div class="stat-item"><span class="stat-val" id="st-misc" style="color:#888">---</span><span class="stat-lbl">Statistika</span></div>
             </div>
         </div>
         <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
@@ -134,15 +172,15 @@
     <div id="p-settings" class="page">
         <div class="card">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: var(--p); color:white; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fas fa-user"></i></div>
+                <div style="background: var(--text); color:var(--bg); width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fas fa-user"></i></div>
                 <div>
                     <b id="u-name">...</b><br>
                     <span class="badge" id="u-level">Daraja: Yuklanmoqda...</span>
                 </div>
             </div>
-            <hr style="margin:20px 0; opacity:0.1;">
+            <hr style="margin:20px 0; border: 0; border-top: 1px solid var(--border);">
             
-            <h4 style="margin: 0 0 15px 0; color: var(--p);">Real Test Sozlamalari</h4>
+            <h4 style="margin: 0 0 15px 0; color: var(--text);">Real Test Sozlamalari</h4>
             <div class="setting-row">
                 <span>Vaqt (daqiqa):</span>
                 <input type="number" id="cfg-time" class="setting-input" value="30" onchange="saveConfig()">
@@ -160,14 +198,11 @@
                 <input type="number" id="cfg-max" class="setting-input" value="70" onchange="saveConfig()">
             </div>
 
-            <hr style="margin:20px 0; opacity:0.1;">
+            <hr style="margin:20px 0; border: 0; border-top: 1px solid var(--border);">
             
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Tungi rejim</span>
-                <label class="switch">
-                    <input type="checkbox" id="dark-toggle" onchange="toggleDark()">
-                    <span class="slider"></span>
-                </label>
+                <span id="theme-label">Tungi rejim</span>
+                <button id="theme-icon-btn" class="theme-btn" onclick="toggleDark()">🌙</button>
             </div>
         </div>
     </div>
@@ -179,6 +214,47 @@
     </div>
 
 <script type="module">
+    // --- YANGILANGAN REJIM FUNKSIYALARI ---
+    window.toggleDark = () => {
+        const isCurrentlyLight = document.body.classList.contains('light-mode');
+        const label = document.getElementById('theme-label');
+        const btn = document.getElementById('theme-icon-btn');
+        
+        if(!isCurrentlyLight) {
+            // Kunduzgi rejimga o'tish
+            document.body.classList.add('light-mode');
+            label.innerText = "Kunduzgi rejim";
+            btn.innerText = "☀️";
+            localStorage.setItem('theme', 'light');
+        } else {
+            // Tungi rejimga o'tish
+            document.body.classList.remove('light-mode');
+            label.innerText = "Tungi rejim";
+            btn.innerText = "🌙";
+            localStorage.setItem('theme', 'dark');
+        }
+    };
+
+    // Sahifa yuklanganda oxirgi rejimni tiklash
+    window.applySavedTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        const label = document.getElementById('theme-label');
+        const btn = document.getElementById('theme-icon-btn');
+        
+        if(savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            label.innerText = "Kunduzgi rejim";
+            btn.innerText = "☀️";
+        } else {
+            document.body.classList.remove('light-mode');
+            label.innerText = "Tungi rejim";
+            btn.innerText = "🌙";
+        }
+    };
+    
+    window.addEventListener('DOMContentLoaded', applySavedTheme);
+    // --------------------------------------
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -191,10 +267,9 @@
     const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 1;
     let userAnswers = [];
 
-    // Konfiguratsiya yuklash
     let config = JSON.parse(localStorage.getItem('quizConfig')) || { time: 30, count: 35, min: 42, max: 70 };
     
     window.saveConfig = () => {
@@ -230,16 +305,6 @@
         if(id === 'p-settings') updateLevelDisplay();
     };
 
-    window.toggleDark = () => {
-        const dark = document.getElementById('dark-toggle').checked;
-        document.body.classList.toggle('dark', dark);
-        localStorage.setItem('dark', dark);
-    };
-    if(localStorage.getItem('dark') === 'true') {
-        document.getElementById('dark-toggle').checked = true;
-        document.body.classList.add('dark');
-    }
-
     async function updateLevelDisplay() {
         document.getElementById('u-name').innerText = uname;
         if (!uid) return;
@@ -259,7 +324,7 @@
 
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0; lives = 3;
+        mode = m; curIdx = 0; score = 0; lives = 1;
         document.getElementById('error-msg').style.display = 'none';
         document.getElementById('quiz-btns').style.display = 'flex';
         document.getElementById('finish-btn').style.display = 'none';
@@ -287,10 +352,7 @@
         timer = setInterval(() => {
             let m = Math.floor(s/60), sc = s%60;
             document.getElementById('timer-box').innerText = `${m}:${sc<10?'0':''}${sc}`;
-            if(--s < 0) {
-                clearInterval(timer);
-                finish(); 
-            }
+            if(--s < 0) { clearInterval(timer); finish(); }
         }, 1000);
     }
 
@@ -339,13 +401,43 @@
 
     function handleGameOver() {
         if(timer) clearInterval(timer);
-        document.getElementById('quiz-btns').style.display = 'none';
-        document.getElementById('error-msg').style.display = 'block';
-        let t = 10;
+        const card = document.getElementById('quiz-card');
+        const err = document.getElementById('error-msg');
+        const btns = document.getElementById('quiz-btns');
+        
+        btns.style.display = 'none';
+        err.style.display = 'block';
+        card.classList.add('rewind');
+        
+        let t = 5;
         document.getElementById('countdown-num').innerText = t;
+        
+        let targetIdx = Math.max(0, curIdx - 5);
+        let animSteps = Math.max(1, curIdx - targetIdx);
+        let animSpeed = 5000 / animSteps;
+
+        let animInterval = setInterval(() => {
+            if(curIdx > targetIdx) {
+                curIdx--;
+                renderQ();
+            } else {
+                clearInterval(animInterval);
+            }
+        }, animSpeed);
+
         restartTimer = setInterval(() => {
             document.getElementById('countdown-num').innerText = --t;
-            if(t <= 0) { clearInterval(restartTimer); startQuiz('all'); }
+            if(t <= 0) { 
+                clearInterval(restartTimer); 
+                card.classList.remove('rewind');
+                curIdx = targetIdx;
+                lives = 1; 
+                for(let i = curIdx; i < userAnswers.length; i++) userAnswers[i] = null;
+                err.style.display = 'none';
+                btns.style.display = 'flex';
+                updateLivesUI();
+                renderQ();
+            }
         }, 1000);
     }
 
@@ -354,11 +446,8 @@
         nav('p-res', null, 'Natija');
         score = 0;
         currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
-        
-        // Ballni dinamik hisoblash (Maks ballga nisbatan)
         const ball = Math.round((score / currentQs.length) * config.max);
-        
-        document.getElementById('res-status').innerText = ball >= config.min ? "Tugadi 🏆" : "Tugadi 🛑";
+        document.getElementById('res-status').innerText = ball >= config.min ? "Tugadi 🏆" : "Tugadi ❌";
         document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
         if(ball >= config.min) confetti({ particleCount: 150, spread: 70 });
 
@@ -371,29 +460,12 @@
                 if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
                 else await updateDoc(ref, data);
             }
-
-            let holat = ball >= config.max * 0.9 ? "A'lo 🥇" : ball >= config.min ? "Yaxshi 🥈" : "Yomon ❌";
-            let xulosa = ball >= config.min ? "Muvaffaqiyatli o'tdingiz!" : "Ko'proq tayyorlaning!";
-
-            let text = `✨ YANGI NATIJA ✨\n\n` +
-                       `🧑🏻‍🎓 Talaba: ${uname}\n` +
-                       `────────────────────\n` +
-                       `🎯 Natija: ${score} / ${currentQs.length} ta\n` +
-                       `💎 Ball: ${ball} / ${config.max}\n` +
-                       `🌟 Holati: ${holat}\n\n` +
-                       `💬 Xulosa: ${xulosa}\n` +
-                       `────────────────────\n` +
-                       `🚀 O'z ustingizda ishlashda davom eting!`;
-
+            let text = `🆕 YANGI NATIJA 📈\n\n🧑🏻‍🎓 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\\⭐ Ball: ${ball} / ${config.max}\n🚀 O'z ustingizda ishlashda davom eting!`;
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: GROUP_ID,
-                    text: text,
-                    parse_mode: 'HTML'
-                })
-            }).catch(err => console.error("Xabar ketmadi:", err));
+                body: JSON.stringify({ chat_id: GROUP_ID, text: text, parse_mode: 'HTML' })
+            }).catch(e => console.error(e));
         }
     };
 
@@ -421,6 +493,7 @@
     };
 
     loadData();
+    applySavedTheme(); 
 </script>
 </body>
 </html>

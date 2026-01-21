@@ -14,9 +14,7 @@
         body.dark { --bg: #18191a; --card: #242526; --text: #e4e6eb; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
 
-        /* Sarlavha stili */
         .header-title { text-align: center; padding: 20px 0; margin: 0; font-size: 24px; font-weight: bold; text-transform: capitalize; }
-
         .page { display: none; padding: 15px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -26,19 +24,15 @@
         .btn-p { background: var(--gradient); color: white; }
         .btn-next { background: #10b981; color: white; display: none; margin-top: 15px; }
 
-        /* Variantlar */
         .option { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 12px; background: none; color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; }
-        .option img { max-height: 23px; max-width: 100%; object-fit: contain; }
+        .option img { max-height: 25px; max-width: 100%; object-fit: contain; }
         
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; font-weight: bold; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; font-weight: bold; }
 
-        /* Navigatsiya */
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: #888; cursor: pointer; }
         .nav-item.active { color: var(--p); font-weight: bold; }
-        
-        /* Ikonka 25px */
         .nav-item i { font-size: 25px; display: block; margin-bottom: 4px; }
 
         #img-modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
@@ -48,7 +42,6 @@
         #timer-box { font-weight: bold; color: #d93025; font-size: 18px; }
 
         .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .rank-name { flex: 1; margin-left: 10px; font-weight: 500; }
         .rank-score { font-weight: bold; color: #10b981; }
 
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
@@ -63,7 +56,6 @@
 <body>
 
     <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img" src=""></div>
-
     <h2 id="main-title" class="header-title">Asosiy</h2>
 
     <div id="p-home" class="page active">
@@ -134,20 +126,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM",
-        projectId: "meningquizilovam",
-        appId: "1:107483720751:web:505d527fbccbbf4ce26ada"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM", projectId: "meningquizilovam", appId: "1:107483720751:web:505d527fbccbbf4ce26ada" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
+    const GROUP_ID = "-1003218015225";
+
     let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer;
-    const rawId = tg.initDataUnsafe?.user?.id;
-    const uid = rawId ? rawId.toString() : null;
+    const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
     const uname = tg.initDataUnsafe?.user?.first_name || "Mehmon";
 
     window.nav = (id, el, title) => {
@@ -174,7 +163,7 @@
         if (!uid) { document.getElementById('u-level').innerText = "Daraja: Kirilmagan"; return; }
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? snap.data().score : 0;
-        let lv = s >= 60 ? "Grand Master 🏆" : s >= 50 ? "Bilimdon 🎓" : s >= 40 ? "O'quvchi 📚" : "Yangi 🌟";
+        let lv = s >= 66 ? "A'lo 🏆" : s >= 51 ? "Yaxshi ✅" : s >= 31 ? "Qoniqarli ⚠️" : "Yomon 🌟";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 
@@ -190,7 +179,6 @@
         if(allQs.length === 0) await loadData();
         mode = m; curIdx = 0; score = 0;
         clearInterval(timer);
-        document.getElementById('main-title').innerText = "Test";
         if(mode === 'real') {
             currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
             startTimer(30 * 60);
@@ -214,20 +202,16 @@
         const q = currentQs[curIdx];
         document.getElementById('progress').innerText = `${curIdx+1}/${currentQs.length}`;
         document.getElementById('next-btn').style.display = 'none';
-        
         const qTxt = document.getElementById('q-text');
         const qImgC = document.getElementById('q-img-cont');
         if(q.text.startsWith('data:image')) {
-            qTxt.innerText = "Savol:";
-            document.getElementById('q-image').src = q.text;
-            qImgC.style.display = 'block';
+            qTxt.innerText = "Savol:"; document.getElementById('q-image').src = q.text; qImgC.style.display = 'block';
         } else { qTxt.innerText = q.text; qImgC.style.display = 'none'; }
 
         const box = document.getElementById('options');
         box.innerHTML = '';
         const correct = q.variants[0];
         let opts = [...q.variants].sort(() => 0.5 - Math.random());
-
         opts.forEach(opt => {
             const b = document.createElement('button');
             b.className = 'option';
@@ -251,12 +235,23 @@
         clearInterval(timer);
         nav('p-res', null, 'Natija');
         const ball = score * 2;
-        document.getElementById('res-status').innerText = ball >= 42 ? "O'tdingiz! 🎉" : "Yiqildingiz! ❌";
+        let grade = "";
+        if(ball >= 66) grade = "A'lo 🏆";
+        else if(ball >= 51) grade = "Yaxshi ✅";
+        else if(ball >= 31) grade = "Qoniqarli ⚠️";
+        else grade = "Yomon 🛑";
+
+        document.getElementById('res-status').innerText = grade;
         document.getElementById('res-details').innerHTML = `To'g'ri: ${score}/${currentQs.length}<br>Ball: ${ball}`;
+        
         if(mode === 'real' && uid) {
             const ref = doc(db, "reyting", uid);
             const old = await getDoc(ref);
             if(!old.exists() || ball > old.data().score) await setDoc(ref, { name: uname, score: ball, date: serverTimestamp() });
+
+            // Telegram guruhga yuborish
+            const text = `📊 *Yangi Natija*\n\n👤 *Foydalanuvchi:* ${uname}\n✅ *To'g'ri javob:* ${score} ta\n📈 *To'plangan ball:* ${ball}\n📝 *Holati:* ${grade}\n🆔 *ID:* ${uid}`;
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${GROUP_ID}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
         }
     }
 

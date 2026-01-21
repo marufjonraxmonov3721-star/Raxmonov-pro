@@ -65,6 +65,9 @@
         .stat-item { background: rgba(0,136,204,0.05); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(0,136,204,0.1); }
         .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--p); }
         .stat-lbl { font-size: 11px; color: #666; }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .setting-input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid #ddd; text-align: center; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -81,7 +84,7 @@
         </div>
         <div class="card" style="border: 2px solid var(--p);">
             <h3>Real Test</h3>
-            <p>35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
+            <p id="real-info">35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
             <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
         </div>
     </div>
@@ -138,6 +141,27 @@
                 </div>
             </div>
             <hr style="margin:20px 0; opacity:0.1;">
+            
+            <h4 style="margin: 0 0 15px 0; color: var(--p);">Real Test Sozlamalari</h4>
+            <div class="setting-row">
+                <span>Vaqt (daqiqa):</span>
+                <input type="number" id="cfg-time" class="setting-input" value="30" onchange="saveConfig()">
+            </div>
+            <div class="setting-row">
+                <span>Savollar soni:</span>
+                <input type="number" id="cfg-count" class="setting-input" value="35" onchange="saveConfig()">
+            </div>
+            <div class="setting-row">
+                <span>O'tish balli (Min):</span>
+                <input type="number" id="cfg-min" class="setting-input" value="42" onchange="saveConfig()">
+            </div>
+            <div class="setting-row">
+                <span>Maksimal ball:</span>
+                <input type="number" id="cfg-max" class="setting-input" value="70" onchange="saveConfig()">
+            </div>
+
+            <hr style="margin:20px 0; opacity:0.1;">
+            
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Tungi rejim</span>
                 <label class="switch">
@@ -170,6 +194,29 @@
     let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 3;
     let userAnswers = [];
 
+    // Konfiguratsiya yuklash
+    let config = JSON.parse(localStorage.getItem('quizConfig')) || { time: 30, count: 35, min: 42, max: 70 };
+    
+    window.saveConfig = () => {
+        config = {
+            time: parseInt(document.getElementById('cfg-time').value) || 30,
+            count: parseInt(document.getElementById('cfg-count').value) || 35,
+            min: parseInt(document.getElementById('cfg-min').value) || 42,
+            max: parseInt(document.getElementById('cfg-max').value) || 70
+        };
+        localStorage.setItem('quizConfig', JSON.stringify(config));
+        updateHomeUI();
+    };
+
+    function updateHomeUI() {
+        document.getElementById('real-info').innerText = `${config.count} ta savol | ${config.time} daqiqa | Reytingga yoziladi.`;
+        document.getElementById('cfg-time').value = config.time;
+        document.getElementById('cfg-count').value = config.count;
+        document.getElementById('cfg-min').value = config.min;
+        document.getElementById('cfg-max').value = config.max;
+    }
+    updateHomeUI();
+
     const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
     const uname = (tg.initDataUnsafe?.user?.first_name || "") + " " + (tg.initDataUnsafe?.user?.last_name || "");
 
@@ -198,7 +245,7 @@
         if (!uid) return;
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? (snap.data().score || 0) : 0;
-        let lv = s >= 62 ? "A'lo 🏆" : s >= 52 ? "Yaxshi ✅" : s >= 42 ? "Qoniqarli ⚠️" : "Yomon 🛑";
+        let lv = s >= config.max * 0.9 ? "A'lo 🏆" : s >= config.min ? "Yaxshi ✅" : "Yomon 🛑";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 
@@ -219,13 +266,15 @@
 
         if(mode === 'real') {
             document.getElementById('lives-box').style.display = 'none';
-            currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, 35);
-            startTimer(30 * 60);
+            document.getElementById('timer-box').style.display = 'block';
+            currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, config.count);
+            startTimer(config.time * 60);
         } else {
+            if(timer) clearInterval(timer);
             document.getElementById('lives-box').style.display = 'block';
+            document.getElementById('timer-box').style.display = 'none';
             updateLivesUI();
             currentQs = [...allQs];
-            document.getElementById('timer-box').innerText = "Mashq";
         }
         userAnswers = new Array(currentQs.length).fill(null);
         nav('p-quiz', null, 'Test'); renderQ();
@@ -301,14 +350,17 @@
     }
 
     window.finish = async () => {
-        clearInterval(timer);
+        if(timer) clearInterval(timer);
         nav('p-res', null, 'Natija');
         score = 0;
         currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
-        const ball = score * 2;
-        document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
+        
+        // Ballni dinamik hisoblash (Maks ballga nisbatan)
+        const ball = Math.round((score / currentQs.length) * config.max);
+        
+        document.getElementById('res-status').innerText = ball >= config.min ? "Tugadi 🏆" : "Tugadi 🛑";
         document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
-        if(score >= 21) confetti({ particleCount: 150, spread: 70 });
+        if(ball >= config.min) confetti({ particleCount: 150, spread: 70 });
 
         if(mode === 'real') {
             if(uid) {
@@ -320,20 +372,19 @@
                 else await updateDoc(ref, data);
             }
 
-            let holat = ball >= 62 ? "A'lo 🥇" : ball >= 52 ? "Yaxshi 🥈" : ball >= 42 ? "Qoniqarli🥉 " : "Yomon ❌";
-            let xulosa = ball >= 62 ? "Siz haqiqiy professorsiz!" : ball >= 52 ? "Juda yaxshi natija!" : ball >= 42 ? "Yomon emas, harakat qiling." : "Ko'proq tayyorlaning!";
+            let holat = ball >= config.max * 0.9 ? "A'lo 🥇" : ball >= config.min ? "Yaxshi 🥈" : "Yomon ❌";
+            let xulosa = ball >= config.min ? "Muvaffaqiyatli o'tdingiz!" : "Ko'proq tayyorlaning!";
 
             let text = `✨ YANGI NATIJA ✨\n\n` +
                        `🧑🏻‍🎓 Talaba: ${uname}\n` +
                        `────────────────────\n` +
                        `🎯 Natija: ${score} / ${currentQs.length} ta\n` +
-                       `💎 To'plangan ball: ${ball} ball\n` +
+                       `💎 Ball: ${ball} / ${config.max}\n` +
                        `🌟 Holati: ${holat}\n\n` +
                        `💬 Xulosa: ${xulosa}\n` +
                        `────────────────────\n` +
                        `🚀 O'z ustingizda ishlashda davom eting!`;
 
-            // Bot orqali xabar yuborish
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -353,7 +404,7 @@
             const d = snap.data();
             document.getElementById('st-total').innerText = d.totalTests || 0;
             document.getElementById('st-high').innerText = d.score || 0;
-            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / (d.totalTests || 1) / 2) + " ta";
+            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / (d.totalTests || 1)) + " ball";
         }
     };
 

@@ -143,7 +143,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, getDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM",
@@ -163,22 +163,25 @@
     let curIdx = 0, timerInt = null, mode = "", isFinished = false; 
     
     const userName = tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi";
-    const userId = tg.initDataUnsafe?.user?.id || "guest";
+    const userId = (tg.initDataUnsafe?.user?.id || "guest").toString();
     document.getElementById('tg-name').innerText = userName;
 
-    // --- BLOKLASHNI TEKSHIRISH FUNKSIYASI ---
-    async function checkBan() {
+    // --- REAL VAQTDA BLOKLASHNI TEKSHIRISH ---
+    function setupRealtimeBan() {
         if(userId === "guest") return;
-        try {
-            const banRef = doc(db, "banned_users", userId.toString());
-            const banSnap = await getDoc(banRef);
-            if(banSnap.exists()) {
+        const banRef = doc(db, "banned_users", userId);
+        
+        // onSnapshot orqali real vaqtda kuzatamiz
+        onSnapshot(banRef, (snap) => {
+            if(snap.exists()) {
                 document.getElementById('main-app').style.display = 'none';
                 document.getElementById('ban-overlay').style.display = 'flex';
-                return true;
+                if(timerInt) clearInterval(timerInt);
+            } else {
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('ban-overlay').style.display = 'none';
             }
-        } catch(e) { console.error("Ban check error", e); }
-        return false;
+        });
     }
 
     window.toggleDarkMode = () => {
@@ -192,9 +195,6 @@
     }
 
     async function loadData() {
-        const isBanned = await checkBan();
-        if(isBanned) return;
-
         const snap = await getDocs(collection(db, "savollar"));
         let list = [];
         snap.forEach(d => list.push({ ...d.data(), id: d.id }));
@@ -211,9 +211,6 @@
     };
 
     window.startMode = async (m) => {
-        const isBanned = await checkBan();
-        if(isBanned) return;
-
         if(allQs.length === 0) await loadData();
         mode = m; curIdx = 0; userAnswers = []; isFinished = false;
         if(mode === 'real') {
@@ -269,9 +266,6 @@
             b.innerHTML = formatContent(opt);
             
             b.onclick = async () => {
-                const isBanned = await checkBan();
-                if(isBanned) return;
-
                 if (mode === 'all') {
                     const allBtns = box.querySelectorAll('.option');
                     allBtns.forEach(btn => btn.disabled = true);
@@ -365,10 +359,9 @@
         });
     };
 
-    // ILOVA YUKLANGANDA BIRINCHI NAVBATDA BLOKNI TEKSHIRADI
-    checkBan().then(isBanned => {
-        if(!isBanned) loadData();
-    });
+    // ILOVA YUKLANGANDA
+    setupRealtimeBan(); // Real vaqtda blokni kuzatishni boshlash
+    loadData(); // Savollarni yuklash
 </script>
 </body>
 </html>

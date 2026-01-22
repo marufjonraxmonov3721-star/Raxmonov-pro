@@ -304,7 +304,7 @@
         if (!uid) return;
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? (snap.data().score || 0) : 0;
-        let lv = s >= 62 ? "5 (A'lo) 🏆" : s >= 52 ? "4 (Yaxshi) ✅" : s >= 42 ? "3 (Qoniqarli) ⚠️" : "2 (Yomon) 🛑";
+        let lv = s >= 62 ? "5 (A'lo) 🏆" : s >= 52 ? "4  ✅" : s >= 42 ? "3  ☑️" : "2 ❌ ";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 

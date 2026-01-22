@@ -10,8 +10,8 @@
         :root { 
             --bg: #000000; 
             --card: #121212; 
-            --text: #ffffff; /* TIM OPPOQ MATN */
-            --p: #ffffff;    /* TIM OPPOQ MATN */
+            --text: #ffffff; 
+            --p: #ffffff;    
             --gradient: linear-gradient(135deg, #D4AF37 0%, #8A6E2F 100%);
             --border: #2a2a2a;
             --nav-bg: #0a0a0a;
@@ -48,10 +48,9 @@
 
         .option { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--opt-bg); color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; transition: 0.3s; overflow: hidden; }
         
-        /* VARIANT ICHIDAGI RASM O'LCHAMI */
         .option img { max-height: 25px; max-width: 90%; object-fit: contain; }
 
-        .selected { border-color: var(--text) !important; background: rgba(255, 255, 255, 0.1) !important; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .selected { border-color: #D4AF37 !important; background: rgba(212, 175, 55, 0.1) !important; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
         .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
         .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; }
 
@@ -105,7 +104,7 @@
         }
         
         h3, h4 { color: var(--text); }
-        p { color: inherit; opacity: 1; } /* opacity 1 qilindi */
+        p { color: inherit; opacity: 1; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -138,7 +137,7 @@
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:160px; object-fit:contain; cursor:zoom-in; border: 1px solid var(--border);" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
             
-            <div id="error-msg">Xatolar to'ldi! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
+            <div id="error-msg">5 ta xato bo'ldi! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
             
             <div class="quiz-controls" id="quiz-btns">
                 <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
@@ -262,7 +261,7 @@
     const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 5; // ENDI LIVES 5 TA
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 5;
     let userAnswers = [];
 
     let config = JSON.parse(localStorage.getItem('quizConfig')) || { time: 30, count: 35, min: 42, max: 70 };
@@ -305,7 +304,7 @@
         if (!uid) return;
         const snap = await getDoc(doc(db, "reyting", uid));
         let s = snap.exists() ? (snap.data().score || 0) : 0;
-        let lv = s >= config.max * 0.9 ? "A'lo 🏆" : s >= config.min ? "Yaxshi ✅" : "Yomon 🛑";
+        let lv = s >= 62 ? "5 (A'lo) 🏆" : s >= 52 ? "4 (Yaxshi) ✅" : s >= 42 ? "3 (Qoniqarli) ⚠️" : "2 (Yomon) 🛑";
         document.getElementById('u-level').innerText = "Daraja: " + lv;
     }
 
@@ -319,7 +318,7 @@
 
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0; lives = 5; // O'RGANISH REJIMIDA 5 TA JON
+        mode = m; curIdx = 0; score = 0; lives = 5;
         document.getElementById('error-msg').style.display = 'none';
         document.getElementById('quiz-btns').style.display = 'flex';
         document.getElementById('finish-btn').style.display = 'none';
@@ -370,17 +369,29 @@
         q.shuffledVariants.forEach((opt) => {
             const b = document.createElement('button');
             b.className = 'option';
+            
             if(userAnswers[curIdx] === opt) b.classList.add('selected');
+            
+            // O'quv rejimida (all) tekshirilgan javobni ko'rsatish
             if(mode === 'all' && userAnswers[curIdx] !== null) {
                 if(opt === q.variants[0]) b.classList.add('correct');
                 else if(opt === userAnswers[curIdx]) b.classList.add('wrong');
                 b.disabled = true;
             }
+
             b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
+            
             b.onclick = () => {
-                if(userAnswers[curIdx] !== null) return; // ALLAQACHON JAVOB BERILGAN
+                // O'quv rejimida bir marta tanlash mumkin
+                if(mode === 'all' && userAnswers[curIdx] !== null) return;
+                
+                // Real rejimda javobni almashtirish mumkin
                 userAnswers[curIdx] = opt;
-                if(mode === 'real') document.getElementById('finish-btn').style.display = 'block';
+                
+                if(mode === 'real') {
+                    document.getElementById('finish-btn').style.display = 'block';
+                }
+                
                 if(mode === 'all' && opt !== q.variants[0]) {
                     lives--; updateLivesUI();
                     if(lives <= 0) handleGameOver();
@@ -418,7 +429,7 @@
                 clearInterval(restartTimer); 
                 card.classList.remove('rewind');
                 curIdx = targetIdx;
-                lives = 5; // JONNI QAYTA TO'LDIRISH
+                lives = 5; 
                 for(let i = curIdx; i < userAnswers.length; i++) userAnswers[i] = null;
                 err.style.display = 'none';
                 btns.style.display = 'flex';
@@ -433,15 +444,19 @@
         nav('p-res', null, 'Natija');
         score = 0;
         currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
-        const ball = Math.round((score / currentQs.length) * config.max);
         
-        const isPassed = ball >= config.min;
-        const statusText = isPassed ? "Yaxshi ✅" : "Yomon ❌";
-        const xulosaText = isPassed ? "Barakalla, shunday davom eting!" : "Ko'proq tayyorlaning!";
+        const ball = score * 2;
         
-        document.getElementById('res-status').innerText = isPassed ? "Tugadi 🏆" : "Tugadi 🛑";
-        document.getElementById('res-details').innerHTML = `To'g'ri: <b>${score} ta</b><br>Ball: <b>${ball}</b>`;
-        if(isPassed) confetti({ particleCount: 150, spread: 70 });
+        let baho = "";
+        let emoji = "";
+        if(score >= 31) { baho = "5 (A'lo)"; emoji = " Alo 🏆"; }
+        else if(score >= 26) { baho = "4 (Yaxshi)"; emoji = " Yaxshi ✅"; }
+        else if(score >= 21) { baho = "3 (Qoniqarli)"; emoji = " Qoniqarli ⚠️"; }
+        else { baho = "2 (Yomon)"; emoji = " Yomon 🛑"; }
+
+        document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
+        document.getElementById('res-details').innerHTML = `To'g'ri javoblar: <b>${score} ta</b><br>Ball: <b>${ball} ball</b><br>Baho: <b>${baho}</b>`;
+        if(score >= 31) confetti({ particleCount: 150, spread: 70 });
 
         if(mode === 'real') {
             if(uid) {
@@ -453,7 +468,7 @@
                 else await updateDoc(ref, data);
             }
             
-            let telegramText = `🆕 YANGI NATIJA 📈\n \n🧑🏻‍🎓 Talaba: ${uname}\n────────────────────\n🎯 Natija: ${score} / ${currentQs.length} ta\n💎 Ball: ${ball} / ${config.max}\n🌟 Holati: ${statusText}\n \n💬 Xulosa: ${xulosaText}\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
+            let telegramText = `🆕 <b>YANGI NATIJA</b> 📈\n\n🧑🏻‍🎓 Talaba: <b>${uname}</b>\n────────────────────\n🎯 To'g'ri javoblar: <b>${score} ta</b>\n💎 Ball: <b>${ball} ball</b>\n🌟 Baho: <b>${baho}${emoji}</b>\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
             
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -469,8 +484,8 @@
         if(snap.exists()) {
             const d = snap.data();
             document.getElementById('st-total').innerText = d.totalTests || 0;
-            document.getElementById('st-high').innerText = d.score || 0;
-            document.getElementById('st-avg').innerText = Math.round((d.score || 0) / (d.totalTests || 1)) + " ball";
+            document.getElementById('st-high').innerText = (d.score || 0) + " ball";
+            document.getElementById('st-avg').innerText = (d.score > 0 ? Math.round(d.score / 2) : 0) + " ta";
         }
     };
 
@@ -482,7 +497,7 @@
         list.innerHTML = '<h4 style="margin-top:0">Top 20 Reyting</h4>';
         let i = 1;
         snap.forEach(d => {
-            list.innerHTML += `<div class="rank-item"><span>${i++}. ${d.data().name}</span><span class="rank-score">${d.data().score}</span></div>`;
+            list.innerHTML += `<div class="rank-item"><span>${i++}. ${d.data().name}</span><span class="rank-score">${d.data().score} ball</span></div>`;
         });
     };
 

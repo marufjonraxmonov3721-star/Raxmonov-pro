@@ -449,12 +449,12 @@
         
         let baho = "";
         let emoji = "";
-        if(score >= 31) { baho = "5 (A'lo)"; emoji = " Alo 🏆"; }
-        else if(score >= 26) { baho = "4 (Yaxshi)"; emoji = " Yaxshi ✅"; }
-        else if(score >= 21) { baho = "3 (Qoniqarli)"; emoji = " Qoniqarli ⚠️"; }
-        else { baho = "2 (Yomon)"; emoji = " Yomon 🛑"; }
+        if(score >= 31) { baho = "5 (A'lo)"; emoji = "  🏆"; }
+        else if(score >= 26) { baho = "4 (Yaxshi)"; emoji = " ✅"; }
+        else if(score >= 21) { baho = "3 (Qoniqarli)"; emoji = " ☑️"; }
+        else { baho = "2 (Yomon)"; emoji = "  🛑"; }
 
-        document.getElementById('res-status').innerText = score >= 21 ? "Tugadi 🏆" : "Tugadi 🛑";
+        document.getElementById('res-status').innerText = score >= 21 ? "Tabriklaymiz siz testdan o'tdingiz" : "Siz testdan o'taolmadiz";
         document.getElementById('res-details').innerHTML = `To'g'ri javoblar: <b>${score} ta</b><br>Ball: <b>${ball} ball</b><br>Baho: <b>${baho}</b>`;
         if(score >= 31) confetti({ particleCount: 150, spread: 70 });
 

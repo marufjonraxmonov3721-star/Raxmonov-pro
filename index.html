@@ -87,7 +87,7 @@
         
         #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.1); }
         #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
-        #lives-box { font-weight: bold; font-size: 20px; }
+        #lives-box { font-weight: bold; font-size: 20px; color: #ef4444; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .stat-item { background: var(--opt-bg); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
@@ -117,7 +117,7 @@
     <div id="p-home" class="page active">
         <div class="card" style="background: var(--gradient); border: none;">
             <h3 style="color: #fff;">O'quv kursi</h3>
-            <p style="color: #fff; font-weight: 500;">1 ta xato qilsangiz, 5 ta savol orqaga qaytasiz!</p>
+            <p style="color: #fff; font-weight: 500;">5 ta xato qilsangiz, 5 ta savol orqaga qaytasiz!</p>
             <button class="btn" style="background: var(--bg); color: var(--text);" onclick="startQuiz('all')">O'RGANISH</button>
         </div>
         <div class="card" style="border: 1px solid #D4AF37;">
@@ -131,14 +131,14 @@
         <div class="card" id="quiz-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span id="timer-box">--:--</span>
-                <span id="lives-box" style="display:none;">❤️</span>
+                <span id="lives-box" style="display:none;">❤️❤️❤️❤️❤️</span>
                 <span id="progress" style="font-weight: bold;">0/0</span>
             </div>
             <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
             <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:160px; object-fit:contain; cursor:zoom-in; border: 1px solid var(--border);" onclick="zoomImg(this.src)"></div>
             <div id="options"></div>
             
-            <div id="error-msg">Xato! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
+            <div id="error-msg">Xatolar to'ldi! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
             
             <div class="quiz-controls" id="quiz-btns">
                 <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
@@ -262,7 +262,7 @@
     const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
     const GROUP_ID = "-1003218015225";
 
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 1;
+    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 5; // ENDI LIVES 5 TA
     let userAnswers = [];
 
     let config = JSON.parse(localStorage.getItem('quizConfig')) || { time: 30, count: 35, min: 42, max: 70 };
@@ -319,7 +319,7 @@
 
     window.startQuiz = async (m) => {
         if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0; lives = 1;
+        mode = m; curIdx = 0; score = 0; lives = 5; // O'RGANISH REJIMIDA 5 TA JON
         document.getElementById('error-msg').style.display = 'none';
         document.getElementById('quiz-btns').style.display = 'flex';
         document.getElementById('finish-btn').style.display = 'none';
@@ -378,6 +378,7 @@
             }
             b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
             b.onclick = () => {
+                if(userAnswers[curIdx] !== null) return; // ALLAQACHON JAVOB BERILGAN
                 userAnswers[curIdx] = opt;
                 if(mode === 'real') document.getElementById('finish-btn').style.display = 'block';
                 if(mode === 'all' && opt !== q.variants[0]) {
@@ -417,7 +418,7 @@
                 clearInterval(restartTimer); 
                 card.classList.remove('rewind');
                 curIdx = targetIdx;
-                lives = 1; 
+                lives = 5; // JONNI QAYTA TO'LDIRISH
                 for(let i = curIdx; i < userAnswers.length; i++) userAnswers[i] = null;
                 err.style.display = 'none';
                 btns.style.display = 'flex';

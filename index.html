@@ -3,506 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quiz Dashboard</title>
+    <title>Raxmonov Save - Web App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        :root { 
-            --bg: #000000; 
-            --card: #121212; 
-            --text: #ffffff; 
-            --p: #ffffff;    
-            --gradient: linear-gradient(135deg, #D4AF37 0%, #8A6E2F 100%);
-            --border: #2a2a2a;
-            --nav-bg: #0a0a0a;
-            --opt-bg: #1a1a1a;
-        }
-        body.light-mode { 
-            --bg: #ffffff; 
-            --card: #f8f9fa; 
-            --text: #000000; 
-            --p: #000000;
-            --border: #dee2e6;
-            --nav-bg: #f1f3f5;
-            --opt-bg: #ffffff;
-            --gradient: linear-gradient(135deg, #000000 0%, #333333 100%);
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; transition: 0.3s; overflow-x: hidden; }
-
-        .header-title { text-align: center; padding: 20px 0; margin: 0; font-size: 24px; font-weight: bold; text-transform: capitalize; color: var(--text); border-bottom: 1px solid var(--border); }
-        .page { display: none; padding: 15px; max-width: 500px; margin: auto; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); margin-bottom: 15px; border: 1px solid var(--border); }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 10px; transition: 0.2s; }
-        .btn-p { background: var(--gradient); color: #fff; }
-        body:not(.light-mode) .btn-p { color: #000; }
-        
-        .quiz-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .btn-nav { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 100px; }
-        .btn-prev { background: #333; color: #fff; border: 1px solid var(--border); }
-        .btn-next { background: var(--text); color: var(--bg); }
-        .btn-finish { background: #ef4444; color: white; width: 100%; margin-top: 10px; display: none; }
-
-        .option { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 12px; background: var(--opt-bg); color: var(--text); text-align: center; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 55px; transition: 0.3s; overflow: hidden; }
-        
-        .option img { max-height: 25px; max-width: 90%; object-fit: contain; }
-
-        .selected { border-color: #D4AF37 !important; background: rgba(212, 175, 55, 0.1) !important; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-        .correct { background: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
-        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #7f1d1d !important; }
-
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--nav-bg); display: flex; border-top: 1px solid var(--border);  z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: #888; cursor: pointer; }
-        .nav-item.active { color: var(--text); font-weight: bold; }
-        .nav-item i { font-size: 25px; display: block; margin-bottom: 4px; }
-
-        #img-modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; }
-        #img-modal img { max-width: 95%; max-height: 95%; border: 2px solid var(--text); }
-
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: var(--gradient); color: #fff; margin-top: 5px; display: inline-block; font-weight: bold; }
-        body:not(.light-mode) .badge { color: #000; }
-        
-        #timer-box { font-weight: bold; color: #ef4444; font-size: 18px; }
-
-        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); }
-        .rank-score { font-weight: bold; color: var(--text); }
-
-        .theme-btn { 
-            background: var(--opt-bg); 
-            border: 1px solid var(--border); 
-            color: var(--text); 
-            padding: 8px 15px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            transition: 0.3s;
-        }
-        
-        #error-msg { color: #ef4444; font-weight: bold; text-align: center; display: none; margin-top: 15px; padding: 10px; border: 1px dashed #ef4444; border-radius: 10px; background: rgba(239, 68, 68, 0.1); }
-        #countdown-num { font-size: 20px; display: block; margin-top: 5px; }
-        #lives-box { font-weight: bold; font-size: 20px; color: #ef4444; }
-
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .stat-item { background: var(--opt-bg); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
-        .stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--text); }
-        .stat-lbl { font-size: 11px; color: #888; }
-
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .setting-input { width: 60px; padding: 5px; border-radius: 5px; border: 1px solid var(--border); background: var(--opt-bg); color: var(--text); text-align: center; }
-        
-        .rewind { animation: rewindEffect 0.1s infinite; opacity: 0.7; pointer-events: none; }
-        @keyframes rewindEffect {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-3px); }
-            100% { transform: translateX(0); }
-        }
-        
-        h3, h4 { color: var(--text); }
-        p { color: inherit; opacity: 1; }
-    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --tg-theme-bg-color: #0f172a; --tg-theme-text-color: #ffffff; }
+        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .active-tab { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
+        .input-focus:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
+        .btn-gradient { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    </style>
 </head>
-<body>
+<body class="p-4">
 
-    <div id="img-modal" onclick="this.style.display='none'"><img id="modal-img" src=""></div>
-    <h2 id="main-title" class="header-title">Asosiy</h2>
-
-    <div id="p-home" class="page active">
-        <div class="card" style="background: var(--gradient); border: none;">
-            <h3 style="color: #fff;">O'quv kursi</h3>
-            <p style="color: #fff; font-weight: 500;">5 ta xato qilsangiz, 5 ta savol orqaga qaytasiz!</p>
-            <button class="btn" style="background: var(--bg); color: var(--text);" onclick="startQuiz('all')">O'RGANISH</button>
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-xl font-bold">Raxmonov Save</h1>
+            <p class="text-xs text-blue-400">Universal Media Downloader</p>
         </div>
-        <div class="card" style="border: 1px solid #D4AF37;">
-            <h3>Real Test</h3>
-            <p id="real-info">35 ta savol | 30 daqiqa | Reytingga yoziladi.</p>
-            <button class="btn btn-p" onclick="startQuiz('real')">TESTNI BOSHLASH</button>
+        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+            <i class="fas fa-bolt text-white"></i>
         </div>
     </div>
 
-    <div id="p-quiz" class="page">
-        <div class="card" id="quiz-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <span id="timer-box">--:--</span>
-                <span id="lives-box" style="display:none;">❤️❤️❤️❤️❤️</span>
-                <span id="progress" style="font-weight: bold;">0/0</span>
-            </div>
-            <div id="q-text" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;"></div>
-            <div id="q-img-cont" style="display:none; text-align:center; margin-bottom:15px;"><img id="q-image" style="max-width:100%; max-height:160px; object-fit:contain; cursor:zoom-in; border: 1px solid var(--border);" onclick="zoomImg(this.src)"></div>
-            <div id="options"></div>
+    <div class="flex justify-around mb-8 border-b border-white/10 text-sm font-medium">
+        <button onclick="switchTab('download')" id="tab-download" class="pb-2 active-tab transition-all">
+            <i class="fas fa-link mr-1"></i> Yuklash
+        </button>
+        <button onclick="switchTab('search')" id="tab-search" class="pb-2 text-gray-400 transition-all">
+            <i class="fas fa-search mr-1"></i> Qidiruv
+        </button>
+    </div>
+
+    <div id="section-download" class="space-y-6">
+        <div class="glass p-5 rounded-3xl">
+            <label class="block text-sm font-medium mb-3 text-gray-300">Media havolasini kiriting:</label>
+            <input type="text" id="linkInput" placeholder="Instagram, TikTok yoki YouTube..." 
+                   class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus transition-all text-sm">
             
-            <div id="error-msg">5 ta xato bo'ldi! 5 ta savol orqaga: <span id="countdown-num">5</span></div>
-            
-            <div class="quiz-controls" id="quiz-btns">
-                <button id="prev-btn" class="btn-nav btn-prev" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> OLDINGI</button>
-                <button id="next-btn" class="btn-nav btn-next" onclick="nextQuestion()">KEYINGI <i class="fas fa-arrow-right"></i></button>
-                <button id="finish-btn" class="btn-nav btn-finish" onclick="confirmFinish()">TESTNI YAKUNLASH <i class="fas fa-check-double"></i></button>
+            <div class="grid grid-cols-2 gap-3 mt-4">
+                <button onclick="processLink('mp4')" class="btn-gradient p-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fas fa-video"></i> MP4
+                </button>
+                <button onclick="processLink('mp3')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                    <i class="fas fa-music"></i> MP3
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+            <div class="glass p-3 rounded-2xl text-center">
+                <i class="fab fa-instagram text-pink-500 mb-1"></i>
+                <p class="text-[10px]">Instagram</p>
+            </div>
+            <div class="glass p-3 rounded-2xl text-center">
+                <i class="fab fa-tiktok text-white mb-1"></i>
+                <p class="text-[10px]">TikTok</p>
+            </div>
+            <div class="glass p-3 rounded-2xl text-center">
+                <i class="fab fa-youtube text-red-500 mb-1"></i>
+                <p class="text-[10px]">YouTube</p>
             </div>
         </div>
     </div>
 
-    <div id="p-res" class="page">
-        <div class="card" style="text-align: center;">
-            <h2 id="res-status" style="color: var(--text);">--</h2>
-            <div id="res-details" style="font-size: 18px; margin: 20px 0;"></div>
-            <button class="btn btn-p" onclick="location.reload()">ASOSIY MENYU</button>
+    <div id="section-search" class="hidden space-y-4">
+        <div class="relative">
+            <input type="text" id="searchInput" placeholder="Musiqa yoki video nomi..." 
+                   class="w-full p-4 pl-12 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
         </div>
+        <button onclick="searchMedia()" class="w-full btn-gradient p-4 rounded-2xl font-bold shadow-blue-500/20 shadow-xl">
+            YouTube'dan qidirish
+        </button>
+        <div id="results" class="space-y-2 mt-4">
+            </div>
     </div>
 
-    <div id="p-rank" class="page">
-        <div class="card">
-            <h4 style="margin-top:0">Mening Statistikam</h4>
-            <div class="stat-grid">
-                <div class="stat-item"><span class="stat-val" id="st-total">0</span><span class="stat-lbl">Jami test</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-high">0</span><span class="stat-lbl">Eng yuqori ball</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-avg">0</span><span class="stat-lbl">To'g'ri (avg)</span></div>
-                <div class="stat-item"><span class="stat-val" id="st-misc" style="color:#888">---</span><span class="stat-lbl">Statistika</span></div>
-            </div>
-        </div>
-        <div class="card" id="rank-list"><p style="text-align:center">Yuklanmoqda...</p></div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-    <div id="p-settings" class="page">
-        <div class="card">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: var(--gradient); color:#000; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="fas fa-user"></i></div>
-                <div>
-                    <b id="u-name">...</b><br>
-                    <span class="badge" id="u-level">Daraja: Yuklanmoqda...</span>
-                </div>
-            </div>
-            <hr style="margin:20px 0; border: 0; border-top: 1px solid var(--border);">
-            
-            <h4 style="margin: 0 0 15px 0; color: var(--text);">Real Test Sozlamalari</h4>
-            <div class="setting-row">
-                <span>Vaqt (daqiqa):</span>
-                <input type="number" id="cfg-time" class="setting-input" value="30" onchange="saveConfig()">
-            </div>
-            <div class="setting-row">
-                <span>Savollar soni:</span>
-                <input type="number" id="cfg-count" class="setting-input" value="35" onchange="saveConfig()">
-            </div>
-            <div class="setting-row">
-                <span>O'tish balli (Min):</span>
-                <input type="number" id="cfg-min" class="setting-input" value="42" onchange="saveConfig()">
-            </div>
-            <div class="setting-row">
-                <span>Maksimal ball:</span>
-                <input type="number" id="cfg-max" class="setting-input" value="70" onchange="saveConfig()">
-            </div>
-
-            <hr style="margin:20px 0; border: 0; border-top: 1px solid var(--border);">
-            
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span id="theme-label">Tungi rejim</span>
-                <button id="theme-icon-btn" class="theme-btn" onclick="toggleDark()">🌙</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="nav('p-home', this, 'Asosiy')"><i class="fas fa-home"></i>Asosiy</div>
-        <div class="nav-item" onclick="nav('p-rank', this, 'Reyting'); loadRank(); updateStatsUI();"><i class="fas fa-chart-line"></i>Reyting</div>
-        <div class="nav-item" onclick="nav('p-settings', this, 'Sozlamalar')"><i class="fas fa-cog"></i>Sozlamalar</div>
-    </div>
-
-<script type="module">
-    window.toggleDark = () => {
-        const isCurrentlyLight = document.body.classList.contains('light-mode');
-        const label = document.getElementById('theme-label');
-        const btn = document.getElementById('theme-icon-btn');
-        
-        if(!isCurrentlyLight) {
-            document.body.classList.add('light-mode');
-            label.innerText = "Kunduzgi rejim";
-            btn.innerText = "☀️";
-            localStorage.setItem('theme', 'light');
-        } else {
-            document.body.classList.remove('light-mode');
-            label.innerText = "Tungi rejim";
-            btn.innerText = "🌙";
-            localStorage.setItem('theme', 'dark');
-        }
-    };
-
-    window.applySavedTheme = () => {
-        const savedTheme = localStorage.getItem('theme');
-        const label = document.getElementById('theme-label');
-        const btn = document.getElementById('theme-icon-btn');
-        
-        if(savedTheme === 'light') {
-            document.body.classList.add('light-mode');
-            label.innerText = "Kunduzgi rejim";
-            btn.innerText = "☀️";
-        } else {
-            document.body.classList.remove('light-mode');
-            label.innerText = "Tungi rejim";
-            btn.innerText = "🌙";
-        }
-    };
-    
-    window.addEventListener('DOMContentLoaded', applySavedTheme);
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, getDoc, query, orderBy, limit, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = { apiKey: "AIzaSyCavyC9nUUT4Rk2Xh2wq2rKhIGZwSr97uM", projectId: "meningquizilovam", appId: "1:107483720751:web:505d527fbccbbf4ce26ada" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    const BOT_TOKEN = "8578977118:AAF7NUUOg2kVYzoO-pzZsiWH_L-8vvU8GUk";
-    const GROUP_ID = "-1003218015225";
-
-    let allQs = [], currentQs = [], score = 0, curIdx = 0, mode = "", timer, restartTimer, lives = 5;
-    let userAnswers = [];
-
-    let config = JSON.parse(localStorage.getItem('quizConfig')) || { time: 30, count: 35, min: 42, max: 70 };
-    
-    window.saveConfig = () => {
-        config = {
-            time: parseInt(document.getElementById('cfg-time').value) || 30,
-            count: parseInt(document.getElementById('cfg-count').value) || 35,
-            min: parseInt(document.getElementById('cfg-min').value) || 42,
-            max: parseInt(document.getElementById('cfg-max').value) || 70
+        const firebaseConfig = {
+            apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
+            authDomain: "gen-lang-client-0228947349.firebaseapp.com",
+            databaseURL: "https://gen-lang-client-0228947349-default-rtdb.firebaseio.com",
+            projectId: "gen-lang-client-0228947349",
+            storageBucket: "gen-lang-client-0228947349.firebasestorage.app",
+            messagingSenderId: "253793341504",
+            appId: "1:253793341504:web:709752258000dab44fcfa5"
         };
-        localStorage.setItem('quizConfig', JSON.stringify(config));
-        updateHomeUI();
-    };
 
-    function updateHomeUI() {
-        document.getElementById('real-info').innerText = `${config.count} ta savol | ${config.time} daqiqa | Reytingga yoziladi.`;
-        document.getElementById('cfg-time').value = config.time;
-        document.getElementById('cfg-count').value = config.count;
-        document.getElementById('cfg-min').value = config.min;
-        document.getElementById('cfg-max').value = config.max;
-    }
-    updateHomeUI();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-    const uid = tg.initDataUnsafe?.user?.id?.toString() || null;
-    const uname = (tg.initDataUnsafe?.user?.first_name || "") + " " + (tg.initDataUnsafe?.user?.last_name || "");
-
-    window.nav = (id, el, title) => {
-        if(restartTimer) clearInterval(restartTimer);
-        document.getElementById('main-title').innerText = title;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(el) el.classList.add('active');
-        if(id === 'p-settings') updateLevelDisplay();
-    };
-
-    async function updateLevelDisplay() {
-        document.getElementById('u-name').innerText = uname;
-        if (!uid) return;
-        const snap = await getDoc(doc(db, "reyting", uid));
-        let s = snap.exists() ? (snap.data().score || 0) : 0;
-        let lv = s >= 62 ? "5 (A'lo) 🏆" : s >= 52 ? "4  ✅" : s >= 42 ? "3  ☑️" : "2 ❌ ";
-        document.getElementById('u-level').innerText = "Daraja: " + lv;
-    }
-
-    window.zoomImg = (s) => { document.getElementById('modal-img').src = s; document.getElementById('img-modal').style.display = 'flex'; };
-
-    async function loadData() {
-        const q = query(collection(db, "savollar"), orderBy("createdAt", "asc"));
-        const snap = await getDocs(q);
-        allQs = snap.docs.map(d => d.data());
-    }
-
-    window.startQuiz = async (m) => {
-        if(allQs.length === 0) await loadData();
-        mode = m; curIdx = 0; score = 0; lives = 5;
-        document.getElementById('error-msg').style.display = 'none';
-        document.getElementById('quiz-btns').style.display = 'flex';
-        document.getElementById('finish-btn').style.display = 'none';
-
-        if(mode === 'real') {
-            document.getElementById('lives-box').style.display = 'none';
-            document.getElementById('timer-box').style.display = 'block';
-            currentQs = [...allQs].sort(() => 0.5 - Math.random()).slice(0, config.count);
-            startTimer(config.time * 60);
-        } else {
-            if(timer) clearInterval(timer);
-            document.getElementById('lives-box').style.display = 'block';
-            document.getElementById('timer-box').style.display = 'none';
-            updateLivesUI();
-            currentQs = [...allQs];
+        // Foydalanuvchini Firebasega saqlash
+        if (tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            set(ref(db, 'users/' + user.id), {
+                first_name: user.first_name,
+                username: user.username || "n/a",
+                date: new Date().toISOString()
+            });
         }
-        userAnswers = new Array(currentQs.length).fill(null);
-        nav('p-quiz', null, 'Test'); renderQ();
-    };
 
-    function updateLivesUI() { document.getElementById('lives-box').innerText = "❤️".repeat(lives); }
+        window.switchTab = (tab) => {
+            document.getElementById('section-download').classList.toggle('hidden', tab !== 'download');
+            document.getElementById('section-search').classList.toggle('hidden', tab !== 'search');
+            document.getElementById('tab-download').className = tab === 'download' ? 'pb-2 active-tab' : 'pb-2 text-gray-400';
+            document.getElementById('tab-search').className = tab === 'search' ? 'pb-2 active-tab' : 'pb-2 text-gray-400';
+        };
 
-    function startTimer(s) {
-        if(timer) clearInterval(timer);
-        timer = setInterval(() => {
-            let m = Math.floor(s/60), sc = s%60;
-            document.getElementById('timer-box').innerText = `${m}:${sc<10?'0':''}${sc}`;
-            if(--s < 0) { clearInterval(timer); finish(); }
-        }, 1000);
-    }
+        window.processLink = (type) => {
+            const url = document.getElementById('linkInput').value;
+            if (!url) { tg.showAlert("Iltimos, havola kiriting!"); return; }
+            tg.sendData(JSON.stringify({action: "download", type: type, url: url}));
+            tg.close();
+        };
 
-    function renderQ() {
-        const q = currentQs[curIdx];
-        document.getElementById('progress').innerText = `${curIdx+1}/${currentQs.length}`;
-        document.getElementById('prev-btn').style.visibility = curIdx === 0 ? 'hidden' : 'visible';
-        document.getElementById('next-btn').style.display = curIdx === currentQs.length - 1 ? 'none' : 'block';
-
-        const qTxt = document.getElementById('q-text');
-        const qImgC = document.getElementById('q-img-cont');
-        if(q.text.startsWith('data:image')) {
-            qTxt.innerText = "Savol:"; document.getElementById('q-image').src = q.text; qImgC.style.display = 'block';
-        } else { qTxt.innerText = q.text; qImgC.style.display = 'none'; }
-
-        const box = document.getElementById('options');
-        box.innerHTML = '';
-        if(!q.shuffledVariants) q.shuffledVariants = [...q.variants].sort(() => 0.5 - Math.random());
-
-        q.shuffledVariants.forEach((opt) => {
-            const b = document.createElement('button');
-            b.className = 'option';
-            
-            if(userAnswers[curIdx] === opt) b.classList.add('selected');
-            
-            // O'quv rejimida (all) tekshirilgan javobni ko'rsatish
-            if(mode === 'all' && userAnswers[curIdx] !== null) {
-                if(opt === q.variants[0]) b.classList.add('correct');
-                else if(opt === userAnswers[curIdx]) b.classList.add('wrong');
-                b.disabled = true;
-            }
-
-            b.innerHTML = opt.startsWith('data:image') ? `<img src="${opt}">` : opt;
-            
-            b.onclick = () => {
-                // O'quv rejimida bir marta tanlash mumkin
-                if(mode === 'all' && userAnswers[curIdx] !== null) return;
-                
-                // Real rejimda javobni almashtirish mumkin
-                userAnswers[curIdx] = opt;
-                
-                if(mode === 'real') {
-                    document.getElementById('finish-btn').style.display = 'block';
-                }
-                
-                if(mode === 'all' && opt !== q.variants[0]) {
-                    lives--; updateLivesUI();
-                    if(lives <= 0) handleGameOver();
-                }
-                renderQ();
-            };
-            box.appendChild(b);
-        });
-    }
-
-    window.nextQuestion = () => { if(curIdx < currentQs.length - 1) { curIdx++; renderQ(); } };
-    window.prevQuestion = () => { if(curIdx > 0) { curIdx--; renderQ(); } };
-    window.confirmFinish = () => { tg.showConfirm("Testni yakunlaysizmi?", (ok) => { if(ok) finish(); }); };
-
-    function handleGameOver() {
-        if(timer) clearInterval(timer);
-        const card = document.getElementById('quiz-card');
-        const err = document.getElementById('error-msg');
-        const btns = document.getElementById('quiz-btns');
-        btns.style.display = 'none';
-        err.style.display = 'block';
-        card.classList.add('rewind');
-        let t = 5;
-        document.getElementById('countdown-num').innerText = t;
-        let targetIdx = Math.max(0, curIdx - 5);
-        let animSteps = Math.max(1, curIdx - targetIdx);
-        let animSpeed = 5000 / animSteps;
-        let animInterval = setInterval(() => {
-            if(curIdx > targetIdx) { curIdx--; renderQ(); }
-            else { clearInterval(animInterval); }
-        }, animSpeed);
-        restartTimer = setInterval(() => {
-            document.getElementById('countdown-num').innerText = --t;
-            if(t <= 0) { 
-                clearInterval(restartTimer); 
-                card.classList.remove('rewind');
-                curIdx = targetIdx;
-                lives = 5; 
-                for(let i = curIdx; i < userAnswers.length; i++) userAnswers[i] = null;
-                err.style.display = 'none';
-                btns.style.display = 'flex';
-                updateLivesUI();
-                renderQ();
-            }
-        }, 1000);
-    }
-
-    window.finish = async () => {
-        if(timer) clearInterval(timer);
-        nav('p-res', null, 'Natija');
-        score = 0;
-        currentQs.forEach((q, i) => { if(userAnswers[i] === q.variants[0]) score++; });
-        
-        const ball = score * 2;
-        
-        let baho = "";
-        let emoji = "";
-        if(score >= 31) { baho = "5 (A'lo)"; emoji = "  🏆"; }
-        else if(score >= 26) { baho = "4 (Yaxshi)"; emoji = " ✅"; }
-        else if(score >= 21) { baho = "3 (Qoniqarli)"; emoji = " ☑️"; }
-        else { baho = "2 (Yomon)"; emoji = "  🛑"; }
-
-        document.getElementById('res-status').innerText = score >= 21 ? "Tabriklaymiz siz testdan o'tdingiz" : "Siz testdan o'taolmadiz";
-        document.getElementById('res-details').innerHTML = `To'g'ri javoblar: <b>${score} ta</b><br>Ball: <b>${ball} ball</b><br>Baho: <b>${baho}</b>`;
-        if(score >= 31) confetti({ particleCount: 150, spread: 70 });
-
-        if(mode === 'real') {
-            if(uid) {
-                const ref = doc(db, "reyting", uid);
-                const snap = await getDoc(ref);
-                let data = { name: uname, totalTests: increment(1), lastActive: serverTimestamp() };
-                if(!snap.exists() || ball > (snap.data().score || 0)) data.score = ball;
-                if(!snap.exists()) await setDoc(ref, { ...data, score: ball, totalTests: 1 });
-                else await updateDoc(ref, data);
-            }
-            
-            let telegramText = `🆕 <b>YANGI NATIJA</b> 📈\n\n🧑🏻‍🎓 Talaba: <b>${uname}</b>\n────────────────────\n🎯 To'g'ri javoblar: <b>${score} ta</b>\n💎 Ball: <b>${ball} ball</b>\n🌟 Baho: <b>${baho}${emoji}</b>\n────────────────────\n🚀 O'z ustingizda ishlashda davom eting!`;
-            
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: GROUP_ID, text: telegramText, parse_mode: 'HTML' })
-            }).catch(e => console.error(e));
-        }
-    };
-
-    window.updateStatsUI = async () => {
-        if(!uid) return;
-        const snap = await getDoc(doc(db, "reyting", uid));
-        if(snap.exists()) {
-            const d = snap.data();
-            document.getElementById('st-total').innerText = d.totalTests || 0;
-            document.getElementById('st-high').innerText = (d.score || 0) + " ball";
-            document.getElementById('st-avg').innerText = (d.score > 0 ? Math.round(d.score / 2) : 0) + " ta";
-        }
-    };
-
-    window.loadRank = async () => {
-        const list = document.getElementById('rank-list');
-        list.innerHTML = 'Yuklanmoqda...';
-        const q = query(collection(db, "reyting"), orderBy("score", "desc"), limit(20));
-        const snap = await getDocs(q);
-        list.innerHTML = '<h4 style="margin-top:0">Top 20 Reyting</h4>';
-        let i = 1;
-        snap.forEach(d => {
-            list.innerHTML += `<div class="rank-item"><span>${i++}. ${d.data().name}</span><span class="rank-score">${d.data().score} ball</span></div>`;
-        });
-    };
-
-    loadData();
-    applySavedTheme(); 
-</script>
+        window.searchMedia = () => {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+            tg.sendData(JSON.stringify({action: "search", query: query}));
+            tg.close();
+        };
+    </script>
 </body>
 </html>

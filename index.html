@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Raxmonov Save - Web App</title>
+    <title>Raxmonov Save - Pro Web App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --tg-theme-bg-color: #0f172a; --tg-theme-text-color: #ffffff; }
-        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        :root { --tg-theme-bg-color: #0f172a; }
+        body { background-color: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .active-tab { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
-        .input-focus:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
         .btn-gradient { background: linear-gradient(90deg, #3b82f6, #2563eb); }
         input { color: white !important; }
+        .animate-glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
     </style>
 </head>
 <body class="p-4">
 
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-xl font-bold">Raxmonov Save</h1>
-            <p class="text-xs text-blue-400">Universal Media Downloader</p>
+            <h1 class="text-xl font-bold text-blue-400">Raxmonov Save Pro</h1>
+            <p class="text-[10px] text-gray-400">v2.0 • Real-time System</p>
         </div>
-        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center animate-glow">
             <i class="fas fa-bolt text-white"></i>
         </div>
     </div>
 
     <div class="flex justify-around mb-8 border-b border-white/10 text-sm font-medium">
         <button onclick="switchTab('download')" id="tab-download" class="pb-2 active-tab transition-all">
-            <i class="fas fa-link mr-1"></i> Yuklash
+            <i class="fas fa-link mr-1"></i> Havola
         </button>
         <button onclick="switchTab('search')" id="tab-search" class="pb-2 text-gray-400 transition-all">
             <i class="fas fa-search mr-1"></i> Qidiruv
@@ -39,48 +39,47 @@
     </div>
 
     <div id="section-download" class="space-y-6">
-        <div class="glass p-5 rounded-3xl">
-            <label class="block text-sm font-medium mb-3 text-gray-300 text-center">Havolani (link) kiriting:</label>
+        <div class="glass p-6 rounded-3xl">
+            <label class="block text-center text-xs font-medium mb-4 text-gray-400 uppercase tracking-widest">Media havolasini kiriting</label>
             <input type="text" id="linkInput" placeholder="Instagram, TikTok yoki YouTube..." 
-                   class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus transition-all text-sm mb-4">
+                   class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:border-blue-500 transition-all text-sm mb-6">
             
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="processLink('mp4')" class="btn-gradient p-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="handleAction('download', 'mp4')" class="btn-gradient p-4 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <i class="fas fa-video"></i> MP4
                 </button>
-                <button onclick="processLink('mp3')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+                <button onclick="handleAction('download', 'mp3')" class="bg-gray-800 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <i class="fas fa-music"></i> MP3
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-            <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-instagram text-pink-500 mb-1 text-xl"></i>
-                <p class="text-[10px]">Instagram</p>
+        <div class="grid grid-cols-3 gap-3">
+            <div class="glass p-4 rounded-2xl text-center">
+                <i class="fab fa-instagram text-pink-500 text-xl mb-1"></i>
+                <p class="text-[10px] text-gray-400">Instagram</p>
             </div>
-            <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-tiktok text-white mb-1 text-xl"></i>
-                <p class="text-[10px]">TikTok</p>
+            <div class="glass p-4 rounded-2xl text-center">
+                <i class="fab fa-tiktok text-white text-xl mb-1"></i>
+                <p class="text-[10px] text-gray-400">TikTok</p>
             </div>
-            <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-youtube text-red-500 mb-1 text-xl"></i>
-                <p class="text-[10px]">YouTube</p>
+            <div class="glass p-4 rounded-2xl text-center">
+                <i class="fab fa-youtube text-red-500 text-xl mb-1"></i>
+                <p class="text-[10px] text-gray-400">YouTube</p>
             </div>
         </div>
     </div>
 
     <div id="section-search" class="hidden space-y-4">
-        <div class="relative">
+        <div class="glass p-2 rounded-2xl flex items-center gap-2">
             <input type="text" id="searchInput" placeholder="Musiqa yoki video nomi..." 
-                   class="w-full p-4 pl-12 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus">
-            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                   class="flex-1 p-3 bg-transparent outline-none text-sm ml-2">
+            <button onclick="handleAction('search')" class="btn-gradient w-12 h-12 rounded-xl flex items-center justify-center active:scale-95">
+                <i class="fas fa-search"></i>
+            </button>
         </div>
-        <button onclick="searchMedia()" class="w-full btn-gradient p-4 rounded-2xl font-bold shadow-blue-500/20 shadow-xl active:scale-95 transition-all">
-            YouTube'dan qidirish
-        </button>
-        <div id="results" class="text-center text-gray-500 text-sm mt-10">
-            Natijalar botga yuboriladi
+        <div id="search-info" class="text-center text-[10px] text-gray-500 mt-10">
+            Natijalar real vaqtda botga yuboriladi
         </div>
     </div>
 
@@ -88,7 +87,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // Firebase sozlamalari
+        // Firebase konfiguratsiyasi
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
             authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -102,60 +101,44 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const tg = window.Telegram.WebApp;
+
         tg.expand();
         tg.ready();
 
-        // Foydalanuvchini bazaga yozish
+        // Foydalanuvchini Firebase-ga saqlash
         if (tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             set(ref(db, 'users/' + user.id), {
-                name: user.first_name,
+                first_name: user.first_name,
                 username: user.username || "n/a",
-                last_active: new Date().toLocaleString()
+                last_seen: new Date().toISOString()
             });
         }
 
-        // FUNKSIYALARNI GLOBAL QILISH (Tugmalar ishlashi uchun)
-        
+        // Funksiyalarni Global qilish
         window.switchTab = (tab) => {
             document.getElementById('section-download').classList.toggle('hidden', tab !== 'download');
             document.getElementById('section-search').classList.toggle('hidden', tab !== 'search');
             document.getElementById('tab-download').className = tab === 'download' ? 'pb-2 active-tab' : 'pb-2 text-gray-400';
             document.getElementById('tab-search').className = tab === 'search' ? 'pb-2 active-tab' : 'pb-2 text-gray-400';
+            tg.HapticFeedback.impactOccurred('light');
         };
 
-        window.processLink = (type) => {
-            const urlInput = document.getElementById('linkInput');
-            const url = urlInput.value.trim();
+        window.handleAction = (action, type = null) => {
+            let data = {};
             
-            if (!url) {
-                tg.showAlert("Iltimos, havolani kiriting!");
-                return;
+            if (action === 'download') {
+                const url = document.getElementById('linkInput').value.trim();
+                if (!url) { tg.showAlert("Havolani kiriting!"); return; }
+                data = { action: "download", type: type, url: url };
+            } else if (action === 'search') {
+                const query = document.getElementById('searchInput').value.trim();
+                if (!query) { tg.showAlert("Qidiruv matnini kiriting!"); return; }
+                data = { action: "search", query: query };
             }
-            
-            // Botga JSON yuborish
-            tg.sendData(JSON.stringify({
-                action: "download",
-                type: type,
-                url: url
-            }));
-            tg.close(); // Ilovani yopish
-        };
 
-        window.searchMedia = () => {
-            const queryInput = document.getElementById('searchInput');
-            const query = queryInput.value.trim();
-            
-            if (!query) {
-                tg.showAlert("Qidiruv uchun nom kiriting!");
-                return;
-            }
-            
-            // Botga JSON yuborish
-            tg.sendData(JSON.stringify({
-                action: "search",
-                query: query
-            }));
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.sendData(JSON.stringify(data)); // Botga yuborish
             tg.close(); // Ilovani yopish
         };
     </script>

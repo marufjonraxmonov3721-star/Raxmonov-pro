@@ -3,80 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Raxmonov Save Pro</title>
+    <title>Raxmonov Save Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        body { background-color: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .btn-gradient { background: linear-gradient(90deg, #3b82f6, #2563eb); }
-        .video-card { transition: all 0.3s ease; }
-        .video-card:active { transform: scale(0.98); }
-        .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .video-card { background: #1e293b; border-radius: 20px; overflow: hidden; margin-bottom: 15px; }
     </style>
 </head>
-<body class="p-4 pb-24">
-
-    <div class="sticky top-0 bg-[#0f172a] z-50 pb-4 pt-2">
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-xl font-bold text-blue-400">Raxmonov Save Pro</h1>
-            <span class="text-[10px] bg-blue-600 px-2 py-1 rounded-full uppercase">Ultra</span>
-        </div>
-        <div class="flex gap-2">
-            <input type="text" id="searchInput" placeholder="Musiqa yoki video qidirish..." 
-                   class="flex-1 p-4 rounded-2xl bg-black/40 border border-white/10 outline-none text-sm focus:border-blue-500">
-            <button onclick="performSearch()" class="btn-gradient px-6 rounded-2xl font-bold shadow-lg">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
+<body class="p-4">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-bold text-blue-400">Raxmonov Save Pro</h1>
+        <span class="text-[10px] bg-blue-600 px-2 py-1 rounded-full">ULTRA</span>
     </div>
 
-    <div id="results-container" class="space-y-4">
-        <div class="text-center mt-20 text-gray-500">
-            <i class="fas fa-compact-disc text-5xl mb-4 animate-spin-slow"></i>
-            <p class="text-sm uppercase tracking-widest">Qidiruvni boshlang</p>
-        </div>
+    <div class="flex gap-2 mb-6">
+        <input type="text" id="searchInput" placeholder="Musiqa nomi..." 
+               class="flex-1 p-4 rounded-2xl bg-black/40 border border-white/10 outline-none">
+        <button onclick="startSearch()" class="btn-gradient px-6 rounded-2xl"><i class="fas fa-search"></i></button>
     </div>
+
+    <div id="resultsContainer" class="space-y-4">
+        </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Botdan keladigan ma'lumotlarni tinglash uchun simulyatsiya
-        function performSearch() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
+        function startSearch() {
+            const query = document.getElementById('searchInput').value;
+            if(!query) return;
 
-            const container = document.getElementById('results-container');
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="skeleton h-40 rounded-3xl w-full"></div>
-                    <div class="skeleton h-40 rounded-3xl w-full"></div>
-                </div>
-            `;
-
-            // Botga qidiruv buyrug'ini yuborish
+            // Botga so'rov yuborish
             tg.sendData(JSON.stringify({
-                action: "search_v2",
+                action: "search_in_app",
                 query: query
             }));
             
-            // Bot natijalarni yana xabar orqali yuboradi, 
-            // lekin biz foydalanuvchini ilovadan chiqarmaymiz
+            // Ilovada yuklanish animatsiyasini ko'rsatish
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="animate-pulse flex space-x-4 p-4 glass rounded-3xl">
+                    <div class="rounded-full bg-slate-700 h-10 w-10"></div>
+                    <div class="flex-1 space-y-6 py-1">
+                        <div class="h-2 bg-slate-700 rounded"></div>
+                        <div class="h-2 bg-slate-700 rounded"></div>
+                    </div>
+                </div>`;
         }
-
-        // Yuklash funksiyasi
-        window.startDownload = (url, type, title) => {
-            tg.sendData(JSON.stringify({
-                action: "download",
-                type: type,
-                url: url,
-                title: title
-            }));
-            tg.close();
-        };
     </script>
 </body>
 </html>

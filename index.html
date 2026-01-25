@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no text-white">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raxmonov Save Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -10,24 +10,20 @@
     <style>
         body { background-color: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .active-tab { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
-        .video-card { transition: all 0.3s ease; }
-        .video-card:active { transform: scale(0.98); }
+        .video-card { transition: all 0.3s ease; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-xl font-bold text-blue-400">Raxmonov Save Pro</h1>
-        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center"><i class="fas fa-bolt"></i></div>
+    <h1 class="text-xl font-bold text-blue-400 mb-6">Raxmonov Save Pro</h1>
+
+    <div class="flex gap-2 mb-8 sticky top-0 bg-[#0f172a] py-2 z-50">
+        <input type="text" id="searchInput" placeholder="Musiqa nomi..." class="flex-1 p-4 rounded-2xl bg-black/40 border border-white/10 outline-none text-sm focus:border-blue-500">
+        <button onclick="searchAction()" class="bg-blue-600 px-6 rounded-2xl active:scale-95"><i class="fas fa-search"></i></button>
     </div>
 
-    <div class="flex gap-2 mb-8">
-        <input type="text" id="searchInput" placeholder="Musiqa nomi..." class="flex-1 p-4 rounded-2xl bg-black/40 border border-white/10 outline-none text-sm">
-        <button onclick="searchApp()" class="bg-blue-600 px-6 rounded-2xl"><i class="fas fa-search"></i></button>
-    </div>
-
-    <div id="resultsBox" class="space-y-4 pb-20">
-        <div class="text-center text-gray-500 mt-10">Qidiruv natijalari shu yerda chiqadi</div>
+    <div id="resultsContainer" class="space-y-4 pb-24">
+        <div id="statusText" class="text-center text-gray-500 mt-10">Qidiruv natijalari shu yerda chiqadi</div>
     </div>
 
     <script type="module">
@@ -47,41 +43,41 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Qidiruv natijalarini real vaqtda tinglash
+        // Real vaqtda bazani tinglash
         if (tg.initDataUnsafe.user) {
             const userId = tg.initDataUnsafe.user.id;
             onValue(ref(db, `search_results/${userId}`), (snapshot) => {
                 const data = snapshot.val();
-                if (data && data.results) {
-                    renderResults(data.results);
+                if (data && data.items) {
+                    displayResults(data.items);
                 }
             });
         }
 
-        window.searchApp = () => {
-            const query = document.getElementById('searchInput').value;
-            if(!query) return;
-            document.getElementById('resultsBox').innerHTML = '<div class="text-center">Qidirilmoqda...</div>';
-            tg.sendData(JSON.stringify({action: "app_search", query: query}));
+        window.searchAction = () => {
+            const q = document.getElementById('searchInput').value;
+            if(!q) return;
+            document.getElementById('statusText').innerText = "Qidirilmoqda...";
+            tg.sendData(JSON.stringify({action: "app_search", query: q}));
         };
 
-        function renderResults(results) {
-            const box = document.getElementById('resultsBox');
-            box.innerHTML = '';
-            results.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "glass p-3 rounded-3xl video-card flex gap-3";
-                div.innerHTML = `
-                    <img src="${item.thumb}" class="w-24 h-16 rounded-xl object-cover">
+        function displayResults(items) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "glass p-3 rounded-3xl video-card flex gap-4 items-center";
+                card.innerHTML = `
+                    <img src="${item.thumb}" class="w-24 h-16 rounded-xl object-cover shadow-lg">
                     <div class="flex-1 overflow-hidden">
                         <h3 class="text-xs font-bold truncate">${item.title}</h3>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="download('${item.id}', 'mp3')" class="bg-blue-600/20 text-blue-400 text-[10px] px-3 py-1 rounded-lg">MP3</button>
-                            <button onclick="download('${item.id}', 'mp4')" class="bg-green-600/20 text-green-400 text-[10px] px-3 py-1 rounded-lg">MP4</button>
+                            <button onclick="download('${item.id}', 'mp3')" class="bg-blue-600/20 text-blue-400 text-[10px] font-bold px-4 py-2 rounded-xl">MP3</button>
+                            <button onclick="download('${item.id}', 'mp4')" class="bg-green-600/20 text-green-400 text-[10px] font-bold px-4 py-2 rounded-xl">MP4</button>
                         </div>
                     </div>
                 `;
-                box.appendChild(div);
+                container.appendChild(card);
             });
         }
 

@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --tg-theme-bg-color: #0f172a; --tg-theme-text-color: #ffffff; }
-        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .active-tab { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
         .input-focus:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
         .btn-gradient { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+        input { color: white !important; }
     </style>
 </head>
 <body class="p-4">
@@ -39,15 +40,15 @@
 
     <div id="section-download" class="space-y-6">
         <div class="glass p-5 rounded-3xl">
-            <label class="block text-sm font-medium mb-3 text-gray-300">Media havolasini kiriting:</label>
+            <label class="block text-sm font-medium mb-3 text-gray-300 text-center">Havolani (link) kiriting:</label>
             <input type="text" id="linkInput" placeholder="Instagram, TikTok yoki YouTube..." 
-                   class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus transition-all text-sm">
+                   class="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus transition-all text-sm mb-4">
             
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                <button onclick="processLink('mp4')" class="btn-gradient p-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="processLink('mp4')" class="btn-gradient p-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
                     <i class="fas fa-video"></i> MP4
                 </button>
-                <button onclick="processLink('mp3')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                <button onclick="processLink('mp3')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <i class="fas fa-music"></i> MP3
                 </button>
             </div>
@@ -55,15 +56,15 @@
 
         <div class="grid grid-cols-3 gap-2">
             <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-instagram text-pink-500 mb-1"></i>
+                <i class="fab fa-instagram text-pink-500 mb-1 text-xl"></i>
                 <p class="text-[10px]">Instagram</p>
             </div>
             <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-tiktok text-white mb-1"></i>
+                <i class="fab fa-tiktok text-white mb-1 text-xl"></i>
                 <p class="text-[10px]">TikTok</p>
             </div>
             <div class="glass p-3 rounded-2xl text-center">
-                <i class="fab fa-youtube text-red-500 mb-1"></i>
+                <i class="fab fa-youtube text-red-500 mb-1 text-xl"></i>
                 <p class="text-[10px]">YouTube</p>
             </div>
         </div>
@@ -75,17 +76,19 @@
                    class="w-full p-4 pl-12 rounded-2xl bg-black/40 border border-white/10 outline-none input-focus">
             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
         </div>
-        <button onclick="searchMedia()" class="w-full btn-gradient p-4 rounded-2xl font-bold shadow-blue-500/20 shadow-xl">
+        <button onclick="searchMedia()" class="w-full btn-gradient p-4 rounded-2xl font-bold shadow-blue-500/20 shadow-xl active:scale-95 transition-all">
             YouTube'dan qidirish
         </button>
-        <div id="results" class="space-y-2 mt-4">
-            </div>
+        <div id="results" class="text-center text-gray-500 text-sm mt-10">
+            Natijalar botga yuboriladi
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
+        // Firebase sozlamalari
         const firebaseConfig = {
             apiKey: "AIzaSyBc7tUey3q6hGZjWxisJo701-G4NbyD9zI",
             authDomain: "gen-lang-client-0228947349.firebaseapp.com",
@@ -100,17 +103,20 @@
         const db = getDatabase(app);
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.ready();
 
-        // Foydalanuvchini Firebasega saqlash
+        // Foydalanuvchini bazaga yozish
         if (tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             set(ref(db, 'users/' + user.id), {
-                first_name: user.first_name,
+                name: user.first_name,
                 username: user.username || "n/a",
-                date: new Date().toISOString()
+                last_active: new Date().toLocaleString()
             });
         }
 
+        // FUNKSIYALARNI GLOBAL QILISH (Tugmalar ishlashi uchun)
+        
         window.switchTab = (tab) => {
             document.getElementById('section-download').classList.toggle('hidden', tab !== 'download');
             document.getElementById('section-search').classList.toggle('hidden', tab !== 'search');
@@ -119,17 +125,38 @@
         };
 
         window.processLink = (type) => {
-            const url = document.getElementById('linkInput').value;
-            if (!url) { tg.showAlert("Iltimos, havola kiriting!"); return; }
-            tg.sendData(JSON.stringify({action: "download", type: type, url: url}));
-            tg.close();
+            const urlInput = document.getElementById('linkInput');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                tg.showAlert("Iltimos, havolani kiriting!");
+                return;
+            }
+            
+            // Botga JSON yuborish
+            tg.sendData(JSON.stringify({
+                action: "download",
+                type: type,
+                url: url
+            }));
+            tg.close(); // Ilovani yopish
         };
 
         window.searchMedia = () => {
-            const query = document.getElementById('searchInput').value;
-            if (!query) return;
-            tg.sendData(JSON.stringify({action: "search", query: query}));
-            tg.close();
+            const queryInput = document.getElementById('searchInput');
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                tg.showAlert("Qidiruv uchun nom kiriting!");
+                return;
+            }
+            
+            // Botga JSON yuborish
+            tg.sendData(JSON.stringify({
+                action: "search",
+                query: query
+            }));
+            tg.close(); // Ilovani yopish
         };
     </script>
 </body>
